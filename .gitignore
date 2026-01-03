@@ -1,0 +1,36 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Claude AI Documentation (internal use only)
+.Claude/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Build artifacts
+build/
+dist/
+out/
+.next/
+
+# Dependencies
+node_modules/
+.gradle/
+
+# Temporary files
+*.tmp
+*.temp
