@@ -9,6 +9,7 @@ const nextConfig = {
   },
   // Vercel 배포 최적화
   reactStrictMode: true,
+  output: 'standalone',
 }
 
 module.exports = nextConfig

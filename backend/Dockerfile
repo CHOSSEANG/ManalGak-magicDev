@@ -19,12 +19,12 @@ COPY src ./src
 RUN gradle bootJar --no-daemon
 
 # Stage 2: Runtime
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-# Create non-root user
-RUN addgroup -S spring && adduser -S spring -G spring
+# Create non-root user (Debian/Ubuntu)
+RUN addgroup --system spring && adduser --system --ingroup spring spring
 
 # Copy JAR from builder
 COPY --from=builder /app/build/libs/*.jar app.jar
