@@ -1,5 +1,57 @@
-version: '3.8'
 services:
-  placeholder:
-    image: alpine:3.19
-    command: ["sh", "-c", "echo placeholder"]
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: manalgak-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - manalgak-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    container_name: manalgak-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:3306/manalgak?useSSL=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_REDIS_HOST: ${REDIS_HOST}
+      KAKAO_API_KEY: ${KAKAO_API_KEY}
+      ODSAY_API_KEY: ${ODSAY_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - manalgak-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://manalgak.com/api/v1
+        NEXT_PUBLIC_KAKAO_MAP_KEY: ${NEXT_PUBLIC_KAKAO_MAP_KEY}
+    container_name: manalgak-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: https://manalgak.com/api/v1
+      NEXT_PUBLIC_KAKAO_MAP_KEY: ${NEXT_PUBLIC_KAKAO_MAP_KEY}
+    networks:
+      - manalgak-network
+    restart: unless-stopped
+
+networks:
+  manalgak-network:
+    driver: bridge

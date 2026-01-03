@@ -107,6 +107,14 @@ docker run -d \
 java -jar -Dspring.profiles.active=local build/libs/manalgak-0.0.1-SNAPSHOT.jar
 ```
 
+## 배포 (AWS EC2 + Docker + Nginx)
+
+운영 환경은 AWS EC2에 Docker로 올리고, Nginx가 `/api` 경로를 백엔드로 프록시합니다.
+
+- **API 엔드포인트**: https://manalgak.com/api
+- **DB**: 로컬은 Docker MySQL, 운영은 RDS(MySQL)
+- **실행**: `docker/docker-compose.yml` 사용, 프로필은 `prod`
+
 ## API 문서
 
 서버 실행 후 아래 URL에서 Swagger UI를 확인할 수 있습니다:
