@@ -151,19 +151,24 @@ yarn lint
 - 반응형 디자인
 - 모바일 최적화
 
-## 배포
+## 배포 (AWS EC2 + Docker + Nginx)
 
-### Vercel 배포
+운영 환경은 AWS EC2에 Docker로 올리고, Nginx가 도메인에서 프론트를 서빙합니다.
+
+- **Frontend**: https://manalgak.com/
+- **Backend**: https://manalgak.com/api (Nginx가 `/api`를 Spring Boot로 프록시)
+
+### EC2에서 실행
 
 ```bash
-# Vercel CLI 설치
-npm install -g vercel
-
-# 배포
-vercel
+# 루트에서 실행
+docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-환경 변수는 Vercel 대시보드에서 설정합니다.
+### Nginx 설정
+
+`docker/nginx/nginx.conf`에 도메인과 `/api` 프록시 규칙이 정의되어 있습니다.
+HTTPS는 Let’s Encrypt 인증서를 `/etc/letsencrypt`에 배치하는 방식으로 처리합니다.
 
 ## 참고 문서
 

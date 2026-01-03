@@ -7,8 +7,9 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
-  // Vercel 배포 최적화
+  // Production build settings
   reactStrictMode: true,
+  output: 'standalone',
 }
 
 module.exports = nextConfig

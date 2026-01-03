@@ -1,2 +1,7 @@
-FROM alpine:3.19
-CMD ["sh", "-c", "echo placeholder"]
+FROM nginx:1.25-alpine
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+RUN mkdir -p /var/www/certbot
+
+EXPOSE 80 443
