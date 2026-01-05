@@ -46,6 +46,13 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: 604800000
 
+# Swagger/OpenAPI (개발 환경 - 활성화)
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
 # Logging
 logging:
   level:

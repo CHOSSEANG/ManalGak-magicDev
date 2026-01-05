@@ -50,6 +50,13 @@ jwt:
   secret: ${JWT_SECRET:your-jwt-secret-key-min-256-bits-long-for-hs256-algorithm}
   expiration: 604800000  # 7일 (밀리초)
 
+# Swagger/OpenAPI (로컬 환경 - 활성화)
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
 # Logging
 logging:
   level:
