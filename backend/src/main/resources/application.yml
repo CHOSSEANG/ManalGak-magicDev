@@ -9,3 +9,17 @@ server:
   port: 8080
   servlet:
     context-path: /api
+
+# Swagger/OpenAPI 설정
+springdoc:
+  api-docs:
+    path: /v3/api-docs  # OpenAPI JSON 경로
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html  # Swagger UI 경로
+    enabled: true
+    tags-sorter: alpha  # 태그 알파벳 정렬
+    operations-sorter: alpha  # API 알파벳 정렬
+    display-request-duration: true  # 요청 시간 표시
+    doc-expansion: none  # 기본적으로 모두 접힌 상태
+  show-actuator: false  # Actuator 엔드포인트 숨기기
