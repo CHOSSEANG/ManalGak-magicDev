@@ -1,109 +1,36 @@
-// @//frontend/src/app/page.tsx 
 "use client"
 
-const IconHome = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 10.5L12 3l9 7.5" />
-    <path d="M5 9.5V21h14V9.5" />
-  </svg>
-)
-
-const IconBell = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M6 8a6 6 0 0112 0c0 7 3 7 3 7H3s3 0 3-7" />
-    <path d="M10 22a2 2 0 004 0" />
-  </svg>
-)
-
-const IconSettings = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="3" />
-    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 005 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 008 3.6 1.65 1.65 0 009.51 3H9.6a1.65 1.65 0 001.51 1 1.65 1.65 0 001-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019 8c0 .62.22 1.2.6 1.64.35.38.83.6 1.35.6H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" />
-  </svg>
-)
-
-const IconUser = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 21a8 8 0 00-16 0" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-)
-
-const IconUsers = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 00-3-3.87" />
-    <path d="M16 3.13a4 4 0 010 7.75" />
-  </svg>
-)
-
-const IconPlus = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12 5v14" />
-    <path d="M5 12h14" />
-  </svg>
-)
-
-const mobileMeetings = [
-  { id: 1, name: "대학 동기 모임", memberCount: 8, appointmentCount: 3 },
-  { id: 2, name: "회사 동료들", memberCount: 5, appointmentCount: 1 },
-  { id: 3, name: "고등학교 친구들", memberCount: 12, appointmentCount: 5 },
-]
+import { Bell, Home, Plus, Settings, User, Users } from "lucide-react"
 
 const desktopMeetings = [
-  { id: 1, name: "대학 동기 모임", memberCount: 8, appointmentCount: 3 },
-  { id: 2, name: "직장 동료", memberCount: 5, appointmentCount: 2 },
-  { id: 3, name: "축구 동호회", memberCount: 12, appointmentCount: 5 },
-  { id: 4, name: "독서 모임", memberCount: 6, appointmentCount: 1 },
+  {
+    id: 1,
+    name: "대학 동기 모임",
+    memberCount: 8,
+    appointmentCount: 3,
+    gradient: "from-purple-500 to-purple-600",
+  },
+  {
+    id: 2,
+    name: "직장 동료",
+    memberCount: 5,
+    appointmentCount: 2,
+    gradient: "from-emerald-500 to-emerald-600",
+  },
+  {
+    id: 3,
+    name: "축구 동호회",
+    memberCount: 12,
+    appointmentCount: 5,
+    gradient: "from-rose-500 to-rose-600",
+  },
+  {
+    id: 4,
+    name: "독서 모임",
+    memberCount: 6,
+    appointmentCount: 1,
+    gradient: "from-blue-500 to-blue-600",
+  },
 ]
 
 const desktopAppointments = [
@@ -130,16 +57,22 @@ const desktopAppointments = [
   },
 ]
 
-export default function Page() {
+const mobileMeetings = [
+  { id: 1, name: "대학 동기 모임", memberCount: 8, appointmentCount: 3 },
+  { id: 2, name: "회사 동료들", memberCount: 5, appointmentCount: 1 },
+  { id: 3, name: "고등학교 친구들", memberCount: 12, appointmentCount: 5 },
+]
+
+export default function MeetingsPage() {
   return (
-    <main className="min-h-screen bg-gray-50" suppressHydrationWarning>
+    <main className="min-h-screen bg-gray-50">
       <div className="hidden md:block">
         <div className="min-h-screen flex flex-col bg-gray-50">
           <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 text-white shadow-lg sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
               <button className="flex items-center gap-3 hover:opacity-80 transition">
                 <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <IconHome className="w-5 h-5" />
+                  <Home className="w-5 h-5" />
                 </div>
                 <div>
                   <h1 className="text-xl">MeetHub</h1>
@@ -149,13 +82,13 @@ export default function Page() {
 
               <div className="flex items-center gap-3">
                 <button className="p-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition">
-                  <IconBell className="w-5 h-5" />
+                  <Bell className="w-5 h-5" />
                 </button>
                 <button className="p-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition">
-                  <IconSettings className="w-5 h-5" />
+                  <Settings className="w-5 h-5" />
                 </button>
                 <button className="p-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition">
-                  <IconUser className="w-5 h-5" />
+                  <User className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -174,7 +107,7 @@ export default function Page() {
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-gray-700">모임 목록</h3>
                   <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition flex items-center gap-2">
-                    <IconPlus className="w-4 h-4" />
+                    <Plus className="w-4 h-4" />
                     새 모임 만들기
                   </button>
                 </div>
@@ -184,8 +117,10 @@ export default function Page() {
                       key={meeting.id}
                       className="group bg-white rounded-xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 text-left"
                     >
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <IconUsers className="w-6 h-6 text-white" />
+                      <div
+                        className={`w-12 h-12 bg-gradient-to-br ${meeting.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                      >
+                        <Users className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="mb-3 text-gray-800">{meeting.name}</h3>
                       <div className="flex items-center gap-3 text-sm text-gray-500">
@@ -219,7 +154,9 @@ export default function Page() {
                           {appt.status}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 mb-2">{appt.date}</p>
+                      <p className="text-sm text-gray-500 mb-2">
+                        {appt.date}
+                      </p>
                       <p className="text-sm text-gray-500">
                         참여자 {appt.participants}명
                       </p>
@@ -245,7 +182,9 @@ export default function Page() {
             <div className="h-[600px] flex flex-col">
               <div className="p-4 border-b flex items-center justify-between">
                 <h2>내 모임</h2>
-                <button className="px-3 py-1 border rounded">마이페이지</button>
+                <button className="px-3 py-1 border rounded">
+                  마이페이지
+                </button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -256,7 +195,7 @@ export default function Page() {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3>{meeting.name}</h3>
-                      <IconUsers className="w-5 h-5 text-gray-400" />
+                      <Users className="w-5 h-5 text-gray-400" />
                     </div>
                     <div className="text-sm text-gray-600 space-y-1">
                       <div>멤버 {meeting.memberCount}명</div>
@@ -268,7 +207,7 @@ export default function Page() {
 
               <div className="p-4 border-t">
                 <button className="w-full py-3 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2">
-                  <IconPlus className="w-5 h-5" />
+                  <Plus className="w-5 h-5" />
                   새 모임 만들기
                 </button>
               </div>
