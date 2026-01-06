@@ -21,3 +21,9 @@ body {
   font-family: var(--wf-font);
   background: var(--wf-bg);
 }
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
