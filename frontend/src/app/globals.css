@@ -3,11 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* 와이어프레임 단계: 디자인 토큰 자리 */
+  --wf-font: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
+  --wf-bg: #f6f5f2;
+  --wf-surface: #ffffff;
+  --wf-muted: #e6e4df;
+  --wf-border: #d4d0c7;
+  --wf-accent: #cfd7df;
+  --wf-highlight: #efe0b2;
+  --wf-overlay: rgba(17, 17, 17, 0.35);
+  --wf-text: #1a1a1a;
+  --wf-subtle: #6b6b6b;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
+  color: var(--wf-text);
+  font-family: var(--wf-font);
+  background: var(--wf-bg);
 }
