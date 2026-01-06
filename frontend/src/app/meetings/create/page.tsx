@@ -1,4 +1,7 @@
+// src/app/meetings/create/page.tsx
+
 import Link from 'next/link'
+import WireframeAppHeader from '@/components/wireframe/WireframeAppHeader'
 import WireframeCard from '@/components/wireframe/WireframeCard'
 import WireframeHeader from '@/components/wireframe/WireframeHeader'
 
@@ -21,6 +24,7 @@ export default function CreateEntryPage() {
   // 와이어프레임 단계: 모임 생성 시작
   return (
     <main className="space-y-6">
+      <WireframeAppHeader />
       <WireframeHeader title="모임 생성" backHref="/" />
 
       <section className="space-y-4">

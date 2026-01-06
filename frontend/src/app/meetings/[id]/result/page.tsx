@@ -1,13 +1,15 @@
+// src/app/meetings/[id]/result/page.tsx
+
 import Link from 'next/link'
+import WireframeAppHeader from '@/components/wireframe/WireframeAppHeader'
 import WireframeShell from '@/components/wireframe/WireframeShell'
-import WireframeHeader from '@/components/wireframe/WireframeHeader'
 
 export default function MeetingResultAliasPage() {
   // 와이어프레임 단계: 결과 페이지 placeholder
   return (
     <WireframeShell>
       <main className="space-y-6">
-        <WireframeHeader title="모임 결과" backHref="/meetings/create" />
+        <WireframeAppHeader />
         <p className="text-sm text-[var(--wf-subtle)]">
           이 페이지는 /meetings/[id] 결과 화면으로 이동합니다.
         </p>

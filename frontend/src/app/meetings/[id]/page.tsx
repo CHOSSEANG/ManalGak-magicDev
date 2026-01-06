@@ -1,6 +1,8 @@
+// src/app/meetings/[id]/page.tsx
+
 import Link from 'next/link'
+import WireframeAppHeader from '@/components/wireframe/WireframeAppHeader'
 import WireframeCard from '@/components/wireframe/WireframeCard'
-import WireframeHeader from '@/components/wireframe/WireframeHeader'
 import WireframeShell from '@/components/wireframe/WireframeShell'
 import MeetingTabs from '@/components/wireframe/MeetingTabs'
 
@@ -11,7 +13,7 @@ export default function MeetingResultPage() {
   return (
     <WireframeShell>
       <main className="space-y-6">
-        <WireframeHeader title="확정된 모임" backHref="/meetings/create" />
+        <WireframeAppHeader />
         <p className="text-sm text-[var(--wf-subtle)]">
           선택한 정보 요약과 탭 콘텐츠를 확인합니다.
         </p>
@@ -38,7 +40,7 @@ export default function MeetingResultPage() {
 
         <div className="flex justify-end">
           <Link
-            href="/meetings/create"
+            href="/my"
             className="rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-6 py-3 text-sm font-semibold"
           >
             내 모임 목록으로 이동
