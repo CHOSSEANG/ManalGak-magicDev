@@ -1,3 +1,4 @@
+// @/frontend/src/app/meetings/page.tsx
 "use client"
 
 import { Bell, Home, Plus, Settings, User, Users } from "lucide-react"
