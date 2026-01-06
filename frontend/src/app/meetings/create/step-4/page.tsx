@@ -22,7 +22,7 @@ export default function Step4Page() {
         <Step4Form />
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-[var(--wf-border)] bg-[var(--wf-bg)]">
+      <div className="fixed inset-x-0 bottom-0 bg-transparent">
         <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-4">
           <button
             type="button"
