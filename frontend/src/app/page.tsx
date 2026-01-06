@@ -1,4 +1,7 @@
+// src/app/page.tsx
+
 import Link from 'next/link'
+import WireframeAppHeader from '@/components/wireframe/WireframeAppHeader'
 import WireframeCard from '@/components/wireframe/WireframeCard'
 import WireframeShell from '@/components/wireframe/WireframeShell'
 
@@ -7,6 +10,7 @@ export default function HomePage() {
   return (
     <WireframeShell>
       <main className="flex min-h-[80vh] flex-col justify-between gap-8">
+        <WireframeAppHeader />
         <div className="space-y-6">
           <div className="space-y-2">
             <p className="text-sm text-[var(--wf-subtle)]">모임 추천 서비스</p>
@@ -32,13 +36,13 @@ export default function HomePage() {
 
         <div className="flex flex-col gap-3">
           <Link
-            href="/meetings/create"
+            href="/login"
             className="flex w-full items-center justify-center rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-6 py-4 text-base font-semibold"
           >
             카카오 로그인 버튼
           </Link>
           <p className="text-xs text-[var(--wf-subtle)]">
-            로그인 성공 시 /meetings/create 이동 (UI만 구현)
+            로그인 성공 시 /create 이동 (UI만 구현)
           </p>
         </div>
       </main>
