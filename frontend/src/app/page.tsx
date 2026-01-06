@@ -1,22 +1,47 @@
+import Link from 'next/link'
+import WireframeCard from '@/components/wireframe/WireframeCard'
+import WireframeShell from '@/components/wireframe/WireframeShell'
+
 export default function HomePage() {
+  // 와이어프레임 단계: 앱 진입 화면
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="text-center">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          만날각
-        </h1>
-        <p className="text-xl text-gray-600 mb-8">
-          모임 목적에 맞는 중간 만남 장소를 추천해드립니다
-        </p>
-        <div className="space-x-4">
-          <a
-            href="/meetings/new"
-            className="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
-          >
-            새 모임 만들기
-          </a>
+    <WireframeShell>
+      <main className="flex min-h-[80vh] flex-col justify-between gap-8">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-sm text-[var(--wf-subtle)]">모임 추천 서비스</p>
+            <h1 className="text-3xl font-semibold">만날각</h1>
+            <p className="text-sm text-[var(--wf-subtle)]">
+              중간 만남 장소 추천을 위한 step-based UX 흐름
+            </p>
+          </div>
+
+          <WireframeCard className="space-y-4">
+            <div className="h-48 rounded-xl border border-dashed border-[var(--wf-border)] bg-[var(--wf-muted)]" />
+            <div className="flex items-center justify-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[var(--wf-border)]" />
+              <span className="h-2 w-2 rounded-full bg-[var(--wf-border)]" />
+              <span className="h-2 w-2 rounded-full bg-[var(--wf-border)]" />
+              <span className="h-2 w-2 rounded-full bg-[var(--wf-border)]" />
+            </div>
+            <p className="text-sm text-[var(--wf-subtle)]">
+              앱 소개 이미지 영역 (placeholder)
+            </p>
+          </WireframeCard>
         </div>
-      </div>
-    </main>
+
+        <div className="flex flex-col gap-3">
+          <Link
+            href="/meetings/create"
+            className="flex w-full items-center justify-center rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-6 py-4 text-base font-semibold"
+          >
+            카카오 로그인 버튼
+          </Link>
+          <p className="text-xs text-[var(--wf-subtle)]">
+            로그인 성공 시 /meetings/create 이동 (UI만 구현)
+          </p>
+        </div>
+      </main>
+    </WireframeShell>
   )
 }
