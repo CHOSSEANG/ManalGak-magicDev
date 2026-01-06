@@ -29,13 +29,6 @@ export default function CreateEntryPage() {
   return (
     <WireframeShell>
       <main className="space-y-6 pb-28">
-        <style jsx global>{`
-          /* 와이어프레임 단계: 로고 이미지로 교체 */
-          header > div:first-child > div:last-child {
-            background: url('/images/logo.svg') center/contain no-repeat;
-            color: transparent;
-          }
-        `}</style>
         <WireframeAppHeader />
 
         <section className="space-y-4">
@@ -97,7 +90,7 @@ export default function CreateEntryPage() {
         </section>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-[var(--wf-border)] bg-[var(--wf-bg)]">
+      <div className="fixed inset-x-0 bottom-0 bg-transparent">
         <div className="mx-auto flex w-full max-w-[1440px] gap-3 px-4 py-4">
           <button
             type="button"
