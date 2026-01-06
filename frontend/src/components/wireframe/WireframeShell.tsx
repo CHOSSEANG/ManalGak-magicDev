@@ -14,7 +14,7 @@ export default function WireframeShell({
     <div
       className={`min-h-screen bg-[var(--wf-bg)] text-[var(--wf-text)] ${className}`}
     >
-      <div className="mx-auto w-full max-w-5xl px-4 py-6 md:px-8 lg:px-10">
+      <div className="mx-auto w-full max-w-[1440px] px-4 py-6">
         {children}
       </div>
     </div>

@@ -1,4 +1,7 @@
+// src/app/meetings/create/option-location/page.tsx
+
 import Link from 'next/link'
+import WireframeAppHeader from '@/components/wireframe/WireframeAppHeader'
 import WireframeCard from '@/components/wireframe/WireframeCard'
 import WireframeHeader from '@/components/wireframe/WireframeHeader'
 
@@ -6,6 +9,7 @@ export default function OptionLocationPage() {
   // 와이어프레임 단계: 옵션 1
   return (
     <main className="space-y-6">
+      <WireframeAppHeader />
       <WireframeHeader
         title="옵션 1. 실시간 위치 공유"
         backHref="/meetings/create"

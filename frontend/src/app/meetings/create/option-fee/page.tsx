@@ -1,4 +1,7 @@
+// src/app/meetings/create/option-fee/page.tsx
+
 import Link from 'next/link'
+import WireframeAppHeader from '@/components/wireframe/WireframeAppHeader'
 import WireframeCard from '@/components/wireframe/WireframeCard'
 import WireframeHeader from '@/components/wireframe/WireframeHeader'
 
@@ -6,6 +9,7 @@ export default function OptionFeePage() {
   // 와이어프레임 단계: 옵션 2
   return (
     <main className="space-y-6">
+      <WireframeAppHeader />
       <WireframeHeader title="옵션 2. 회비 관리" backHref="/meetings/create" />
       <WireframeCard className="space-y-4">
         <p className="text-sm text-[var(--wf-subtle)]">
