@@ -1,6 +1,8 @@
 // src/app/create/page.tsx
 
-import Link from 'next/link'
+'use client'
+
+import { useRouter } from 'next/navigation'
 import WireframeAppHeader from '@/components/wireframe/WireframeAppHeader'
 import WireframeCard from '@/components/wireframe/WireframeCard'
 import WireframeShell from '@/components/wireframe/WireframeShell'
@@ -22,100 +24,97 @@ const existingMeetings = [
 
 export default function CreateEntryPage() {
   // 와이어프레임 단계: 모임 생성 시작
+  const router = useRouter()
+
   return (
     <WireframeShell>
-      <main className="space-y-6">
+      <main className="space-y-6 pb-28">
+        <style jsx global>{`
+          /* 와이어프레임 단계: 로고 이미지로 교체 */
+          header > div:first-child > div:last-child {
+            background: url('/images/logo.svg') center/contain no-repeat;
+            color: transparent;
+          }
+        `}</style>
         <WireframeAppHeader />
 
         <section className="space-y-4">
-          <h1 className="text-2xl font-semibold">모임 생성</h1>
-          <div className="grid gap-4 md:grid-cols-2">
-            <WireframeCard className="space-y-3">
-              <h2 className="text-base font-semibold">새 모임 만들기</h2>
-              <p className="text-sm text-[var(--wf-subtle)]">
-                단계별 플로우로 모임 정보를 입력합니다.
-              </p>
-              <Link
-                href="/create/step-1"
-                className="inline-flex items-center justify-center rounded-xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-4 py-2 text-sm font-semibold"
-              >
-                모임 생성 시작
-              </Link>
-            </WireframeCard>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-semibold">새모임 생성하기</h1>
+            <p className="text-sm text-[var(--wf-subtle)]">
+              모임 명을 입력하고, 다음을 눌러 주세요
+            </p>
+          </div>
 
-            <WireframeCard className="space-y-3">
-              <h2 className="text-base font-semibold">기존 모임 선택</h2>
-              <p className="text-sm text-[var(--wf-subtle)]">
-                최근 모임을 불러와 수정하거나 복사합니다.
-              </p>
-              <div className="space-y-3">
-                {existingMeetings.map((meeting) => (
-                  <div
-                    key={meeting.id}
-                    className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-3"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold">{meeting.title}</p>
-                        <p className="text-xs text-[var(--wf-subtle)]">
-                          {meeting.date}
-                        </p>
-                        <p className="text-xs text-[var(--wf-subtle)]">
-                          {meeting.place}
-                        </p>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <Link
-                          href={`/meetings/${meeting.id}`}
-                          className="rounded-lg border border-[var(--wf-border)] bg-[var(--wf-surface)] px-3 py-1 text-xs"
-                        >
-                          선택
-                        </Link>
-                        <button
-                          type="button"
-                          className="rounded-lg border border-[var(--wf-border)] bg-[var(--wf-surface)] px-3 py-1 text-xs"
-                        >
-                          복사
-                        </button>
-                      </div>
+          <WireframeCard className="space-y-3">
+            <h2 className="text-base font-semibold">모임 명 입력하기</h2>
+            <input
+              type="text"
+              placeholder="친구들끼리 친목모임"
+              className="w-full rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface)] px-4 py-3 text-sm"
+            />
+          </WireframeCard>
+
+          <div className="h-px w-full bg-[var(--wf-border)]" />
+
+          <WireframeCard className="space-y-3">
+            <h2 className="text-base font-semibold">기존 모임 선택</h2>
+            <div className="space-y-3">
+              {existingMeetings.map((meeting) => (
+                <div
+                  key={meeting.id}
+                  className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold">{meeting.title}</p>
+                      <p className="text-xs text-[var(--wf-subtle)]">
+                        {meeting.date}
+                      </p>
+                      <p className="text-xs text-[var(--wf-subtle)]">
+                        {meeting.place}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        className="rounded-lg border border-[var(--wf-border)] bg-[var(--wf-surface)] px-3 py-1 text-xs"
+                      >
+                        수정
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-[var(--wf-border)] bg-[var(--wf-surface)] px-3 py-1 text-xs"
+                      >
+                        복사
+                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            </WireframeCard>
-          </div>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">옵션 단계</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <WireframeCard className="space-y-2">
-              <p className="text-sm font-semibold">옵션 1. 실시간 위치 공유</p>
-              <p className="text-xs text-[var(--wf-subtle)]">
-                토글 UI만 제공 (추적 기능 없음)
-              </p>
-              <Link
-                href="/option/realtime"
-                className="inline-flex items-center justify-center rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface)] px-4 py-2 text-xs"
-              >
-                옵션 설정
-              </Link>
-            </WireframeCard>
-            <WireframeCard className="space-y-2">
-              <p className="text-sm font-semibold">옵션 2. 회비 관리</p>
-              <p className="text-xs text-[var(--wf-subtle)]">
-                회비 금액 입력 및 카카오페이 링크 placeholder
-              </p>
-              <Link
-                href="/option/payment"
-                className="inline-flex items-center justify-center rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface)] px-4 py-2 text-xs"
-              >
-                옵션 설정
-              </Link>
-            </WireframeCard>
-          </div>
+                </div>
+              ))}
+            </div>
+          </WireframeCard>
         </section>
       </main>
+
+      <div className="fixed inset-x-0 bottom-0 border-t border-[var(--wf-border)] bg-[var(--wf-bg)]">
+        <div className="mx-auto flex w-full max-w-[1440px] gap-3 px-4 py-4">
+          <button
+            type="button"
+            onClick={() => router.push('/login')}
+            className="w-1/2 rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-6 py-3 text-sm"
+          >
+            이전
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/create/step-1')}
+            className="w-1/2 rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-6 py-3 text-sm font-semibold"
+          >
+            다음
+          </button>
+        </div>
+      </div>
     </WireframeShell>
   )
 }
