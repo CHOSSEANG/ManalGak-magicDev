@@ -11,9 +11,9 @@ interface HamburgerMenuProps {
 }
 
 const MANALGAK_STEPS = [
-  { step: '', label: '만날각 소개', href: '/about' },
-  { step: '', label: '미리 보기', href: '/about' },
-  { step: '', label: '만든 사람들', href: '/about' },
+  { step: '', label: '만날각 소개', href: '/about#intro' },
+  { step: '', label: '미리 보기', href: '/about#preview' },
+  { step: '', label: '만든 사람들', href: '/about#team' },
 ]
 
 const CREATE_STEPS = [

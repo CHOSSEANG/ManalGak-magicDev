@@ -26,10 +26,12 @@ export default function RootLayout({
               <div className="mx-auto w-full max-w-[1440px] px-4 py-6">
                 {children}
               </div>
+              <Footer />
             </main>
-            <Footer />
+            
           </div>
         </TooltipProvider>
+        
       </body>
     </html>
   )

@@ -42,9 +42,9 @@ export default function Footer() {
           <option value="https://webicapp.com/">
             이전 프로젝트 보기
           </option>
-          
         </select>
       </div>
+      <br /><br /><br />
     </footer>
   )
 }
