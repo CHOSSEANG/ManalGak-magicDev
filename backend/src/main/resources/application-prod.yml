@@ -17,34 +17,34 @@ spring:
         format_sql: false
         dialect: org.hibernate.dialect.MySQLDialect
 
-  redis:
-    host: ${REDIS_HOST}
-    port: 6379
+#  redis:
+#    host: ${REDIS_HOST}
+#    port: 6379
 
   flyway:
     enabled: true
     baseline-on-migrate: true
 
 # 외부 API 설정
-api:
-  kakao:
-    key: ${KAKAO_API_KEY}
-    local-url: https://dapi.kakao.com
-    maps-url: https://apis-navi.kakaomobility.com
-
-  odsay:
-    key: ${ODSAY_API_KEY}
-    url: https://api.odsay.com
-
-  openai:
-    key: ${OPENAI_API_KEY}
-    url: https://api.openai.com/v1
-    model: gpt-4o-mini
+#api:
+#  kakao:
+#    key: ${KAKAO_API_KEY}
+#    local-url: https://dapi.kakao.com
+#    maps-url: https://apis-navi.kakaomobility.com
+#
+#  odsay:
+#    key: ${ODSAY_API_KEY}
+#    url: https://api.odsay.com
+#
+#  openai:
+#    key: ${OPENAI_API_KEY}
+#    url: https://api.openai.com/v1
+#    model: gpt-4o-mini
 
 # JWT 설정
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: 604800000
+#jwt:
+#  secret: ${JWT_SECRET}
+#  expiration: 604800000
 
 # Swagger/OpenAPI (운영 환경 - 비활성화, 보안)
 springdoc:
