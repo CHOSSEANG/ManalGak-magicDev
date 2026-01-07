@@ -1,6 +1,7 @@
 // src/components/layout/HamburgerMenu.tsx
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, ChevronRight } from 'lucide-react'
 
@@ -10,18 +11,18 @@ interface HamburgerMenuProps {
 }
 
 const MANALGAK_STEPS = [
-  { step: '1', label: '날짜 / 시간 선택', href: '/meetings/new/step1-date' },
-  { step: '2', label: '모임 목적', href: '/meetings/new/step2-purpose' },
-  { step: '3', label: '참여 멤버 및 상태', href: '/meetings/new/step3-members' },
+  { step: '', label: '만날각 소개', href: '/about' },
+  { step: '', label: '미리 보기', href: '/about' },
+  { step: '', label: '만든 사람들', href: '/about' },
 ]
 
 const CREATE_STEPS = [
-  { step: 'Step 1.', label: '모임 생성', href: '/meetings/new' },
-  { step: 'Step 2.', label: '날짜 / 시간 선택', href: '/meetings/new/step1-date' },
-  { step: 'Step 3.', label: '모임 목적', href: '/meetings/new/step2-purpose' },
-  { step: 'Step 4.', label: '참여 멤버 및 상태', href: '/meetings/new/step3-members' },
+  { step: 'Step 0.', label: '모임 생성', href: '/meetings/new' },
+  { step: 'Step 1.', label: '날짜 / 시간 선택', href: '/meetings/new/step1-date' },
+  { step: 'Step 2.', label: '모임 목적', href: '/meetings/new/step2-purpose' },
+  { step: 'Step 3.', label: '참여 멤버 및 상태', href: '/meetings/new/step3-members' },
   { step: 'Step 4.', label: '출발지 & 교통수단', href: '/meetings/new/step4-origin' },
-  { step: 'Step 6.', label: '중간지점 & 추천장소', href: '/meetings/new/step5-place' },
+  { step: 'Step 5.', label: '중간지점 & 추천장소', href: '/meetings/new/step5-place' },
 ]
 
 const OPTIONS = [
@@ -36,6 +37,13 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
     router.push(href)
     onClose()
   }
+
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
 
   if (!isOpen) return null
 
@@ -64,19 +72,19 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
           <section>
             <div className="rounded-xl border border-[var(--wf-border)]">
               <button
-                onClick={() => handleNavigate('/meetings/new')}
+                onClick={() => handleNavigate('/about')}
                 className="flex w-full items-center justify-between rounded-xl px-4 py-3 font-medium hover:bg-[#FEE500] hover:text-[#191919]"
               >
                 만날각 소개
                 <ChevronRight className="h-4 w-4 opacity-60" />
               </button>
 
-              <ul className=" pb-1 pt-1 space-y-0 text-[13px] text-[var(--wf-subtle)]">
+              <ul className="pt-1 text-[13px] text-[var(--wf-subtle)]">
                 {MANALGAK_STEPS.map((item) => (
                   <li key={item.href}>
                     <button
                       onClick={() => handleNavigate(item.href)}
-                      className="flex w-full rounded-md px-3 py-2 text-left hover:bg-[#FEE500] hover:text-[#191919]"
+                      className="flex w-full rounded-md pl-7 py-2 text-left hover:bg-[#FEE500] hover:text-[#191919]"
                     >
                       <span className="mr-2 font-medium">{item.step}</span>
                       <span>{item.label}</span>
@@ -98,12 +106,12 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                 <ChevronRight className="h-4 w-4 opacity-60" />
               </button>
 
-              <ul className=" pb-1 pt-1 space-y-0 text-[13px] text-[var(--wf-subtle)]">
+              <ul className="pt-1 text-[13px] text-[var(--wf-subtle)]">
                 {CREATE_STEPS.map((item) => (
                   <li key={item.href}>
                     <button
                       onClick={() => handleNavigate(item.href)}
-                      className="flex w-full rounded-md px-3 py-3 text-left hover:bg-[#FEE500] hover:text-[#191919]"
+                      className="flex w-full rounded-md pl-7 py-2 text-left hover:bg-[#FEE500] hover:text-[#191919]"
                     >
                       <span className="mr-2 font-medium">{item.step}</span>
                       <span>{item.label}</span>
@@ -125,12 +133,12 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                 <ChevronRight className="h-4 w-4 opacity-60" />
               </button>
 
-              <ul className="px-3 pb-3 pt-2 space-y-2 text-[13px] text-[var(--wf-subtle)]">
+              <ul className="pt-1 text-[13px] text-[var(--wf-subtle)]">
                 {OPTIONS.map((item) => (
                   <li key={item.href}>
                     <button
                       onClick={() => handleNavigate(item.href)}
-                      className="flex w-full rounded-md px-3 py-3 text-left hover:bg-[#FEE500] hover:text-[#191919]"
+                      className="flex w-full rounded-md pl-7 py-2 text-left hover:bg-[#FEE500] hover:text-[#191919]"
                     >
                       <span className="mr-2 font-medium">{item.step}</span>
                       <span>{item.label}</span>
