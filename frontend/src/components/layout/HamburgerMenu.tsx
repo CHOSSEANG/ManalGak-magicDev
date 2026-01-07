@@ -2,6 +2,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { X } from 'lucide-react'
 
 interface HamburgerMenuProps {
   isOpen: boolean
@@ -34,18 +35,17 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-40 w-72 border-r border-[var(--wf-border)] bg-[var(--wf-surface)] p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--wf-border)]">
-          ≡
+      <div className="mb-6 flex items-center justify-between">
+          <span className="text-base font-semibold">전체 메뉴</span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--wf-border)] hover:bg-[var(--wf-hover)]"
+            aria-label="메뉴 닫기"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => handleNavigate('/my')}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--wf-border)] text-xs"
-        >
-          프로필
-        </button>
-      </div>
 
       {/* Menu */}
       <nav className="mt-6 space-y-8 text-sm">
@@ -111,18 +111,21 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               </li>
             ))}
           </ul>
+          <div className="h-px w-full bg-[var(--wf-border)]" />
         </section>
+
+        {/* 내 페이지 */}
+          <section>
+            <button
+              type="button"
+              onClick={() => handleNavigate('/my')}
+              className="text-left text-base font-medium"
+            >
+              내 페이지
+            </button>
+          </section>
       </nav>
 
-      {/* Footer */}
-      <div className="mt-10 space-y-4">
-        <button type="button" onClick={() => handleNavigate('/my')}>
-          내 페이지
-        </button>
-        <button type="button" onClick={onClose}>
-          닫기
-        </button>
-      </div>
     </aside>
   )
 }

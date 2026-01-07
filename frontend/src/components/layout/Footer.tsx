@@ -39,7 +39,7 @@ export default function Footer() {
           <option value="https://miro.com/welcomeonboard/WmNTMlNTUjc3ZHhNTDZOdUlmU1BSUllKU0NxY0tSTUNxT3pDdEFmdWRaWTlydURyUVVtMjk1L3pnL0swQnkrREMrcTNMdzhMei9hREpDUGtOTEFPSTl6Q0FLRkJacW9JT3UzZmlDN1J1NDZvV2k3Q3lKMEh2dnJ5K3BYMDhMQmJnbHpza3F6REdEcmNpNEFOMmJXWXBBPT0hdjE=?share_link_id=151136698">
             모일각 miro 기획회의
           </option>
-          <option value="https://github.com/이전-프로젝트">
+          <option value="https://webicapp.com/">
             이전 프로젝트 보기
           </option>
           
