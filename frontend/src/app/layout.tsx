@@ -3,6 +3,7 @@
 import type { Metadata } from 'next'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
@@ -18,15 +19,17 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[var(--wf-bg)] text-[var(--wf-text)]">
-          <Header />
-          <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-[1440px] px-4 py-6">
-              {children}
-            </div>
-          </main>
-          <Footer />
-        </div>
+        <TooltipProvider delayDuration={200}>
+          <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[var(--wf-bg)] text-[var(--wf-text)]">
+            <Header />
+            <main className="flex-1 overflow-y-auto">
+              <div className="mx-auto w-full max-w-[1440px] px-4 py-6">
+                {children}
+              </div>
+            </main>
+            <Footer />
+          </div>
+        </TooltipProvider>
       </body>
     </html>
   )
