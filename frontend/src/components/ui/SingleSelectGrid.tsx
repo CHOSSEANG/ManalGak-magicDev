@@ -1,47 +1,68 @@
-// src/components/ui/SingleSelectGrid.tsx
+"use client";
 
-'use client'
-
-import { useState } from 'react'
+import { useState } from "react";
 
 interface SingleSelectGridProps {
-  items: string[]
-  initial?: string
-  helperText?: string
+  items: string[];
+  selectedItem?: string | null;
+  onSelect?: (item: string) => void;
+  iconMap?: Record<string, JSX.Element>;
+  helperText?: string;
 }
 
 export default function SingleSelectGrid({
   items,
-  initial,
+  selectedItem,
+  onSelect,
+  iconMap,
   helperText,
 }: SingleSelectGridProps) {
-  const [selected, setSelected] = useState(initial ?? items[0])
+  // uncontrolled fallback (다른 페이지 대비)
+  const [internalSelected, setInternalSelected] = useState<string | null>(null);
 
-  // 와이어프레임 단계: 단일 선택 그리드
+  const currentSelected =
+    selectedItem !== undefined ? selectedItem : internalSelected;
+
+  const handleSelect = (item: string) => {
+    if (onSelect) {
+      onSelect(item);
+    } else {
+      setInternalSelected(item);
+    }
+  };
+
   return (
     <div className="space-y-3">
-      {helperText ? (
+      {helperText && (
         <p className="text-sm text-[var(--wf-subtle)]">{helperText}</p>
-      ) : null}
+      )}
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {items.map((item) => {
-          const isSelected = selected === item
+          const isActive = currentSelected === item;
+
           return (
             <button
               key={item}
               type="button"
-              onClick={() => setSelected(item)}
-              className={`rounded-xl border px-4 py-3 text-sm transition ${
-                isSelected
-                  ? 'border-[var(--wf-text)] bg-[var(--wf-accent)]'
-                  : 'border-[var(--wf-border)] bg-[var(--wf-surface)]'
-              }`}
+              onClick={() => handleSelect(item)}
+              className={`flex flex-col items-center justify-center gap-2 rounded-xl border px-3 py-4 text-sm font-medium transition
+                ${
+                  isActive
+                    ? "border-[var(--wf-accent)] bg-[var(--wf-accent)] text-white"
+                    : "border-[var(--wf-border)] bg-white text-gray-700"
+                }`}
             >
-              {item}
+              {iconMap?.[item] && (
+                <div className={isActive ? "text-white" : "text-gray-500"}>
+                  {iconMap[item]}
+                </div>
+              )}
+              <span>{item}</span>
             </button>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
