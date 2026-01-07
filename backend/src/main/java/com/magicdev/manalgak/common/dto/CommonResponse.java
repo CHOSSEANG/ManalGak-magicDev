@@ -15,7 +15,7 @@ public class CommonResponse<T> {
 
     // 성공 응답
     public static <T> CommonResponse<T> success(T data) {
-        return (CommonResponse<T>) CommonResponse.builder()
+        return CommonResponse.<T>builder()
                 .success(true)
                 .data(data)
                 .error(null)
