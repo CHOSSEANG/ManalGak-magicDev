@@ -38,7 +38,7 @@ export default function StepNavigation({
             className={`${
               split && nextHref ? 'w-1/2' : ''
             } relative flex items-center justify-center rounded-2xl border border-[var(--wf-border)]
-              bg-[var(--wf-muted)] px-6 py-3 text-sm`}
+              bg-[var(--wf-muted)] px-6 py-3 text-sm hover:bg-[var(--wf-surface)]`}
           >
             <ArrowLeft  className="absolute left-3 h-6 w-6" /> {prevLabel}
           </button>
@@ -52,7 +52,7 @@ export default function StepNavigation({
             } relative flex items-center justify-center
               rounded-2xl border border-[var(--wf-border)]
               bg-[var(--wf-highlight)] px-6 py-3
-              text-sm font-semibold`}
+              text-sm font-semibold hover:bg-[var(--wf-accent)]`}
           >
             {nextLabel}<ArrowRight  className="absolute right-3 h-6 w-6"/>
           </button>

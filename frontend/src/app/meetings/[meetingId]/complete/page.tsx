@@ -60,8 +60,8 @@ export default function MeetingCompletePage({ params }: PageProps) {
       <StepNavigation
         prevHref="/meetings/new/step5-place"
         prevLabel="중간지점/추천장소"
-        nextHref="/meetings/meeting-001/complete"
-        nextLabel="모임 리스트"
+        nextHref="/my"
+        nextLabel="내 모임 리스트"
       />
     </main>
   )

@@ -54,7 +54,7 @@ export default function CompleteSummaryCard(props: Props) {
             <p>번호 : {phoneNumber}</p>
           </div>
 
-          <button className="h-fit rounded-xl bg-yellow-400 px-3 py-9 text-sm font-semibold">
+          <button className="h-fit rounded-xl bg-yellow-400 px-3 py-9 text-sm font-semibold hover:bg-[var(--wf-accent)]">
             확정장소<br />메시지 전송
           </button>
         </div>

@@ -13,26 +13,19 @@ export default function CompleteOptionLinks({ meetingId }: Props) {
     <StepCard className="space-y-3">
       <p className="text-sm font-semibold">옵션 페이지 이동</p>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex w-full gap-3">
         <Link
           href={`/meetings/${meetingId}/option-location`}
-          className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface)] px-4 py-2 text-sm"
+          className="w-1/2 rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-4 py-4 text-sm hover:bg-[var(--wf-accent)]"
         >
-          실시간 위치 공유
+          옵션 1. 실시간 위치 공유
         </Link>
 
         <Link
           href={`/meetings/${meetingId}/option-fee`}
-          className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface)] px-4 py-2 text-sm"
+          className="w-1/2 rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-4 py-4 text-sm hover:bg-[var(--wf-accent)]"
         >
-          회비 관리
-        </Link>
-
-        <Link
-          href="/my"
-          className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-4 py-2 text-sm font-semibold"
-        >
-          내 모임으로 이동
+          옵션 2. 회비 관리
         </Link>
       </div>
     </StepCard>
