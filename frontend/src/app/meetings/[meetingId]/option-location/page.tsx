@@ -5,6 +5,7 @@ import StepCard from '@/components/meeting/StepCard'
 import StepNavigation from '@/components/layout/StepNavigation'
 import KakaoMap from '@/components/map/KakaoMap'
 
+
 const middlePlaceMarkers = [
   { lat: 37.563617, lng: 126.997628 },
   { lat: 37.565, lng: 126.99 },
@@ -23,24 +24,25 @@ export default function OptionRealtimePage() {
         </p>
       </div>
 
-      <StepCard className="space-y-4">
-        <div className="flex items-center justify-between rounded-xl border border-[var(--wf-border)] 
+      
+        {/* <div className="flex items-center justify-between rounded-xl border border-[var(--wf-border)] 
         bg-[var(--wf-muted)] px-4 py-3 hover:bg-[var(--wf-accent)]">
           <span className="text-sm font-semibold">실시간 위치 공유 동의 </span>
           <label className="flex items-center gap-2 text-xs text-[var(--wf-subtle)]">
             <input type="checkbox" className="h-4 w-4" />
             OFF
           </label>
-        </div>
+        </div> */}
         
         {/* 지도 영역만 */}
-        <div className="h-48 rounded-xl border border-[var(--wf-border)] overflow-hidden lg:h-full">
+        <div className="h-[60vh] md:h-[60vh] lg:h-[70vh]
+         rounded-xl border border-[var(--wf-border)] overflow-hidden">
           <KakaoMap
             markers={middlePlaceMarkers}
             level={mapLevel}
           />
         </div>
-      </StepCard>
+     
 
       {/* 스텝 네비 */}
       <StepNavigation

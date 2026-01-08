@@ -7,7 +7,7 @@ import { Hand, Expand, ZoomIn, ChevronDown } from 'lucide-react'
 import WireframeModal from '@/components/ui/WireframeModal'
 import MapRangeModal from '@/components/meeting/MapRangeModal'
 import MoreRecommendModal from '@/components/meeting/MoreRecommendModal'
-import KakaoMap from '@/components/map/KakaoMap' // ✅ 추가
+import KakaoMap from '@/components/map/KakaoMap' 
 
 const initialMembers = [
   { id: 'u1', name: '이름각', status: 'confirmed', handicap: true },
