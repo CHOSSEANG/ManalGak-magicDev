@@ -2,9 +2,9 @@
 'use client'
 
 import { use } from 'react'
-import CompleteSummaryCard from '@/components/meeting/CompleteSummaryCard'
-import CompleteMapSection from '@/components/meeting/CompleteMapSection'
-import CompleteOptionLinks from '@/components/meeting/CompleteOptionLinks'
+import CompleteSummaryCard from '@/components/meeting/Step6/CompleteSummaryCard'
+import CompleteMapSection from '@/components/meeting/Step6/CompleteMapSection'
+import CompleteOptionLinks from '@/components/meeting/Step6/CompleteOptionLinks'
 import StepNavigation from '@/components/layout/StepNavigation'
 
 interface PageProps {

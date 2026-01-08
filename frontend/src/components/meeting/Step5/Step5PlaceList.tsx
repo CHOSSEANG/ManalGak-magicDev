@@ -1,5 +1,4 @@
 // src/components/meeting/Step5PlaceList.tsx
-// src/components/meeting/Step5PlaceList.tsx
 'use client'
 
 import { useState } from 'react'

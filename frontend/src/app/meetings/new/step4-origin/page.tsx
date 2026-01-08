@@ -1,7 +1,7 @@
 // src/app/meetings/new/step4-origin/page.tsx
 'use client'
 import StepNavigation from '@/components/layout/StepNavigation'
-import Step4Form from '@/components/meeting/Step4Form'
+import Step4Form from '@/components/meeting/Step4/Step4Form'
 
 export default function Step4Page() {
   // 와이어프레임 단계: Step 4

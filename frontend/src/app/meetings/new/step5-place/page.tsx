@@ -2,7 +2,7 @@
 'use client'
 
 import StepNavigation from '@/components/layout/StepNavigation'
-import PlaceList from '@/components/meeting/Step5PlaceList'
+import Step5PlaceList from '@/components/meeting/Step5/Step5PlaceList'
 
 export default function Step5Page() {
   return (
@@ -17,7 +17,7 @@ export default function Step5Page() {
           </p>
         </div>
 
-        <PlaceList />
+        <Step5PlaceList />
       </main>
 
       <StepNavigation

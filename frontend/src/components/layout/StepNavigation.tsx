@@ -4,6 +4,7 @@
 
 import { useRouter } from 'next/navigation'
 import BottomCTA from '@/components/layout/BottomCTA'
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface StepNavigationProps {
   prevHref?: string
@@ -36,9 +37,10 @@ export default function StepNavigation({
             onClick={() => router.push(prevHref)}
             className={`${
               split && nextHref ? 'w-1/2' : ''
-            } rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-6 py-3 text-sm`}
+            } relative flex items-center justify-center rounded-2xl border border-[var(--wf-border)]
+              bg-[var(--wf-muted)] px-6 py-3 text-sm`}
           >
-            {prevLabel}
+            <ArrowLeft  className="absolute left-3 h-6 w-6" /> {prevLabel}
           </button>
         ) : null}
         {nextHref ? (
@@ -47,9 +49,12 @@ export default function StepNavigation({
             onClick={() => router.push(nextHref)}
             className={`${
               split && prevHref ? 'w-1/2' : ''
-            } rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-6 py-3 text-sm font-semibold`}
+            } relative flex items-center justify-center
+              rounded-2xl border border-[var(--wf-border)]
+              bg-[var(--wf-highlight)] px-6 py-3
+              text-sm font-semibold`}
           >
-            {nextLabel}
+            {nextLabel}<ArrowRight  className="absolute right-3 h-6 w-6"/>
           </button>
         ) : null}
       </div>
