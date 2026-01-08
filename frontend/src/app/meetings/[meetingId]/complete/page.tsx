@@ -1,54 +1,68 @@
 // src/app/meetings/[meetingId]/complete/page.tsx
+'use client'
 
-import Link from 'next/link'
-import StepCard from '@/components/meeting/StepCard'
+import { use } from 'react'
+import CompleteSummaryCard from '@/components/meeting/CompleteSummaryCard'
+import CompleteMapSection from '@/components/meeting/CompleteMapSection'
+import CompleteOptionLinks from '@/components/meeting/CompleteOptionLinks'
+import StepNavigation from '@/components/layout/StepNavigation'
 
-export default function CreateCompletePage() {
-  // 와이어프레임 단계: 완료 화면
+interface PageProps {
+  params: Promise<{
+    meetingId: string
+  }>
+}
+
+export default function MeetingCompletePage({ params }: PageProps) {
+  // ✅ Next.js 15 방식: params unwrap
+  const { meetingId } = use(params)
+
+  // TODO: 추후 API 연동
+  const meeting = {
+    name: '친구들끼리 친목모임',
+    dateTime: '2026.01.23 12:00',
+    memberCount: 5,
+    category: '카페',
+    placeName: '중간지점 카페',
+    address: '서울시 어쩌구 저쩌동 12-34',
+    parkingInfo: '가능 (유료 10분당 1,200원)',
+    reservationInfo: '가능',
+    phoneNumber: '070-0000-0000',
+    lat: 37.563617,
+    lng: 126.997628,
+  }
+
   return (
-    <main className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">모임 확정 완료</h1>
-        <p className="text-sm text-[var(--wf-subtle)]">
-          선택 정보 요약 카드 placeholder
-        </p>
-      </div>
+    <main className="space-y-8">
+      {/* 확정 장소 지도 */}
+      <CompleteMapSection
+        lat={meeting.lat}
+        lng={meeting.lng}
+      />
 
-      <StepCard className="space-y-3">
-        <div className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-4 text-sm">
-          모임명: 친구들과 친목모임
-        </div>
-        <div className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-4 text-sm">
-          일시: 2026.01.23 12:00
-        </div>
-        <div className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-4 text-sm">
-          중간지점: 중간지점 카페
-        </div>
-      </StepCard>
+      {/* 확정 정보 요약 카드 */}
+      <CompleteSummaryCard
+        meetingName={meeting.name}
+        dateTime={meeting.dateTime}
+        memberCount={meeting.memberCount}
+        category={meeting.category}
+        placeName={meeting.placeName}
+        address={meeting.address}
+        parkingInfo={meeting.parkingInfo}
+        reservationInfo={meeting.reservationInfo}
+        phoneNumber={meeting.phoneNumber}
+      />
 
-      <StepCard className="space-y-3">
-        <p className="text-sm font-semibold">옵션 페이지 이동</p>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/meetings/meeting-001/option-location"
-            className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface)] px-4 py-2 text-sm"
-          >
-            실시간 위치 공유
-          </Link>
-          <Link
-            href="/meetings/meeting-001/option-fee"
-            className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface)] px-4 py-2 text-sm"
-          >
-            회비 관리
-          </Link>
-          <Link
-            href="/my"
-            className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-4 py-2 text-sm font-semibold"
-          >
-            내 모임으로 이동
-          </Link>
-        </div>
-      </StepCard>
+      {/* 옵션 이동 링크 */}
+      <CompleteOptionLinks meetingId={meetingId} />
+
+      {/* 스텝 네비 */}
+      <StepNavigation
+        prevHref="/meetings/new/step5-place"
+        prevLabel="중간지점/추천장소"
+        nextHref="/meetings/meeting-001/complete"
+        nextLabel="모임 리스트"
+      />
     </main>
   )
 }

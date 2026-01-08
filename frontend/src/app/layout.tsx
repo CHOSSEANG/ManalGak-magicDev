@@ -20,14 +20,6 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-
-        {/* Kakao Map SDK */}
-          <Script
-            src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&autoload=false`}
-            strategy="afterInteractive"
-          />
-
-
         <TooltipProvider delayDuration={200}>
           <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[var(--wf-bg)] text-[var(--wf-text)]">
             <Header />

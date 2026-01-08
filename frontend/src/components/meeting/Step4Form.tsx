@@ -9,6 +9,8 @@ import AddressSearch from '@/components/map/AddressSearch'
 import BookmarkAddressModal from '@/components/map/BookmarkAddressModal'
 import TimeSelectModal from '@/components/map/TimeSelectModal'
 import KakaoMap from '@/components/map/KakaoMap'
+import KakaoMapLoader from '@/components/map/KakaoMapLoader'
+
 
 type AddressType = 'origin' | 'return'
 
@@ -49,6 +51,9 @@ export default function Step4Form() {
   }
 
   return (
+    <>
+    <KakaoMapLoader />
+
     <div className="space-y-6">
       {/* 출발지 */}
       <StepCard className="space-y-4">
@@ -227,6 +232,7 @@ export default function Step4Form() {
           setTimeOpen(false)
         }}
       />
-    </div>
+      </div>
+      </>
   )
 }

@@ -8,6 +8,7 @@ import { Hand, Expand, ZoomIn, ChevronDown } from 'lucide-react'
 import WireframeModal from '@/components/ui/WireframeModal'
 import MapRangeModal from '@/components/meeting/MapRangeModal'
 import MoreRecommendModal from '@/components/meeting/MoreRecommendModal'
+import KakaoMap from '@/components/map/KakaoMap' // ✅ 추가
 
 const initialMembers = [
   { id: 'u1', name: '이름각', status: 'confirmed', handicap: true },
@@ -31,6 +32,13 @@ const recommendedPlaces = [
   { id: 'p4', name: '추천 식당 C', detail: '도보 12분 / 3,500원' },
 ]
 
+// ✅ Step5용 임시 중간지점 좌표 (백엔드 연결 전)
+const middlePlaceMarkers = [
+  { lat: 37.563617, lng: 126.997628 },
+  { lat: 37.565, lng: 126.99 },
+  { lat: 37.56, lng: 127.0 },
+]
+
 export default function Step5PlaceList() {
   const [selectedMiddle, setSelectedMiddle] = useState<string | null>(null)
   const [selectedRecommended, setSelectedRecommended] = useState<string | null>(null)
@@ -45,14 +53,23 @@ export default function Step5PlaceList() {
     <div className="grid gap-4 lg:grid-cols-2">
       <StepCard className="space-y-3">
         <p className="text-sm font-semibold">지도 영역 (API 필요)</p>
-        <div className="h-48 rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] lg:h-full" />
+
+        {/* 지도 영역만 */}
+        <div className="h-48 rounded-xl border border-[var(--wf-border)] overflow-hidden lg:h-full">
+          <KakaoMap
+            markers={middlePlaceMarkers}
+            level={mapLevel}
+          />
+        </div>
 
         <div className="flex flex-wrap gap-2">
           {initialMembers.map((member) => (
             <div
               key={member.id}
-              className={`flex h-16 w-16 flex-col items-center justify-center rounded-xl border border-[var(--wf-border)] ${
-                member.status === 'confirmed' ? 'bg-[var(--wf-accent)]' : 'bg-[var(--wf-surface)]'
+              className={`flex h-16 w-16 flex-col items-center justify-center rounded-xl border-[var(--wf-border)] ${
+                member.status === 'confirmed'
+                  ? 'bg-[var(--wf-accent)]'
+                  : 'bg-[var(--wf-surface)]'
               }`}
             >
               <div className="relative">
@@ -72,7 +89,10 @@ export default function Step5PlaceList() {
       <StepCard className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">중간 지점 리스트</h2>
-          <button onClick={() => setShowMapRangeModal(true)} className="flex items-center gap-1 text-xs text-[var(--wf-subtle)]">
+          <button
+            onClick={() => setShowMapRangeModal(true)}
+            className="flex items-center gap-1 text-xs text-[var(--wf-subtle)]"
+          >
             <Expand className="h-4 w-4" />범위 확장
           </button>
         </div>
@@ -91,7 +111,10 @@ export default function Step5PlaceList() {
                   <p className="text-sm font-semibold">{place.name}</p>
                   <p className="text-xs text-[var(--wf-subtle)]">{place.detail}</p>
                 </div>
-                <button onClick={() => setSelectedMiddle(place.id)} className="rounded-lg border bg-[var(--wf-surface)] px-3 py-1 text-xs">
+                <button
+                  onClick={() => setSelectedMiddle(place.id)}
+                  className="rounded-lg border bg-[var(--wf-surface)] px-3 py-1 text-xs"
+                >
                   {isSelected ? '선택됨' : '선택'}
                 </button>
               </div>
@@ -100,7 +123,10 @@ export default function Step5PlaceList() {
         </div>
       </StepCard>
 
-      <button onClick={() => setShowRecommended(!showRecommended)} className="lg:col-span-2 flex w-full items-center justify-center gap-2 rounded-xl border bg-[var(--wf-surface)] py-3 text-sm font-semibold">
+      <button
+        onClick={() => setShowRecommended(!showRecommended)}
+        className="lg:col-span-2 flex w-full items-center justify-center gap-2 rounded-xl border bg-[var(--wf-surface)] py-3 text-sm font-semibold"
+      >
         <ChevronDown className="h-6 w-6" />
         {showRecommended ? '추천 장소 숨기기' : '추천 장소 보기'}
       </button>
@@ -109,14 +135,17 @@ export default function Step5PlaceList() {
         <StepCard className="space-y-3 lg:col-span-2">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold">추천 장소 리스트</h2>
-            <button onClick={() => setShowMoreRecommendModal(true)} className="flex items-center gap-1 text-xs text-[var(--wf-subtle)]">
+            <button
+              onClick={() => setShowMoreRecommendModal(true)}
+              className="flex items-center gap-1 text-xs text-[var(--wf-subtle)]"
+            >
               <ZoomIn className="h-4 w-4" />추천 확장
             </button>
           </div>
 
           <div className="space-y-1">
             {recommendedPlaces.map((place) => {
-              const isSelected = selectedRecommended === place.id // ✅ 수정
+              const isSelected = selectedRecommended === place.id
 
               return (
                 <div
@@ -142,11 +171,25 @@ export default function Step5PlaceList() {
         </StepCard>
       )}
 
-      <WireframeModal open={showMapRangeModal} title="지도 범위 선택" onClose={() => setShowMapRangeModal(false)}>
-        <MapRangeModal currentLevel={mapLevel} onSelect={(level) => { setMapLevel(level); setShowMapRangeModal(false) }} />
+      <WireframeModal
+        open={showMapRangeModal}
+        title="지도 범위 선택"
+        onClose={() => setShowMapRangeModal(false)}
+      >
+        <MapRangeModal
+          currentLevel={mapLevel}
+          onSelect={(level) => {
+            setMapLevel(level)
+            setShowMapRangeModal(false)
+          }}
+        />
       </WireframeModal>
 
-      <WireframeModal open={showMoreRecommendModal} title="추천 조건 변경" onClose={() => setShowMoreRecommendModal(false)}>
+      <WireframeModal
+        open={showMoreRecommendModal}
+        title="추천 조건 변경"
+        onClose={() => setShowMoreRecommendModal(false)}
+      >
         <MoreRecommendModal onSelect={() => setShowMoreRecommendModal(false)} />
       </WireframeModal>
     </div>
