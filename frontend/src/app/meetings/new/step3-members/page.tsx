@@ -1,7 +1,7 @@
 // src/app/meetings/new/step3-members/page.tsx
 
 import StepNavigation from '@/components/layout/StepNavigation'
-import MemberList from '@/components/meeting/MemberList'
+import MemberList from '@/components/meeting/Step3MemberList'
 
 export default function Step3Page() {
   // 와이어프레임 단계: Step 3

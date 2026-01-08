@@ -1,5 +1,5 @@
 // src/app/meetings/new/page.tsx
-
+'use client'
 import StepNavigation from '@/components/layout/StepNavigation'
 import StepCard from '@/components/meeting/StepCard'
 

@@ -17,7 +17,7 @@ const MANALGAK_STEPS = [
 ]
 
 const CREATE_STEPS = [
-  { step: 'Step 0.', label: '모임 생성', href: '/meetings/new' },
+  { step: 'Step 0.', label: '모임 상세', href: '/meetings/new' },
   { step: 'Step 1.', label: '날짜 / 시간 선택', href: '/meetings/new/step1-date' },
   { step: 'Step 2.', label: '모임 목적', href: '/meetings/new/step2-purpose' },
   { step: 'Step 3.', label: '참여 멤버 및 상태', href: '/meetings/new/step3-members' },
@@ -102,7 +102,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                 onClick={() => handleNavigate('/meetings/new')}
                 className="flex w-full items-center justify-between rounded-xl px-4 py-3 font-medium hover:bg-[#FEE500] hover:text-[#191919]"
               >
-                모임 생성
+                모임 생성 (상세설정 스탭확인)
                 <ChevronRight className="h-4 w-4 opacity-60" />
               </button>
 

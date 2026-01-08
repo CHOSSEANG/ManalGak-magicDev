@@ -1,7 +1,7 @@
 // src/app/meetings/new/step1-date/page.tsx
 
 import StepNavigation from '@/components/layout/StepNavigation'
-import Step1Form from '@/components/ui/Step1Form'
+import Step1Form from '@/components/meeting/Step1Form'
 
 export default function Step1Page() {
   // 와이어프레임 단계: Step 1

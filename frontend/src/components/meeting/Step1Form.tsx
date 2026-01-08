@@ -1,5 +1,5 @@
 // src/components/ui/Step1Form.tsx
-
+// 규리님 작업시 이 부분 변경 필요 - 파일명과 파일위치 바뀜
 'use client'
 
 import { useState } from 'react'
