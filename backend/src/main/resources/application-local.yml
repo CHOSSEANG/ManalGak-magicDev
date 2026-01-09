@@ -19,10 +19,16 @@ spring:
         use_sql_comments: true
         dialect: org.hibernate.dialect.MySQLDialect
 
-#  redis:
-#    host: localhost
-#    port: 6379
-#    timeout: 3000ms
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 10    # 최대 연결 수
+        max-idle: 10      # 최대 유휴 연결 수
+        min-idle: 2       # 최소 유휴 연결 수
+        max-wait: 3000ms  # 연결 대기 시간
 
   flyway:
     enabled: true
