@@ -31,6 +31,8 @@ spring:
 #    key: ${KAKAO_API_KEY}
 #    local-url: https://dapi.kakao.com
 #    maps-url: https://apis-navi.kakaomobility.com
+#    client-secret: ${KAKAO_CLIENT_SECRET}
+#    redirect-uri: ${KAKAO_REDIRECT_URI}
 #
 #  odsay:
 #    key: ${ODSAY_API_KEY}
@@ -58,3 +60,7 @@ logging:
   level:
     com.magicdev.manalgak: INFO
     org.springframework.web: INFO
+
+# 로그인 성공 시
+#frontend:
+#  login-success-url: ${FRONTEND_LOGIN_SUCCESS_URL}
