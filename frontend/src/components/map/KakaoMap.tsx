@@ -16,26 +16,24 @@ export default function KakaoMap() {
     if (!window.kakao || !window.kakao.maps) return
 
     const center = new window.kakao.maps.LatLng(
-      37.563617,
-      126.997628
+      37.5665,
+      126.9780
     )
 
-    const map = new window.kakao.maps.Map(mapRef.current, {
+    new window.kakao.maps.Map(mapRef.current, {
       center,
       level: 5,
-    })
-
-    new window.kakao.maps.Marker({
-      position: center,
-      map,
     })
   }, [])
 
   return (
     <div
       ref={mapRef}
-      style={{ width: '100%', height: '300px' }}
-      className="rounded-2xl bg-gray-200"
+      style={{
+        width: '100%',
+        height: '300px',
+        background: '#eee',
+      }}
     />
   )
 }
