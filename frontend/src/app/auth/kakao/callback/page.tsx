@@ -1,3 +1,4 @@
+// src/app/auth/kakao/callback/page.tsx
 'use client'
 
 import { useEffect } from 'react'
@@ -9,18 +10,15 @@ export default function KakaoCallbackPage() {
 
   useEffect(() => {
     const code = new URLSearchParams(window.location.search).get('code')
-
     if (!code) return
 
-    // 지금은 콘솔만
     console.log('카카오 인가 코드:', code)
 
-    // 나중에 여기서 백엔드 API 호출
-    // fetch('/api/auth/kakao', { method: 'POST', body: JSON.stringify({ code }) })
+    // TODO: 백엔드 API 연결
+    // await fetch('/api/auth/kakao', { method: 'POST', body: JSON.stringify({ code }) })
 
-    // 임시로 다음 단계 이동
     setTimeout(() => {
-      router.push('/meetings/new')
+      router.replace('/meetings/new')
     }, 1000)
   }, [router])
 
