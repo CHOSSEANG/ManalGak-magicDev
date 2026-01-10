@@ -91,7 +91,7 @@ export default function OptionRealtimePage() {
 
         {/* 지도 위 오버레이 UI */}
         <div className="absolute inset-x-0 top-0 z-10 space-y-4 px-4 pt-6">
-          <div>
+          <div className=''>
             <h1 className="text-2xl font-semibold">
               옵션 1. 실시간 위치 공유
             </h1>
@@ -101,20 +101,20 @@ export default function OptionRealtimePage() {
           </div>
 
           {/* 지도 위 버튼 */}
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-7 right-10 z-10 ">
           {status !== 'tracking' ? (
             <button
               onClick={startTracking}
-              className="rounded-xl bg-yellow-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              className="rounded-lg bg-yellow-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
             >
               위치 On
             </button>
           ) : (
             <button
               onClick={stopTracking}
-              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+              className="rounded-xl bg-red-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
             >
-              실시간 위치 공유 중지
+              위치 Off
             </button>
           )}
         </div>
