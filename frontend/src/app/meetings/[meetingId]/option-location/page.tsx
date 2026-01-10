@@ -1,10 +1,9 @@
 // src/app/meetings/[meetingId]/option-location/page.tsx
 'use client'
-import { useState } from 'react'
-import StepCard from '@/components/meeting/StepCard'
+
+import { useState, useEffect, useRef} from 'react'
 import StepNavigation from '@/components/layout/StepNavigation'
 import KakaoMap from '@/components/map/KakaoMap'
-
 
 const middlePlaceMarkers = [
   { lat: 37.563617, lng: 126.997628 },
@@ -14,44 +13,123 @@ const middlePlaceMarkers = [
 
 export default function OptionRealtimePage() {
   const [mapLevel, setMapLevel] = useState(5)
-  // 와이어프레임 단계: 옵션 1
+  const [status, setStatus] = useState<'idle' | 'tracking' | 'denied'>('idle')
+  const watchIdRef = useRef<number | null>(null)
+
+   /** 위치 추적 시작 */
+  const startTracking = () => {
+    if (!navigator.geolocation) {
+      alert('이 브라우저에서는 위치 기능을 지원하지 않습니다.')
+      return
+    }
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords
+
+        console.log('📍 현재 위치', latitude, longitude)
+
+        // TODO: 추후 상태 저장 or 마커 업데이트
+        setStatus('tracking')
+      },
+      (error) => {
+        console.error(error)
+
+        if (error.code === error.PERMISSION_DENIED) {
+          setStatus('denied')
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000,
+      }
+    )
+  }
+
+  /** 위치 추적 중단 */
+  const stopTracking = () => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current)
+      watchIdRef.current = null
+    }
+    setStatus('idle')
+  }
+
+  /** 언마운트 시 안전 처리 */
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+      }
+    }
+  }, [])
+
   return (
-    <main className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">옵션 1. 실시간 위치 공유</h1>
-        <p className="text-sm text-[var(--wf-subtle)]">
-          토글 UI만 제공 (추적 기능 없음)
-        </p>
-      </div>
+    <main className="w-full space-y-6">
+      {/* ✅ 지도 섹션 (명확한 높이) */}
+      <section
+        className="
+          relative w-full
+          h-[65vh]
+          md:h-[70vh]
+          lg:h-[70vh]
+          overflow-hidden
+        "
+      >
+        {/* 지도 */}
+        <KakaoMap
+          markers={middlePlaceMarkers}
+          level={mapLevel}
+        />
 
-      
-        {/* <div className="flex items-center justify-between rounded-xl border border-[var(--wf-border)] 
-        bg-[var(--wf-muted)] px-4 py-3 hover:bg-[var(--wf-accent)]">
-          <span className="text-sm font-semibold">실시간 위치 공유 동의 </span>
-          <label className="flex items-center gap-2 text-xs text-[var(--wf-subtle)]">
-            <input type="checkbox" className="h-4 w-4" />
-            OFF
-          </label>
-        </div> */}
-        
-        {/* 지도 영역만 */}
-        <div className="h-[60vh] md:h-[60vh] lg:h-[70vh]
-         rounded-xl border border-[var(--wf-border)] overflow-hidden">
-          <KakaoMap
-            markers={middlePlaceMarkers}
-            level={mapLevel}
-          />
+        {/* 지도 위 오버레이 UI */}
+        <div className="absolute inset-x-0 top-0 z-10 space-y-4 px-4 pt-6">
+          <div>
+            <h1 className="text-2xl font-semibold">
+              옵션 1. 실시간 위치 공유
+            </h1>
+            <p className="text-sm text-[var(--wf-subtle)]">
+              위치공유를 on 하세요! 
+            </p>
+          </div>
+
+          {/* 지도 위 버튼 */}
+        <div className="absolute top-4 right-4 z-10">
+          {status !== 'tracking' ? (
+            <button
+              onClick={startTracking}
+              className="rounded-xl bg-yellow-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              위치 On
+            </button>
+          ) : (
+            <button
+              onClick={stopTracking}
+              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+            >
+              실시간 위치 공유 중지
+            </button>
+          )}
         </div>
-     
+        </div>
+      </section>
 
-      {/* 스텝 네비 */}
+      {/* 상태 안내 */}
+      {status === 'denied' && (
+        <p className="px-4 text-sm text-red-600">
+          위치 권한이 거부되었습니다.  
+          브라우저 설정에서 위치 권한을 허용해주세요.
+        </p>
+      )}
+
+      {/* ✅ footer 위 정상 콘텐츠 영역 */}
       <StepNavigation
         prevHref="/meetings/new/step5-place"
         prevLabel="이전"
         nextHref="/my"
         nextLabel="내 모임 리스트"
       />
-
     </main>
   )
 }
