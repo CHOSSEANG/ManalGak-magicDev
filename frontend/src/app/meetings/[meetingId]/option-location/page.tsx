@@ -72,7 +72,7 @@ export default function OptionRealtimePage() {
       src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false`}
       strategy="beforeInteractive"
     />
-    <main className="w-full space-y-6">
+    <main className="w-full space-y-0">
       {/* ✅ 지도 섹션 (명확한 높이) */}
       <section
         className="
