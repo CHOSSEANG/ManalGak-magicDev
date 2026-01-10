@@ -14,12 +14,12 @@ interface PageProps {
 }
 
 export default function MeetingCompletePage({ params }: PageProps) {
-  // ✅ Next.js 15 방식: params unwrap
+  // ✅ Next.js 15 방식
   const { meetingId } = use(params)
 
   // TODO: 추후 API 연동
   const meeting = {
-    name: '친구들끼리 친목모임',
+    meetingName: '친구들끼리 친목모임', // ✅ key 수정
     dateTime: '2026.01.23 12:00',
     memberCount: 5,
     category: '카페',
@@ -41,17 +41,7 @@ export default function MeetingCompletePage({ params }: PageProps) {
       />
 
       {/* 확정 정보 요약 카드 */}
-      <CompleteSummaryCard
-        meetingName={meeting.name}
-        dateTime={meeting.dateTime}
-        memberCount={meeting.memberCount}
-        category={meeting.category}
-        placeName={meeting.placeName}
-        address={meeting.address}
-        parkingInfo={meeting.parkingInfo}
-        reservationInfo={meeting.reservationInfo}
-        phoneNumber={meeting.phoneNumber}
-      />
+      <CompleteSummaryCard meeting={meeting} />
 
       {/* 옵션 이동 링크 */}
       <CompleteOptionLinks meetingId={meetingId} />
