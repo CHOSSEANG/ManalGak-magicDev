@@ -18,8 +18,8 @@ public class LastTrainService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public LastTrainResponse getLastTrain(Long participantId, Long candidateId) {
-        String cacheKey = CacheKeys.lastTrainKey(participantId, candidateId);
+    public LastTrainResponse getLastTrain(String meetingUuid, Long participantId, Long candidateId) {
+        String cacheKey = CacheKeys.lastTrainKey(meetingUuid, participantId, candidateId);
 
         LastTrainResponse cached = getCachedLastTrain(cacheKey);
         if (cached != null) {

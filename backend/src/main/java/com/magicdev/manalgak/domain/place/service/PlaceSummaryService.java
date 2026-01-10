@@ -20,8 +20,8 @@ public class PlaceSummaryService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public PlaceSummaryResponse summarizePlaces(Long candidateId, String tone) {
-        String cacheKey = CacheKeys.placeSummaryKey(candidateId, tone);
+    public PlaceSummaryResponse summarizePlaces(String meetingUuid, Long candidateId, String tone) {
+        String cacheKey = CacheKeys.placeSummaryKey(meetingUuid, candidateId, tone);
         log.debug("Cache key: {}", cacheKey);
 
         PlaceSummaryResponse cached = getCachedSummary(cacheKey);

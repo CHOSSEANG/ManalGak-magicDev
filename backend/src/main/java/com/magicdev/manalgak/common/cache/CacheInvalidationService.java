@@ -2,9 +2,13 @@ package com.magicdev.manalgak.common.cache;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -37,11 +41,22 @@ public class CacheInvalidationService {
      * @param meetingUuid 모임 UUID
      */
     public void invalidateMeetingCache(String meetingUuid) {
-        String pattern = CacheKeys.meetingPattern(meetingUuid);
-        int deletedCount = deleteCacheByPattern(pattern);
+        int totalDeleted = 0;
+
+        // 1. 장소 캐시 삭제
+        totalDeleted += deleteCacheByPattern(CacheKeys.meetingPlacesPattern(meetingUuid));
+
+        // 2. 경로 캐시 삭제
+        totalDeleted += deleteCacheByPattern(CacheKeys.meetingRoutesPattern(meetingUuid));
+
+        // 3. 막차 캐시 삭제
+        totalDeleted += deleteCacheByPattern(CacheKeys.meetingTrainPattern(meetingUuid));
+
+        // 4. 요약 캐시 삭제
+        totalDeleted += deleteCacheByPattern(CacheKeys.meetingSummaryPattern(meetingUuid));
 
         log.info("🗑️ Invalidated meeting cache: {} (deleted {} keys)",
-                meetingUuid, deletedCount);
+                meetingUuid, totalDeleted);
     }
 
     // ========== 후보지 단위 무효화 ==========
@@ -59,19 +74,13 @@ public class CacheInvalidationService {
     public void invalidateCandidateCache(Long candidateId) {
         int totalDeleted = 0;
 
-        // 1. 장소 캐시 삭제
-        String placesPattern = CacheKeys.placesPattern(candidateId);
-        totalDeleted += deleteCacheByPattern(placesPattern);
-
-        // 2. 경로 캐시 삭제
-        String routesKey = CacheKeys.routesKey(candidateId);
-        if (Boolean.TRUE.equals(redisTemplate.delete(routesKey))) {
-            totalDeleted++;
-        }
-
-        // 3. 장소 요약 캐시 삭제
-        String summaryPattern = CacheKeys.placeSummaryPattern(candidateId);
-        totalDeleted += deleteCacheByPattern(summaryPattern);
+        // candidatePattern을 사용하여 모든 관련 캐시 삭제
+        // places:meeting:*:candidate:{candidateId}:*
+        // routes:meeting:*:candidate:{candidateId}
+        // train:meeting:*:participant:*:candidate:{candidateId}
+        // summary:*:meeting:*:candidate:{candidateId}:*
+        String pattern = CacheKeys.candidatePattern(candidateId);
+        totalDeleted += deleteCacheByPattern(pattern);
 
         log.info("🗑️ Invalidated candidate cache: {} (deleted {} keys)",
                 candidateId, totalDeleted);
@@ -187,25 +196,53 @@ public class CacheInvalidationService {
     // ========== 내부 유틸리티 메서드 ==========
 
     /**
-     * 패턴에 맞는 모든 캐시 키 삭제
+     * 패턴에 맞는 모든 캐시 키 삭제 (SCAN 사용)
+     * - KEYS 대신 SCAN을 사용하여 운영 환경에서 안전
+     * - 배치 단위로 삭제하여 성능 최적화
      *
      * @param pattern 키 패턴 (예: places:candidate:123:*)
      * @return 삭제된 키 개수
      */
     private int deleteCacheByPattern(String pattern) {
         try {
-            Set<String> keys = redisTemplate.keys(pattern);
+            int totalDeleted = 0;
+            ScanOptions options = ScanOptions.scanOptions()
+                    .match(pattern)
+                    .count(100)  // 한 번에 스캔할 키 개수
+                    .build();
 
-            if (keys == null || keys.isEmpty()) {
-                log.debug("No cache keys found for pattern: {}", pattern);
-                return 0;
+            Cursor<byte[]> cursor = redisTemplate.getConnectionFactory()
+                    .getConnection()
+                    .scan(options);
+
+            List<String> keysToDelete = new ArrayList<>();
+
+            while (cursor.hasNext()) {
+                keysToDelete.add(new String(cursor.next()));
+
+                // 배치 삭제 (100개씩)
+                if (keysToDelete.size() >= 100) {
+                    Long deleted = redisTemplate.delete(keysToDelete);
+                    totalDeleted += (deleted != null ? deleted.intValue() : 0);
+                    keysToDelete.clear();
+                }
             }
 
-            Long deletedCount = redisTemplate.delete(keys);
-            int count = deletedCount != null ? deletedCount.intValue() : 0;
+            // 남은 키 삭제
+            if (!keysToDelete.isEmpty()) {
+                Long deleted = redisTemplate.delete(keysToDelete);
+                totalDeleted += (deleted != null ? deleted.intValue() : 0);
+            }
 
-            log.debug("Deleted {} cache keys with pattern: {}", count, pattern);
-            return count;
+            cursor.close();
+
+            if (totalDeleted > 0) {
+                log.debug("Deleted {} cache keys with pattern: {}", totalDeleted, pattern);
+            } else {
+                log.debug("No cache keys found for pattern: {}", pattern);
+            }
+
+            return totalDeleted;
 
         } catch (Exception e) {
             log.error("Failed to delete cache by pattern: {}", pattern, e);
@@ -214,15 +251,31 @@ public class CacheInvalidationService {
     }
 
     /**
-     * 캐시 통계 조회 (디버깅용)
+     * 캐시 통계 조회 (디버깅용) - SCAN 사용
      *
      * @param pattern 키 패턴
      * @return 해당 패턴의 키 개수
      */
     public int countKeysByPattern(String pattern) {
         try {
-            Set<String> keys = redisTemplate.keys(pattern);
-            return keys != null ? keys.size() : 0;
+            int count = 0;
+            ScanOptions options = ScanOptions.scanOptions()
+                    .match(pattern)
+                    .count(100)
+                    .build();
+
+            Cursor<byte[]> cursor = redisTemplate.getConnectionFactory()
+                    .getConnection()
+                    .scan(options);
+
+            while (cursor.hasNext()) {
+                cursor.next();
+                count++;
+            }
+
+            cursor.close();
+            return count;
+
         } catch (Exception e) {
             log.error("Failed to count keys by pattern: {}", pattern, e);
             return 0;

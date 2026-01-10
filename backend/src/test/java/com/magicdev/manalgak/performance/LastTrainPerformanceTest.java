@@ -30,29 +30,31 @@ class LastTrainPerformanceTest {
 
     @Test
     void 막차_조회_캐싱_성능_테스트() {
+        String meetingUuid = "test-meeting-uuid-1";
         Long participantId = 1L;
         Long candidateId = 1L;
 
-        LastTrainResponse response1 = lastTrainService.getLastTrain(participantId, candidateId);
+        LastTrainResponse response1 = lastTrainService.getLastTrain(meetingUuid, participantId, candidateId);
         assertThat(response1.getStationName()).isNotNull();
 
-        LastTrainResponse response2 = lastTrainService.getLastTrain(participantId, candidateId);
+        LastTrainResponse response2 = lastTrainService.getLastTrain(meetingUuid, participantId, candidateId);
         assertThat(response2.getStationName()).isEqualTo(response1.getStationName());
     }
 
     @Test
     void 다른_참여자_캐시_테스트() {
+        String meetingUuid = "test-meeting-uuid-2";
         Long participantId1 = 1L;
         Long participantId2 = 2L;
         Long candidateId = 1L;
 
-        LastTrainResponse response1 = lastTrainService.getLastTrain(participantId1, candidateId);
+        LastTrainResponse response1 = lastTrainService.getLastTrain(meetingUuid, participantId1, candidateId);
         assertThat(response1.getStationName()).isNotNull();
 
-        LastTrainResponse response2 = lastTrainService.getLastTrain(participantId2, candidateId);
+        LastTrainResponse response2 = lastTrainService.getLastTrain(meetingUuid, participantId2, candidateId);
         assertThat(response2.getStationName()).isNotNull();
 
-        LastTrainResponse response3 = lastTrainService.getLastTrain(participantId1, candidateId);
+        LastTrainResponse response3 = lastTrainService.getLastTrain(meetingUuid, participantId1, candidateId);
         assertThat(response3.getStationName()).isEqualTo(response1.getStationName());
     }
 }

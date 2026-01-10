@@ -4,14 +4,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Redis 캐시 통계 및 관리 API (Admin 전용)
@@ -52,16 +52,16 @@ public class CacheStatsController {
         Map<String, Object> stats = new HashMap<>();
 
         try {
-            // 전체 키 개수
-            long totalKeys = Optional.ofNullable(redisTemplate.keys("*"))
-                    .map(Set::size)
-                    .orElse(0);
+            // 전체 키 개수 (DBSIZE 사용 - 안전하고 빠름)
+            long totalKeys = redisTemplate.getConnectionFactory()
+                    .getConnection()
+                    .dbSize();
 
-            // 도메인별 키 개수
-            long placesCount = countKeysByPattern(CacheKeys.allPlacesPattern());
-            long routesCount = countKeysByPattern(CacheKeys.allRoutesPattern());
-            long summaryCount = countKeysByPattern(CacheKeys.allSummaryPattern());
-            long trainCount = countKeysByPattern(CacheKeys.allTrainPattern());
+            // 도메인별 키 개수 (SCAN 사용)
+            int placesCount = cacheInvalidationService.countKeysByPattern(CacheKeys.allPlacesPattern());
+            int routesCount = cacheInvalidationService.countKeysByPattern(CacheKeys.allRoutesPattern());
+            int summaryCount = cacheInvalidationService.countKeysByPattern(CacheKeys.allSummaryPattern());
+            int trainCount = cacheInvalidationService.countKeysByPattern(CacheKeys.allTrainPattern());
 
             stats.put("totalKeys", totalKeys);
             stats.put("cacheByDomain", Map.of(
@@ -105,15 +105,38 @@ public class CacheStatsController {
 
         try {
             String pattern = domain + ":*";
-            Set<String> keys = redisTemplate.keys(pattern);
+
+            // SCAN 사용하여 키 조회
+            List<String> keys = new ArrayList<>();
+            ScanOptions options = ScanOptions.scanOptions()
+                    .match(pattern)
+                    .count(100)
+                    .build();
+
+            Cursor<byte[]> cursor = redisTemplate.getConnectionFactory()
+                    .getConnection()
+                    .scan(options);
+
+            while (cursor.hasNext() && keys.size() < 10) {  // 최대 10개만 샘플로
+                keys.add(new String(cursor.next()));
+            }
+
+            // 전체 개수 세기
+            int totalCount = keys.size();
+            while (cursor.hasNext()) {
+                cursor.next();
+                totalCount++;
+            }
+
+            cursor.close();
 
             stats.put("domain", domain);
-            stats.put("keyCount", keys != null ? keys.size() : 0);
+            stats.put("keyCount", totalCount);
             stats.put("pattern", pattern);
 
-            if (keys != null && !keys.isEmpty()) {
+            if (!keys.isEmpty()) {
                 // 처음 10개 키만 샘플로 보여주기
-                stats.put("sampleKeys", keys.stream().limit(10).toList());
+                stats.put("sampleKeys", keys);
             }
 
             return ResponseEntity.ok(stats);
@@ -175,24 +198,18 @@ public class CacheStatsController {
             @PathVariable String domain
     ) {
         try {
-            int deletedCount = 0;
-
             switch (domain.toLowerCase()) {
                 case "places":
                     cacheInvalidationService.invalidateAllPlaces();
-                    deletedCount = countKeysByPattern(CacheKeys.allPlacesPattern());
                     break;
                 case "routes":
                     cacheInvalidationService.invalidateAllRoutes();
-                    deletedCount = countKeysByPattern(CacheKeys.allRoutesPattern());
                     break;
                 case "summary":
                     cacheInvalidationService.invalidateAllSummaries();
-                    deletedCount = countKeysByPattern(CacheKeys.allSummaryPattern());
                     break;
                 case "train":
                     cacheInvalidationService.invalidateAllTrains();
-                    deletedCount = countKeysByPattern(CacheKeys.allTrainPattern());
                     break;
                 default:
                     return ResponseEntity.badRequest().body(Map.of(
@@ -201,12 +218,29 @@ public class CacheStatsController {
                     ));
             }
 
-            log.info("🗑️ Invalidated {} cache - {} keys deleted", domain, deletedCount);
+            // 삭제 후 남은 키 개수 확인
+            int remainingCount = 0;
+            switch (domain.toLowerCase()) {
+                case "places":
+                    remainingCount = cacheInvalidationService.countKeysByPattern(CacheKeys.allPlacesPattern());
+                    break;
+                case "routes":
+                    remainingCount = cacheInvalidationService.countKeysByPattern(CacheKeys.allRoutesPattern());
+                    break;
+                case "summary":
+                    remainingCount = cacheInvalidationService.countKeysByPattern(CacheKeys.allSummaryPattern());
+                    break;
+                case "train":
+                    remainingCount = cacheInvalidationService.countKeysByPattern(CacheKeys.allTrainPattern());
+                    break;
+            }
+
+            log.info("🗑️ Invalidated {} cache - remaining keys: {}", domain, remainingCount);
 
             return ResponseEntity.ok(Map.of(
                     "message", "Cache invalidated successfully",
                     "domain", domain,
-                    "deletedKeys", deletedCount
+                    "remainingKeys", remainingCount
             ));
 
         } catch (Exception e) {
@@ -319,10 +353,4 @@ public class CacheStatsController {
         }
     }
 
-    // ========== 내부 유틸리티 ==========
-
-    private int countKeysByPattern(String pattern) {
-        Set<String> keys = redisTemplate.keys(pattern);
-        return keys != null ? keys.size() : 0;
-    }
 }

@@ -1,5 +1,7 @@
 package com.magicdev.manalgak.domain.route.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.magicdev.manalgak.common.cache.CacheKeys;
 import com.magicdev.manalgak.common.cache.CacheTTL;
 import com.magicdev.manalgak.domain.route.dto.RouteSummaryRequest;
@@ -10,9 +12,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +22,11 @@ import java.util.UUID;
 public class RouteSummaryService {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
-    public RouteSummaryResponse summarizeRoutes(RouteSummaryRequest request) {
+    public RouteSummaryResponse summarizeRoutes(String meetingUuid, RouteSummaryRequest request) {
         String routeHash = generateHash(request);
-        String cacheKey = CacheKeys.routeSummaryKey(routeHash);
+        String cacheKey = CacheKeys.routeSummaryKey(meetingUuid, routeHash);
 
         log.debug("Cache key: {}", cacheKey);
 
@@ -79,15 +82,31 @@ public class RouteSummaryService {
         }
     }
 
+    /**
+     * 경로 목록을 해시로 변환
+     * - ObjectMapper로 JSON 직렬화하여 일관성 보장
+     * - MD5 해시로 고정 길이 키 생성
+     *
+     * @param request 경로 요약 요청
+     * @return MD5 해시 문자열
+     * @throws RuntimeException JSON 직렬화 또는 해시 생성 실패 시
+     */
     private String generateHash(RouteSummaryRequest request) {
         try {
-            String json = request.getRoutes().toString();
+            // JSON 직렬화 (안정적)
+            String json = objectMapper.writeValueAsString(request.getRoutes());
+
+            // MD5 해시 생성
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] digest = md.digest(json.getBytes(StandardCharsets.UTF_8));
             return bytesToHex(digest);
-        } catch (Exception e) {
-            log.error("Failed to generate hash", e);
-            return UUID.randomUUID().toString();
+
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize routes to JSON", e);
+            throw new RuntimeException("Failed to generate cache key", e);
+        } catch (NoSuchAlgorithmException e) {
+            log.error("MD5 algorithm not found", e);
+            throw new RuntimeException("Failed to generate hash", e);
         }
     }
 

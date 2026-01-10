@@ -27,7 +27,7 @@ public class ParticipantController {
             @PathVariable Long participantId,
             @PathVariable Long candidateId
     ) {
-        LastTrainResponse response = lastTrainService.getLastTrain(participantId, candidateId);
+        LastTrainResponse response = lastTrainService.getLastTrain(meetingUuid, participantId, candidateId);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
 }

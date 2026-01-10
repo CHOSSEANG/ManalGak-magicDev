@@ -19,8 +19,8 @@ public class PlaceService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public PlaceResponse getRecommendedPlaces(Long candidateId, String purpose, int limit) {
-        String cacheKey = CacheKeys.placesKey(candidateId, purpose, limit);
+    public PlaceResponse getRecommendedPlaces(String meetingUuid, Long candidateId, String purpose, int limit) {
+        String cacheKey = CacheKeys.placesKey(meetingUuid, candidateId, purpose, limit);
 
         PlaceResponse cached = getCachedPlaces(cacheKey);
         if (cached != null) {
