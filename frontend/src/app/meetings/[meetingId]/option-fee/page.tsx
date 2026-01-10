@@ -67,7 +67,19 @@ export default function OptionPaymentPage() {
 
       {/* 기본 회비 */}
       <StepCard className="space-y-2">
-        <label className="text-sm font-semibold">모임 총 비용</label>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold">모임 총 비용</p>
+          <button
+            type="button"
+            onClick={() => {
+              setExtraFeeInputs([...extraFeeInputs, ''])
+              setExtraFees([...extraFees, 0])
+            }}
+            className="flex items-center gap-1 text-xs text-[var(--wf-subtle)]"
+          >
+            + 영수증별 입력
+          </button>
+        </div>
 
         <div className="flex items-center rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface)] px-4 py-2 text-sm">
           <input
