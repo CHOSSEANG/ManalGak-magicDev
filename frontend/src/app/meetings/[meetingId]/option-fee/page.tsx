@@ -314,8 +314,8 @@ export default function OptionPaymentPage() {
 
       {/* 스텝 네비 */}
       <StepNavigation
-        prevHref="/meetings/new/step5-place"
-        prevLabel="중간지점/추천장소"
+        prevHref="/meetings/meeting-001/complete"
+        prevLabel="모임정보 상세보기"
         nextHref="/my"
         nextLabel="내 모임 리스트"
       />
