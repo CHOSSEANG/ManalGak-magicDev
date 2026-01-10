@@ -25,9 +25,10 @@ public class RouteController {
             description = "여러 참여자의 경로 정보를 AI로 요약합니다."
     )
     public ResponseEntity<CommonResponse<RouteSummaryResponse>> summarizeRoutes(
+            @RequestParam String meetingUuid,
             @RequestBody @Valid RouteSummaryRequest request
     ) {
-        RouteSummaryResponse response = routeSummaryService.summarizeRoutes(request);
+        RouteSummaryResponse response = routeSummaryService.summarizeRoutes(meetingUuid, request);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
 }

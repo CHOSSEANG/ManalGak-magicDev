@@ -32,7 +32,7 @@ public class PlaceController {
             @Parameter(description = "목적: DINING, CAFE") @RequestParam(defaultValue = "DINING") String purpose,
             @Parameter(description = "검색 개수") @RequestParam(defaultValue = "5") int limit
     ) {
-        PlaceResponse response = placeService.getRecommendedPlaces(candidateId, purpose, limit);
+        PlaceResponse response = placeService.getRecommendedPlaces(meetingUuid, candidateId, purpose, limit);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
 
@@ -46,7 +46,7 @@ public class PlaceController {
             @PathVariable Long candidateId,
             @Parameter(description = "톤: friendly, professional, casual") @RequestParam(defaultValue = "friendly") String tone
     ) {
-        PlaceSummaryResponse response = placeSummaryService.summarizePlaces(candidateId, tone);
+        PlaceSummaryResponse response = placeSummaryService.summarizePlaces(meetingUuid, candidateId, tone);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
 }

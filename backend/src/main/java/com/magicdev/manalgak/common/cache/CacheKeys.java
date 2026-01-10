@@ -15,118 +15,156 @@ public class CacheKeys {
 
     /**
      * 장소 목록 캐시 키 생성
-     * 형식: places:candidate:{candidateId}:{purpose}:{limit}
+     * 형식: places:meeting:{meetingUuid}:candidate:{candidateId}:{purpose}:{limit}
      *
+     * @param meetingUuid 모임 UUID
      * @param candidateId 후보 지점 ID
      * @param purpose     모임 목적 (DINING, DATE, STUDY, GENERAL)
      * @param limit       반환할 장소 수
-     * @return 캐시 키 (예: places:candidate:123:DINING:10)
+     * @return 캐시 키 (예: places:meeting:abc-123:candidate:123:DINING:10)
      */
-    public static String placesKey(Long candidateId, String purpose, int limit) {
-        return String.format("places:candidate:%d:%s:%d", candidateId, purpose, limit);
+    public static String placesKey(String meetingUuid, Long candidateId, String purpose, int limit) {
+        return String.format("places:meeting:%s:candidate:%d:%s:%d",
+                meetingUuid, candidateId, purpose, limit);
     }
 
     /**
      * 특정 후보지의 모든 장소 캐시 패턴
-     * 형식: places:candidate:{candidateId}:*
+     * 형식: *:candidate:{candidateId}:*
      *
      * @param candidateId 후보 지점 ID
-     * @return 패턴 (예: places:candidate:123:*)
+     * @return 패턴 (예: *:candidate:123:*)
      */
     public static String placesPattern(Long candidateId) {
-        return String.format("places:candidate:%d:*", candidateId);
+        return String.format("*:candidate:%d:*", candidateId);
     }
 
     // ========== API #2: 경로 조회 ==========
 
     /**
      * 경로 정보 캐시 키 생성
-     * 형식: routes:candidate:{candidateId}
+     * 형식: routes:meeting:{meetingUuid}:candidate:{candidateId}
      *
+     * @param meetingUuid 모임 UUID
      * @param candidateId 후보 지점 ID
-     * @return 캐시 키 (예: routes:candidate:456)
+     * @return 캐시 키 (예: routes:meeting:abc-123:candidate:456)
      */
-    public static String routesKey(Long candidateId) {
-        return String.format("routes:candidate:%d", candidateId);
+    public static String routesKey(String meetingUuid, Long candidateId) {
+        return String.format("routes:meeting:%s:candidate:%d", meetingUuid, candidateId);
     }
 
     // ========== API #3: 막차 조회 ==========
 
     /**
      * 막차 정보 캐시 키 생성
-     * 형식: train:participant:{participantId}:candidate:{candidateId}
+     * 형식: train:meeting:{meetingUuid}:participant:{participantId}:candidate:{candidateId}
      *
+     * @param meetingUuid   모임 UUID
      * @param participantId 참여자 ID
      * @param candidateId   후보 지점 ID
-     * @return 캐시 키 (예: train:participant:789:candidate:456)
+     * @return 캐시 키 (예: train:meeting:abc-123:participant:789:candidate:456)
      */
-    public static String lastTrainKey(Long participantId, Long candidateId) {
-        return String.format("train:participant:%d:candidate:%d",
-                participantId, candidateId);
+    public static String lastTrainKey(String meetingUuid, Long participantId, Long candidateId) {
+        return String.format("train:meeting:%s:participant:%d:candidate:%d",
+                meetingUuid, participantId, candidateId);
     }
 
     /**
      * 특정 참여자의 모든 막차 캐시 패턴
-     * 형식: train:participant:{participantId}:*
+     * 형식: *:participant:{participantId}:*
      *
      * @param participantId 참여자 ID
-     * @return 패턴 (예: train:participant:789:*)
+     * @return 패턴 (예: *:participant:789:*)
      */
     public static String lastTrainPattern(Long participantId) {
-        return String.format("train:participant:%d:*", participantId);
+        return String.format("*:participant:%d:*", participantId);
     }
 
     // ========== API #4: AI 장소 요약 ==========
 
     /**
      * AI 장소 요약 캐시 키 생성
-     * 형식: summary:place:candidate:{candidateId}:{tone}
+     * 형식: summary:place:meeting:{meetingUuid}:candidate:{candidateId}:{tone}
      *
+     * @param meetingUuid 모임 UUID
      * @param candidateId 후보 지점 ID
      * @param tone        톤 (friendly, professional, casual)
-     * @return 캐시 키 (예: summary:place:candidate:123:friendly)
+     * @return 캐시 키 (예: summary:place:meeting:abc-123:candidate:123:friendly)
      */
-    public static String placeSummaryKey(Long candidateId, String tone) {
-        return String.format("summary:place:candidate:%d:%s", candidateId, tone);
+    public static String placeSummaryKey(String meetingUuid, Long candidateId, String tone) {
+        return String.format("summary:place:meeting:%s:candidate:%d:%s",
+                meetingUuid, candidateId, tone);
     }
 
     /**
      * 특정 후보지의 모든 장소 요약 캐시 패턴
-     * 형식: summary:place:candidate:{candidateId}:*
+     * 형식: *:candidate:{candidateId}:*
      *
      * @param candidateId 후보 지점 ID
-     * @return 패턴 (예: summary:place:candidate:123:*)
+     * @return 패턴 (예: *:candidate:123:*)
      */
     public static String placeSummaryPattern(Long candidateId) {
-        return String.format("summary:place:candidate:%d:*", candidateId);
+        return String.format("*:candidate:%d:*", candidateId);
     }
 
     // ========== API #5: AI 경로 요약 ==========
 
     /**
      * AI 경로 요약 캐시 키 생성
-     * 형식: summary:route:{hash}
+     * 형식: summary:route:meeting:{meetingUuid}:hash:{hash}
      *
-     * @param routeHash 경로 데이터의 해시값 (MD5 등)
-     * @return 캐시 키 (예: summary:route:abc123def456)
+     * @param meetingUuid 모임 UUID
+     * @param routeHash   경로 데이터의 해시값 (MD5 등)
+     * @return 캐시 키 (예: summary:route:meeting:abc-123:hash:abc123def456)
      */
-    public static String routeSummaryKey(String routeHash) {
-        return String.format("summary:route:%s", routeHash);
+    public static String routeSummaryKey(String meetingUuid, String routeHash) {
+        return String.format("summary:route:meeting:%s:hash:%s", meetingUuid, routeHash);
     }
 
     // ========== 패턴 매칭용 ==========
 
     /**
-     * 모임 관련 모든 캐시 패턴
-     * 형식: *:{meetingUuid}:*
-     *
-     * 주의: 이 패턴은 성능에 영향을 줄 수 있으므로 주의해서 사용
+     * 모임 관련 장소 캐시 패턴
+     * 형식: places:meeting:{meetingUuid}:*
      *
      * @param meetingUuid 모임 UUID
-     * @return 패턴 (예: *:abc-123-def:*)
+     * @return 패턴 (예: places:meeting:abc-123:*)
      */
-    public static String meetingPattern(String meetingUuid) {
-        return "*:" + meetingUuid + ":*";
+    public static String meetingPlacesPattern(String meetingUuid) {
+        return "places:meeting:" + meetingUuid + ":*";
+    }
+
+    /**
+     * 모임 관련 경로 캐시 패턴
+     * 형식: routes:meeting:{meetingUuid}:*
+     *
+     * @param meetingUuid 모임 UUID
+     * @return 패턴 (예: routes:meeting:abc-123:*)
+     */
+    public static String meetingRoutesPattern(String meetingUuid) {
+        return "routes:meeting:" + meetingUuid + ":*";
+    }
+
+    /**
+     * 모임 관련 막차 캐시 패턴
+     * 형식: train:meeting:{meetingUuid}:*
+     *
+     * @param meetingUuid 모임 UUID
+     * @return 패턴 (예: train:meeting:abc-123:*)
+     */
+    public static String meetingTrainPattern(String meetingUuid) {
+        return "train:meeting:" + meetingUuid + ":*";
+    }
+
+    /**
+     * 모임 관련 요약 캐시 패턴
+     * 형식: summary:*:meeting:{meetingUuid}:*
+     *
+     * @param meetingUuid 모임 UUID
+     * @return 패턴 (예: summary:*:meeting:abc-123:*)
+     */
+    public static String meetingSummaryPattern(String meetingUuid) {
+        return "summary:*:meeting:" + meetingUuid + ":*";
     }
 
     /**

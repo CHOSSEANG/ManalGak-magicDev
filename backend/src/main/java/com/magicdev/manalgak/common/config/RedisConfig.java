@@ -3,8 +3,9 @@ package com.magicdev.manalgak.common.config;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -91,6 +92,7 @@ public class RedisConfig {
      * JSON Serializer 설정
      * - Java 객체를 JSON으로 변환
      * - LocalDateTime 등 Java 8 시간 API 지원
+     * - 보안: BasicPolymorphicTypeValidator 사용 (RCE 방지)
      */
     private GenericJackson2JsonRedisSerializer jsonRedisSerializer() {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -102,9 +104,18 @@ public class RedisConfig {
         // 예: "2026-01-09T16:30:00" 형식으로 저장
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+        // 안전한 타입 검증 (보안 강화)
+        // - 프로젝트 패키지만 허용
+        // - 자바 기본 클래스 허용
+        PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
+                .allowIfBaseType("com.magicdev.manalgak")  // 우리 프로젝트 전체 패키지 (domain, common 등)
+                .allowIfSubType("java.util")  // 자바 컬렉션
+                .allowIfSubType("java.time")  // 자바 시간 API
+                .build();
+
         // Redis 캐싱용 타입 정보 포함 (역직렬화 시 실제 타입 복원)
         objectMapper.activateDefaultTyping(
-                LaissezFaireSubTypeValidator.instance,
+                ptv,
                 ObjectMapper.DefaultTyping.NON_FINAL,
                 JsonTypeInfo.As.PROPERTY
         );

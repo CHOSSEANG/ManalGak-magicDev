@@ -20,7 +20,7 @@ public class RouteService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     public RouteResponse getRoutes(String meetingUuid, Long candidateId) {
-        String cacheKey = CacheKeys.routesKey(candidateId);
+        String cacheKey = CacheKeys.routesKey(meetingUuid, candidateId);
 
         RouteResponse cached = getCachedRoutes(cacheKey);
         if (cached != null) {
