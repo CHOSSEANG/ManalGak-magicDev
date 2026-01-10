@@ -1,3 +1,4 @@
+// src/components/map/KakaoMap.tsx
 'use client'
 
 import { useEffect, useMemo, useRef } from 'react'
@@ -40,30 +41,35 @@ export default function KakaoMap({
     return center ?? markers[0] ?? FALLBACK_CENTER
   }, [center, markers])
 
+  /** ✅ 지도 최초 생성 (핵심 수정 부분) */
   useEffect(() => {
     if (!mapRef.current) return
     if (!window.kakao || !window.kakao.maps) return
     if (mapInstanceRef.current) return
 
-    const kakaoCenter = new window.kakao.maps.LatLng(
-      initialCenter.lat,
-      initialCenter.lng
-    )
-    const map = new window.kakao.maps.Map(mapRef.current, {
-      center: kakaoCenter,
-      level,
+    window.kakao.maps.load(() => {
+      if (mapInstanceRef.current) return
+
+      const kakaoCenter = new window.kakao.maps.LatLng(
+        initialCenter.lat,
+        initialCenter.lng
+      )
+
+      const map = new window.kakao.maps.Map(mapRef.current!, {
+        center: kakaoCenter,
+        level,
+      })
+
+      mapInstanceRef.current = map
+
+      requestAnimationFrame(() => {
+        map.relayout()
+        map.setCenter(kakaoCenter)
+      })
     })
+  }, [initialCenter.lat, initialCenter.lng])
 
-    mapInstanceRef.current = map
-
-    const rafId = requestAnimationFrame(() => {
-      map.relayout()
-      map.setCenter(kakaoCenter)
-    })
-
-    return () => cancelAnimationFrame(rafId)
-  }, [initialCenter.lat, initialCenter.lng, level])
-
+  /** 마커 업데이트 */
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map || !window.kakao?.maps) return
@@ -78,12 +84,14 @@ export default function KakaoMap({
     })
   }, [markers])
 
+  /** 줌 레벨 변경 */
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map) return
     map.setLevel(level)
   }, [level])
 
+  /** 중심 좌표 변경 */
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map || !center || !window.kakao?.maps) return
@@ -92,28 +100,23 @@ export default function KakaoMap({
     map.setCenter(nextCenter)
   }, [center])
 
+  /** 리사이즈 대응 */
   useEffect(() => {
     const map = mapInstanceRef.current
     const container = mapRef.current
     if (!map || !container) return
 
-    const relayout = () => {
-      requestAnimationFrame(() => {
-        map.relayout()
-        if (center && window.kakao?.maps) {
-          const nextCenter = new window.kakao.maps.LatLng(center.lat, center.lng)
-          map.setCenter(nextCenter)
-        }
-      })
-    }
-
     if (typeof ResizeObserver === 'undefined') return
 
-    const observer = new ResizeObserver(() => relayout())
-    observer.observe(container)
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(() => {
+        map.relayout()
+      })
+    })
 
+    observer.observe(container)
     return () => observer.disconnect()
-  }, [center])
+  }, [])
 
   return (
     <div

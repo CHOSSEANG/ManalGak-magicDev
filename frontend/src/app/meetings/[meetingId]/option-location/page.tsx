@@ -1,6 +1,7 @@
 // src/app/meetings/[meetingId]/option-location/page.tsx
 'use client'
 
+import Script from 'next/script'
 import { useState, useEffect, useRef} from 'react'
 import StepNavigation from '@/components/layout/StepNavigation'
 import KakaoMap from '@/components/map/KakaoMap'
@@ -66,6 +67,11 @@ export default function OptionRealtimePage() {
   }, [])
 
   return (
+    <>
+    <Script
+      src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false`}
+      strategy="beforeInteractive"
+    />
     <main className="w-full space-y-6">
       {/* ✅ 지도 섹션 (명확한 높이) */}
       <section
@@ -130,6 +136,7 @@ export default function OptionRealtimePage() {
         nextHref="/my"
         nextLabel="내 모임 리스트"
       />
-    </main>
+      </main>
+      </>
   )
 }
