@@ -19,11 +19,11 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        {/* ✅ 카카오 지도 JS SDK (autoload 기본값 = true) */}
+        {/* ✅ 카카오 지도 JS SDK (autoload 기본값 = true)
         <Script
           src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&libraries=services`}
           strategy="afterInteractive"
-        />
+        /> */}
 
         <TooltipProvider delayDuration={200}>
           <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[var(--wf-bg)] text-[var(--wf-text)]">
