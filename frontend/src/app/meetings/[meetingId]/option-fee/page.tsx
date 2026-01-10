@@ -8,44 +8,37 @@ import StepCard from '@/components/meeting/StepCard'
 import CompleteSummaryCard from '@/components/meeting/Step6/CompleteSummaryCard'
 
 // =====================
-// 숫자 유틸
+// 숫자 유틸 (절대 안전)
 // =====================
-const toNumber = (value: string) =>
-  Number(value.replace(/,/g, '').replace(/\D/g, ''))
-
-const toComma = (value: number) =>
-  value === 0 ? '' : value.toLocaleString('ko-KR')
+const onlyNumber = (v: string) => v.replace(/\D/g, '')
+const commaEvery3 = (v: string) =>
+  v.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 
 export default function OptionPaymentPage() {
   // =====================
-  // 1. 상태
+  // 상태
   // =====================
-  const [baseFee, setBaseFee] = useState(0)
   const [baseFeeInput, setBaseFeeInput] = useState('')
+  const [baseFee, setBaseFee] = useState(0)
 
-  const [extraFees, setExtraFees] = useState<number[]>([])
   const [extraFeeInputs, setExtraFeeInputs] = useState<string[]>([])
+  const [extraFees, setExtraFees] = useState<number[]>([])
 
   const memberCount = 6
   const meetingId = 'meeting-001'
 
   // =====================
-  // 2. 계산
+  // 계산
   // =====================
   const totalExtraFee = useMemo(
     () => extraFees.reduce((sum, v) => sum + v, 0),
     [extraFees]
   )
 
-  const totalFee = baseFee + totalExtraFee
-
   const perPersonFee = useMemo(() => {
-    return Math.ceil(totalFee / memberCount)
-  }, [totalFee, memberCount])
+    return Math.ceil((baseFee + totalExtraFee) / memberCount)
+  }, [baseFee, totalExtraFee, memberCount])
 
-  // =====================
-  // 3. mock 데이터
-  // =====================
   const mockMeetingData = {
     meetingName: '친구들끼리 친목모임',
     dateTime: '2026.01.23 12:00',
@@ -76,121 +69,128 @@ export default function OptionPaymentPage() {
           <input
             type="text"
             value={baseFeeInput}
+            onFocus={() => {
+              setBaseFeeInput(onlyNumber(baseFeeInput))
+            }}
             onChange={(e) => {
-              const num = toNumber(e.target.value)
-              setBaseFee(num)
-              setBaseFeeInput(toComma(num))
+              const raw = onlyNumber(e.target.value)
+              setBaseFeeInput(raw)
+              setBaseFee(raw === '' ? 0 : Number(raw))
+            }}
+            onBlur={() => {
+              if (baseFeeInput !== '') {
+                setBaseFeeInput(commaEvery3(baseFeeInput))
+              }
             }}
             className="flex-1 bg-transparent text-right outline-none"
             placeholder="0"
           />
-          <span className="ml-2 w-4 text-right text-[var(--wf-subtle)]">
-            원
-          </span>
+          <span className="ml-2 text-[var(--wf-subtle)]">원</span>
         </div>
-      <hr />
 
-      {/* 예외비용 */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold">예외비용</p>
+        <div className="flex items-center justify-between border-b border-[var(--wf-border)] py-1" />
 
-        <button
-          type="button"
-          onClick={() => {
-            setExtraFees([...extraFees, 0])
-            setExtraFeeInputs([...extraFeeInputs, ''])
-          }}
-          className="flex items-center gap-1 text-xs text-[var(--wf-subtle)]"
-        >
-          + 예외비용 추가
-        </button>
-      </div>
-
-      {/* 예외비용 리스트 */}
-      <div className="space-y-[2px]">
-        {extraFees.map((fee, idx) => (
-          <div
-            key={idx}
-            className="grid grid-cols-[auto_1fr] items-center gap-2"
+        {/* 예외비용 */}
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold">예외비용</p>
+          <button
+            type="button"
+            onClick={() => {
+              setExtraFeeInputs([...extraFeeInputs, ''])
+              setExtraFees([...extraFees, 0])
+            }}
+            className="flex items-center gap-1 text-xs text-[var(--wf-subtle)]"
           >
-            {/* 삭제 */}
-            <button
-              type="button"
-              onClick={() => {
-                setExtraFees(extraFees.filter((_, i) => i !== idx))
-                setExtraFeeInputs(extraFeeInputs.filter((_, i) => i !== idx))
-              }}
-              className="text-[var(--wf-subtle)] hover:text-red-500"
+            + 예외비용 추가
+          </button>
+        </div>
+
+        <div className="space-y-[2px]">
+          {extraFeeInputs.map((input, idx) => (
+            <div
+              key={idx}
+              className="grid grid-cols-[auto_1fr] items-center gap-2"
             >
-              <MinusCircle size={24} strokeWidth={1} />
-            </button>
-
-            {/* 입력 */}
-            <div className="flex items-center rounded-lg border border-[var(--wf-border)] bg-[var(--wf-muted)] pl-2 pr-3 py-1 text-sm">
-              <input
-                type="text"
-                value={extraFeeInputs[idx]}
-                onChange={(e) => {
-                  const num = toNumber(e.target.value)
-                  const newFees = [...extraFees]
-                  const newInputs = [...extraFeeInputs]
-
-                  newFees[idx] = num
-                  newInputs[idx] = toComma(num)
-
-                  setExtraFees(newFees)
-                  setExtraFeeInputs(newInputs)
+              <button
+                type="button"
+                onClick={() => {
+                  setExtraFeeInputs(extraFeeInputs.filter((_, i) => i !== idx))
+                  setExtraFees(extraFees.filter((_, i) => i !== idx))
                 }}
-                className="flex-1 bg-transparent text-right outline-none"
-                placeholder="0"
-              />
-              <span className="ml-2 w-4 text-right text-[var(--wf-subtle)]">
-                원
+                className="text-[var(--wf-subtle)] hover:text-red-500"
+              >
+                <MinusCircle size={24} strokeWidth={1} />
+              </button>
+
+              <div className="flex items-center rounded-lg border border-[var(--wf-border)] bg-[var(--wf-muted)] pl-2 pr-3 py-1 text-sm">
+                <input
+                  type="text"
+                  value={input}
+                  onFocus={() => {
+                    const inputs = [...extraFeeInputs]
+                    inputs[idx] = onlyNumber(inputs[idx])
+                    setExtraFeeInputs(inputs)
+                  }}
+                  onChange={(e) => {
+                    const raw = onlyNumber(e.target.value)
+                    const inputs = [...extraFeeInputs]
+                    const fees = [...extraFees]
+
+                    inputs[idx] = raw
+                    fees[idx] = raw === '' ? 0 : Number(raw)
+
+                    setExtraFeeInputs(inputs)
+                    setExtraFees(fees)
+                  }}
+                  onBlur={() => {
+                    if (input !== '') {
+                      const inputs = [...extraFeeInputs]
+                      inputs[idx] = commaEvery3(input)
+                      setExtraFeeInputs(inputs)
+                    }
+                  }}
+                  className="flex-1 bg-transparent text-right outline-none"
+                  placeholder="0"
+                />
+                <span className="ml-2 text-[var(--wf-subtle)]">원</span>
+              </div>
+            </div>
+          ))}
+
+          {extraFees.length > 0 && (
+            <div className="mt-2 flex items-center justify-between rounded-md bg-[var(--wf-surface)] px-3 py-2 text-sm">
+              <span className="text-[var(--wf-subtle)]">
+                예외비용 총 금액
+              </span>
+              <span className="font-semibold text-right text-blue-500">
+                {commaEvery3(String(totalExtraFee))}
+                <span className="ml-2 text-[var(--wf-subtle)]">원</span>
               </span>
             </div>
-          </div>
-        ))}
-      <hr />
-        {/* 합계 */}
-        {extraFees.length > 0 && (
-          <div className="mt-2 flex items-center justify-between rounded-md bg-[var(--wf-surface)] px-3 py-2 text-sm">
-            <span className="text-[var(--wf-subtle)]">
-              예외비용 총 금액
-            </span>
-            <span className="font-semibold text-right text-blue-500">
-              {totalExtraFee.toLocaleString('ko-KR')}
-              <span className="ml-2 text-[var(--wf-subtle)]">원</span>
-            </span>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* 1인당 금액 */}
+        <div className="flex items-center justify-between border-b border-[var(--wf-border)] py-1" />
+
+        {/* 1인당 */}
         <p className="text-sm font-semibold">1인당 납부 회비</p>
         <div className="rounded-xl bg-[var(--wf-muted)] px-4 py-3 text-right text-lg font-bold text-red-500">
-          {perPersonFee.toLocaleString('ko-KR')}
+          {commaEvery3(String(perPersonFee))}
           <span className="ml-2 text-[var(--wf-subtle)]">원</span>
         </div>
       </StepCard>
 
-      {/* 계좌 */}
       <StepCard>
         <div className="flex justify-between rounded-xl bg-yellow-400 px-4 py-3 text-sm font-semibold">
           <span>카카오페이 3333-33-3333</span>
-          <button
-            onClick={() =>
-              navigator.clipboard.writeText('3333-33-3333')
-            }
-          >
+          <button onClick={() => navigator.clipboard.writeText('3333-33-3333')}>
             복사
           </button>
         </div>
       </StepCard>
 
-      {/* 모임 정보 */}
       <CompleteSummaryCard meeting={mockMeetingData} />
 
-      {/* 완료 */}
       <Link
         href={`/meetings/${meetingId}/complete`}
         className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--wf-highlight)] px-4 py-3 text-sm font-semibold"
