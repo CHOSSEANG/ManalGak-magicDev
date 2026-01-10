@@ -3,7 +3,7 @@
 
 import StepCard from '@/components/meeting/StepCard'
 
-interface Props {
+export interface MeetingSummary {
   meetingName: string
   dateTime: string
   memberCount: number
@@ -15,7 +15,11 @@ interface Props {
   phoneNumber: string
 }
 
-export default function CompleteSummaryCard(props: Props) {
+interface Props {
+  meeting: MeetingSummary
+}
+
+export default function CompleteSummaryCard({ meeting }: Props) {
   const {
     meetingName,
     dateTime,
@@ -26,13 +30,13 @@ export default function CompleteSummaryCard(props: Props) {
     parkingInfo,
     reservationInfo,
     phoneNumber,
-  } = props
+  } = meeting
 
   return (
     <section className="space-y-4">
       <h2 className="text-xl font-semibold">확정된 중간지점 정보</h2>
 
-      <StepCard className="bg-[var(--wf-muted)] bg-gray-200 p-5 space-y-4">
+      <StepCard className="space-y-4 bg-[var(--wf-muted)] p-5">
         {/* 상단 요약 */}
         <div className="flex justify-between rounded-xl bg-white p-4 text-sm">
           <div className="space-y-1">
@@ -47,7 +51,9 @@ export default function CompleteSummaryCard(props: Props) {
         {/* 장소 정보 */}
         <div className="flex justify-between gap-4">
           <div className="space-y-1 text-sm">
-            <p>{category} · {placeName}</p>
+            <p>
+              {category} · {placeName}
+            </p>
             <p>{address}</p>
             <p>주차 : {parkingInfo}</p>
             <p>사전 예약 : {reservationInfo}</p>
@@ -55,7 +61,9 @@ export default function CompleteSummaryCard(props: Props) {
           </div>
 
           <button className="h-fit rounded-xl bg-yellow-400 px-3 py-9 text-sm font-semibold hover:bg-[var(--wf-accent)]">
-            확정장소<br />메시지 전송
+            확정장소
+            <br />
+            메시지 전송
           </button>
         </div>
       </StepCard>
