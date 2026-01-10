@@ -1,7 +1,6 @@
 // src/app/meetings/[meetingId]/option-location/page.tsx
 'use client'
 
-import Script from 'next/script'
 import { useState, useEffect, useRef} from 'react'
 import StepNavigation from '@/components/layout/StepNavigation'
 import KakaoMap from '@/components/map/KakaoMap'
@@ -34,11 +33,13 @@ export default function OptionRealtimePage() {
         setStatus('tracking')
       },
       (error) => {
-        console.error(error)
-
         if (error.code === error.PERMISSION_DENIED) {
           setStatus('denied')
+          return
         }
+
+        // ❗ 진짜 예외 상황만 콘솔 에러로 출력
+        console.error(error)
       },
       {
         enableHighAccuracy: true,
@@ -121,8 +122,8 @@ export default function OptionRealtimePage() {
       {/* 상태 안내 */}
       {status === 'denied' && (
         <p className="px-4 text-sm text-red-600">
-          위치 권한이 거부되었습니다.  
-          브라우저 설정에서 위치 권한을 허용해주세요.
+            위치 권한이 거부되었습니다. 설정에서 위치 권한을 허용해 주세요. 
+            <button>권한 설정 바로가기</button>
         </p>
       )}
 
