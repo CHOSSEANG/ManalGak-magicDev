@@ -20,9 +20,13 @@ export default function OptionPaymentPage() {
   // =====================
   const [baseFeeInput, setBaseFeeInput] = useState('')
   const [baseFee, setBaseFee] = useState(0)
+  const [isBaseComposing, setIsBaseComposing] = useState(false)
 
   const [extraFeeInputs, setExtraFeeInputs] = useState<string[]>([])
   const [extraFees, setExtraFees] = useState<number[]>([])
+  const [composingExtraIndex, setComposingExtraIndex] = useState<number | null>(
+    null
+  )
 
   const memberCount = 6
   const meetingId = 'meeting-001'
@@ -69,18 +73,34 @@ export default function OptionPaymentPage() {
           <input
             type="text"
             value={baseFeeInput}
-            onFocus={() => {
-              setBaseFeeInput(onlyNumber(baseFeeInput))
-            }}
-            onChange={(e) => {
-              const raw = onlyNumber(e.target.value)
+            onFocus={(e) => {
+              const raw = onlyNumber(e.currentTarget.value)
               setBaseFeeInput(raw)
               setBaseFee(raw === '' ? 0 : Number(raw))
             }}
-            onBlur={() => {
-              if (baseFeeInput !== '') {
-                setBaseFeeInput(commaEvery3(baseFeeInput))
+            onChange={(e) => {
+              if (isBaseComposing) {
+                setBaseFeeInput(e.currentTarget.value)
+                return
               }
+              const raw = onlyNumber(e.currentTarget.value)
+              setBaseFeeInput(raw)
+              setBaseFee(raw === '' ? 0 : Number(raw))
+            }}
+            onBlur={(e) => {
+              if (isBaseComposing) return
+              const raw = onlyNumber(e.currentTarget.value)
+              setBaseFeeInput(raw === '' ? '' : commaEvery3(raw))
+              setBaseFee(raw === '' ? 0 : Number(raw))
+            }}
+            onCompositionStart={() => {
+              setIsBaseComposing(true)
+            }}
+            onCompositionEnd={(e) => {
+              setIsBaseComposing(false)
+              const raw = onlyNumber(e.currentTarget.value)
+              setBaseFeeInput(raw)
+              setBaseFee(raw === '' ? 0 : Number(raw))
             }}
             className="flex-1 bg-transparent text-right outline-none"
             placeholder="0"
@@ -126,13 +146,24 @@ export default function OptionPaymentPage() {
                 <input
                   type="text"
                   value={input}
-                  onFocus={() => {
+                  onFocus={(e) => {
+                    const raw = onlyNumber(e.currentTarget.value)
                     const inputs = [...extraFeeInputs]
-                    inputs[idx] = onlyNumber(inputs[idx])
+                    const fees = [...extraFees]
+
+                    inputs[idx] = raw
+                    fees[idx] = raw === '' ? 0 : Number(raw)
                     setExtraFeeInputs(inputs)
+                    setExtraFees(fees)
                   }}
                   onChange={(e) => {
-                    const raw = onlyNumber(e.target.value)
+                    if (composingExtraIndex === idx) {
+                      const inputs = [...extraFeeInputs]
+                      inputs[idx] = e.currentTarget.value
+                      setExtraFeeInputs(inputs)
+                      return
+                    }
+                    const raw = onlyNumber(e.currentTarget.value)
                     const inputs = [...extraFeeInputs]
                     const fees = [...extraFees]
 
@@ -142,12 +173,32 @@ export default function OptionPaymentPage() {
                     setExtraFeeInputs(inputs)
                     setExtraFees(fees)
                   }}
-                  onBlur={() => {
-                    if (input !== '') {
-                      const inputs = [...extraFeeInputs]
-                      inputs[idx] = commaEvery3(input)
-                      setExtraFeeInputs(inputs)
-                    }
+                  onBlur={(e) => {
+                    if (composingExtraIndex === idx) return
+                    const raw = onlyNumber(e.currentTarget.value)
+                    const inputs = [...extraFeeInputs]
+                    const fees = [...extraFees]
+
+                    inputs[idx] = raw === '' ? '' : commaEvery3(raw)
+                    fees[idx] = raw === '' ? 0 : Number(raw)
+
+                    setExtraFeeInputs(inputs)
+                    setExtraFees(fees)
+                  }}
+                  onCompositionStart={() => {
+                    setComposingExtraIndex(idx)
+                  }}
+                  onCompositionEnd={(e) => {
+                    setComposingExtraIndex(null)
+                    const raw = onlyNumber(e.currentTarget.value)
+                    const inputs = [...extraFeeInputs]
+                    const fees = [...extraFees]
+
+                    inputs[idx] = raw
+                    fees[idx] = raw === '' ? 0 : Number(raw)
+
+                    setExtraFeeInputs(inputs)
+                    setExtraFees(fees)
                   }}
                   className="flex-1 bg-transparent text-right outline-none"
                   placeholder="0"
