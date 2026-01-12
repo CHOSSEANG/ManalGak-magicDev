@@ -1,7 +1,7 @@
 // src/app/meetings/new/step4-origin/page.tsx
-
+'use client'
 import StepNavigation from '@/components/layout/StepNavigation'
-import Step4Form from '@/components/ui/Step4Form'
+import Step4Form from '@/components/meeting/Step4/Step4Form'
 
 export default function Step4Page() {
   // 와이어프레임 단계: Step 4
@@ -9,9 +9,11 @@ export default function Step4Page() {
     <>
       <main className="space-y-6 pb-24">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">Step 4. 출발지/교통수단</h1>
+          <h1 className="text-2xl font-semibold">
+            step 4. 선택 - 출발지 & 교통수단
+          </h1>
           <p className="text-sm text-[var(--wf-subtle)]">
-            출발지 입력 버튼과 교통수단 선택 placeholder
+            출발지를 입력하고, 교통수단을 선택해 주세요.
           </p>
         </div>
         <Step4Form />

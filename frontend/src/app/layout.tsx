@@ -1,7 +1,9 @@
 // src/app/layout.tsx
-
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
@@ -16,15 +18,26 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
+      <head>
+        {/* ✅ 카카오 지도 SDK – 절대 깨지지 않는 방식 */}
+        <Script
+          src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=58664e8d9e1e49dc74df2e0cf8f05714&autoload=false"
+          strategy="beforeInteractive"
+        />
+      </head>
+
       <body>
-        <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[var(--wf-bg)] text-[var(--wf-text)]">
-          <Header />
-          <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-[1440px] px-4 py-6">
-              {children}
-            </div>
-          </main>
-        </div>
+        <TooltipProvider delayDuration={200}>
+          <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[var(--wf-bg)] text-[var(--wf-text)]">
+            <Header />
+            <main className="flex-1 overflow-y-auto">
+              <div className="mx-auto w-full max-w-[1440px] px-4 py-6">
+                {children}
+              </div>
+              <Footer />
+            </main>
+          </div>
+        </TooltipProvider>
       </body>
     </html>
   )
