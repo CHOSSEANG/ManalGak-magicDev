@@ -61,6 +61,7 @@ logging:
     com.magicdev.manalgak: WARN
     org.springframework.web: WARN
 
-# 로그인 성공 시
+# 프론트엔드
 #frontend:
 #  login-success-url: ${FRONTEND_LOGIN_SUCCESS_URL}
+#  base-url: ${FRONTEND_BASE_URL}
