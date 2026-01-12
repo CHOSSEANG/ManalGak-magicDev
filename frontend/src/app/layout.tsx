@@ -18,13 +18,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>
-        {/* ✅ 카카오 지도 JS SDK (autoload 기본값 = true) */}
+      <head>
+        {/* ✅ 카카오 지도 SDK – 절대 깨지지 않는 방식 */}
         <Script
-          src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&libraries=services`}
-          strategy="afterInteractive"
+          src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=58664e8d9e1e49dc74df2e0cf8f05714&autoload=false"
+          strategy="beforeInteractive"
         />
+      </head>
 
+      <body>
         <TooltipProvider delayDuration={200}>
           <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[var(--wf-bg)] text-[var(--wf-text)]">
             <Header />
