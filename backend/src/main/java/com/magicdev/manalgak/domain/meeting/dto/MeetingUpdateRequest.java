@@ -10,6 +10,7 @@ public class MeetingUpdateRequest {
 
     private String meetingName;
     private LocalDateTime meetingTime;
+    private LocalDateTime endTime;
     private Meeting.MeetingPurpose purpose;
     private Meeting.MeetingStatus status;
     private Integer totalParticipants;

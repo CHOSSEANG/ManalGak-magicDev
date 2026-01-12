@@ -32,6 +32,8 @@ public class Meeting {
 
     private LocalDateTime meetingTime;
 
+    private LocalDateTime endTime;
+
     private Integer totalParticipants;
 
     private Long organizerId;
@@ -79,13 +81,15 @@ public class Meeting {
         if (request.getMeetingTime() != null) {
             this.meetingTime = request.getMeetingTime();
         }
+        if (request.getEndTime() != null) {
+            this.endTime = request.getEndTime();
+        }
         if (request.getPurpose() != null) {
             this.purpose = request.getPurpose();
         }
         if (request.getStatus() != null) {
             this.status = request.getStatus();
         }
-
         if (request.getTotalParticipants() != null) {
             this.totalParticipants = request.getTotalParticipants();
         }

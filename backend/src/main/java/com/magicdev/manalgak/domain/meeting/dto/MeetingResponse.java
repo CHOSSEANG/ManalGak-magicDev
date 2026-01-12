@@ -12,6 +12,7 @@ public class MeetingResponse {
 
     private String meetingName;
     private LocalDateTime meetingTime;
+    private LocalDateTime endTime;
     private Meeting.MeetingPurpose purpose;
     private Meeting.MeetingStatus status;
     private Integer totalParticipants;
@@ -20,6 +21,7 @@ public class MeetingResponse {
         return MeetingResponse.builder()
                 .meetingName(meeting.getMeetingName())
                 .meetingTime(meeting.getMeetingTime())
+                .endTime(meeting.getEndTime())
                 .purpose(meeting.getPurpose())
                 .status(meeting.getStatus())
                 .totalParticipants(meeting.getTotalParticipants())
