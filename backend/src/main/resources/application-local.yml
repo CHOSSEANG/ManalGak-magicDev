@@ -35,6 +35,8 @@ api:
     key: ${KAKAO_API_KEY:your-kakao-api-key}
     local-url: https://dapi.kakao.com
     maps-url: https://apis-navi.kakaomobility.com
+    client-secret: ${KAKAO_CLIENT_SECRET}
+    redirect-uri: ${KAKAO_REDIRECT_URI}
 
   odsay:
     key: ${ODSAY_API_KEY:your-odsay-api-key}
@@ -64,3 +66,7 @@ logging:
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# 로그인 성공 시
+frontend:
+  login-success-url: ${FRONTEND_LOGIN_SUCCESS_URL}
