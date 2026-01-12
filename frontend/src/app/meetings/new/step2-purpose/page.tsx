@@ -56,13 +56,6 @@ export default function Step2Page() {
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold">Step 2. 모임 목적</h1>
           <p className="text-sm text-[var(--wf-subtle)]">
-<<<<<<< HEAD
-            목적 선택 버튼 리스트 placeholder
-          </p>
-        </div>
-        <StepCard className="space-y-4">
-          <SingleSelectGrid items={purposes} helperText="단일 선택만 가능합니다." />
-=======
             모임 목적에 맞는 장소 유형을 선택해 주세요.
             <br />
             선택한 목적에 따라 추천 장소가 달라져요.
@@ -83,7 +76,6 @@ export default function Step2Page() {
               </div>
             ))}
           </div>
->>>>>>> origin/main
         </StepCard>
       </main>
 
@@ -92,9 +84,5 @@ export default function Step2Page() {
         nextHref="/meetings/new/step3-members"
       />
     </>
-<<<<<<< HEAD
-  )
-=======
   );
->>>>>>> origin/main
 }
