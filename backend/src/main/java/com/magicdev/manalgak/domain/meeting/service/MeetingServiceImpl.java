@@ -34,7 +34,7 @@ public class MeetingServiceImpl implements MeetingService {
 
         Meeting save = meetingRepository.save(meeting);
         String shareUrl = frontendBaseUrl+"/m/"+save.getMeetingUuid();
-        return MeetingCreateResponse.from(meeting,shareUrl);
+        return MeetingCreateResponse.from(save,shareUrl);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Transactional
     public MeetingResponse updateMeeting(MeetingUpdateRequest updated, Long id, Long userId) {
         Meeting meeting = getMeeting(id);
-        extracted(userId, meeting);
+        validateIsOrganizer(userId, meeting);
         meeting.update(updated);
         return MeetingResponse.from(meeting);
     }
@@ -69,11 +69,11 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     public void deleteMeeting(Long id, Long userId) {
         Meeting meeting = getMeeting(id);
-        extracted(userId, meeting);
+        validateIsOrganizer(userId, meeting);
         meetingRepository.delete(meeting);
     }
 
-    private static void extracted(Long userId, Meeting meeting) {
+    private static void validateIsOrganizer(Long userId, Meeting meeting) {
         if (!meeting.getOrganizerId().equals(userId)) {
             throw new BusinessException(ErrorCode.MEETING_NOT_ORGANIZER);
         }
