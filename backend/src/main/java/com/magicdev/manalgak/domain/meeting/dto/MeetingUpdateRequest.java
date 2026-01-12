@@ -1,7 +1,6 @@
 package com.magicdev.manalgak.domain.meeting.dto;
 
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
-import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

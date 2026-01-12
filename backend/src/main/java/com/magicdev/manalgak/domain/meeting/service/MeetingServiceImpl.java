@@ -9,6 +9,7 @@ import com.magicdev.manalgak.domain.meeting.dto.MeetingResponse;
 import com.magicdev.manalgak.domain.meeting.dto.MeetingUpdateRequest;
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,19 +18,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class MeetingServiceImpl implements MeetingService {
 
     private final MeetingRepository meetingRepository;
+    private final String frontendBaseUrl;
 
-    public MeetingServiceImpl(MeetingRepository meetingRepository) {
+
+    public MeetingServiceImpl(MeetingRepository meetingRepository, @Value("${frontend.base-url}") String frontendBaseUrl) {
         this.meetingRepository = meetingRepository;
+        this.frontendBaseUrl = frontendBaseUrl;
     }
 
     @Override
     public MeetingCreateResponse createMeeting(MeetingCreateRequest request, Long userId) {
-            Meeting meeting = request.toEntity(userId);
-            String uuid = UuidGenerator.generate();
-            meeting.setMeetingUuid(uuid);
+        Meeting meeting = request.toEntity(userId);
+        String uuid = UuidGenerator.generate();
+        meeting.setMeetingUuid(uuid);
 
-                Meeting save = meetingRepository.save(meeting);
-        return MeetingCreateResponse.from(meeting);
+        Meeting save = meetingRepository.save(meeting);
+        String shareUrl = frontendBaseUrl+"/m/"+save.getMeetingUuid();
+        return MeetingCreateResponse.from(meeting,shareUrl);
     }
 
     @Override
@@ -52,21 +57,25 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
-    public MeetingResponse updateMeeting(MeetingUpdateRequest updated,Long id, Long userId) {
+    public MeetingResponse updateMeeting(MeetingUpdateRequest updated, Long id, Long userId) {
         Meeting meeting = getMeeting(id);
-        if(!meeting.getOrganizerId().equals(userId)){
-            throw new BusinessException(ErrorCode.MEETING_NOT_ORGANIZER);
-        }
+        extracted(userId, meeting);
         meeting.update(updated);
         return MeetingResponse.from(meeting);
     }
 
+
+    @Transactional
     @Override
-    public void deleteMeeting(Long id,Long userId) {
+    public void deleteMeeting(Long id, Long userId) {
         Meeting meeting = getMeeting(id);
-        if(!meeting.getOrganizerId().equals(userId)){
+        extracted(userId, meeting);
+        meetingRepository.delete(meeting);
+    }
+
+    private static void extracted(Long userId, Meeting meeting) {
+        if (!meeting.getOrganizerId().equals(userId)) {
             throw new BusinessException(ErrorCode.MEETING_NOT_ORGANIZER);
         }
-        meetingRepository.delete(meeting);
     }
 }

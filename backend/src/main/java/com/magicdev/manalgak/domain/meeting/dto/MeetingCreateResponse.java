@@ -17,13 +17,13 @@ public class MeetingCreateResponse {
     private String shareUrl;
     private LocalDateTime expiresAt;
 
-    public static MeetingCreateResponse from(Meeting meeting){
+    public static MeetingCreateResponse from(Meeting meeting,String shareUrl){
         return MeetingCreateResponse.builder()
                 .meetingId(meeting.getId())
                 .meetingUuid(meeting.getMeetingUuid())
                 .meetingName(meeting.getMeetingName())
                 .status(meeting.getStatus().name())
-                .shareUrl("https://manalgak.com/m/" + meeting.getMeetingUuid())
+                .shareUrl(shareUrl)
                 .expiresAt(meeting.getExpiresAt())
                 .build();
     }
