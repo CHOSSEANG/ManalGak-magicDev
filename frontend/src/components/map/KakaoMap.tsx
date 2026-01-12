@@ -1,3 +1,4 @@
+// 
 'use client'
 
 import { useEffect, useMemo, useRef } from 'react'
@@ -8,19 +9,7 @@ declare global {
   }
 }
 
-type LatLng = {
-  lat: number
-  lng: number
-}
-
-type Props = {
-  markers?: LatLng[]
-  level?: number
-  center?: LatLng
-  className?: string
-  style?: React.CSSProperties
-  minHeight?: number | string
-}
+type LatLng = { lat: number; lng: number }
 
 const FALLBACK_CENTER = { lat: 37.5665, lng: 126.978 }
 
@@ -31,89 +20,66 @@ export default function KakaoMap({
   className,
   style,
   minHeight = 240,
-}: Props) {
+}: {
+  markers?: LatLng[]
+  level?: number
+  center?: LatLng
+  className?: string
+  style?: React.CSSProperties
+  minHeight?: number | string
+}) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
   const markersRef = useRef<any[]>([])
 
-  const initialCenter = useMemo<LatLng>(() => {
-    return center ?? markers[0] ?? FALLBACK_CENTER
-  }, [center, markers])
+  const initialCenter = useMemo(
+    () => center ?? markers[0] ?? FALLBACK_CENTER,
+    [center, markers]
+  )
 
+  /** ✅ SDK 초기화 + 지도 생성 (경쟁 상태 완전 제거) */
   useEffect(() => {
     if (!mapRef.current) return
-    if (!window.kakao || !window.kakao.maps) return
     if (mapInstanceRef.current) return
+    if (!window.kakao?.maps?.load) return
 
-    const kakaoCenter = new window.kakao.maps.LatLng(
-      initialCenter.lat,
-      initialCenter.lng
-    )
-    const map = new window.kakao.maps.Map(mapRef.current, {
-      center: kakaoCenter,
-      level,
-    })
+    window.kakao.maps.load(() => {
+      // 🔒 여기 들어왔다는 건 SDK 내부 초기화 완료
+      if (mapInstanceRef.current) return
 
-    mapInstanceRef.current = map
+      const kakaoCenter = new window.kakao.maps.LatLng(
+        initialCenter.lat,
+        initialCenter.lng
+      )
 
-    const rafId = requestAnimationFrame(() => {
-      map.relayout()
-      map.setCenter(kakaoCenter)
-    })
-
-    return () => cancelAnimationFrame(rafId)
-  }, [initialCenter.lat, initialCenter.lng, level])
-
-  useEffect(() => {
-    const map = mapInstanceRef.current
-    if (!map || !window.kakao?.maps) return
-
-    markersRef.current.forEach((marker) => marker.setMap(null))
-    markersRef.current = markers.map((point) => {
-      const position = new window.kakao.maps.LatLng(point.lat, point.lng)
-      return new window.kakao.maps.Marker({
-        map,
-        position,
+      const map = new window.kakao.maps.Map(mapRef.current!, {
+        center: kakaoCenter,
+        level,
       })
-    })
-  }, [markers])
 
-  useEffect(() => {
-    const map = mapInstanceRef.current
-    if (!map) return
-    map.setLevel(level)
-  }, [level])
+      mapInstanceRef.current = map
 
-  useEffect(() => {
-    const map = mapInstanceRef.current
-    if (!map || !center || !window.kakao?.maps) return
-
-    const nextCenter = new window.kakao.maps.LatLng(center.lat, center.lng)
-    map.setCenter(nextCenter)
-  }, [center])
-
-  useEffect(() => {
-    const map = mapInstanceRef.current
-    const container = mapRef.current
-    if (!map || !container) return
-
-    const relayout = () => {
       requestAnimationFrame(() => {
         map.relayout()
-        if (center && window.kakao?.maps) {
-          const nextCenter = new window.kakao.maps.LatLng(center.lat, center.lng)
-          map.setCenter(nextCenter)
-        }
+        map.setCenter(kakaoCenter)
       })
-    }
+    })
+  }, [initialCenter.lat, initialCenter.lng, level])
 
-    if (typeof ResizeObserver === 'undefined') return
+  /** 마커 */
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map || !window.kakao?.maps?.LatLng) return
 
-    const observer = new ResizeObserver(() => relayout())
-    observer.observe(container)
-
-    return () => observer.disconnect()
-  }, [center])
+    markersRef.current.forEach((m) => m.setMap(null))
+    markersRef.current = markers.map(
+      (p) =>
+        new window.kakao.maps.Marker({
+          map,
+          position: new window.kakao.maps.LatLng(p.lat, p.lng),
+        })
+    )
+  }, [markers])
 
   return (
     <div
