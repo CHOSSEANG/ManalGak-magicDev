@@ -1,11 +1,11 @@
 // src/app/auth/kakao/callback/page.tsx
 "use client";
 
-import { useEffect } from "react";
+import React, {useEffect, Suspense} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import StepCard from "@/components/meeting/StepCard";
 
-export default function KakaoCallbackPage() {
+function KakaoCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -30,5 +30,13 @@ export default function KakaoCallbackPage() {
         </p>
       </StepCard>
     </main>
+  );
+}
+
+export default function KakaoCallbackPage() {
+  return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <KakaoCallbackContent />
+      </Suspense>
   );
 }
