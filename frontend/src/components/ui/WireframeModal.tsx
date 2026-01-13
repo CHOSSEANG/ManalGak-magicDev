@@ -1,8 +1,9 @@
 // src/components/ui/WireframeModal.tsx
-
 'use client'
 
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+import { X } from 'lucide-react'
 
 interface WireframeModalProps {
   open: boolean
@@ -11,32 +12,25 @@ interface WireframeModalProps {
   onClose: () => void
 }
 
-export default function WireframeModal({
-  open,
-  title,
-  children,
-  onClose,
-}: WireframeModalProps) {
+export default function WireframeModal({ open, title, children, onClose }: WireframeModalProps) {
   if (!open) return null
+  if (typeof window === 'undefined') return null
 
-  // 와이어프레임 단계: 모달 뼈대
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--wf-overlay)] p-4">
-      <div className="w-full max-w-md rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-surface)] p-5 shadow">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-[var(--wf-border)] px-3 py-1 text-sm"
-          >
-            닫기
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] bg-[var(--wf-overlay)] flex items-center justify-center px-3 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      <div className="w-full max-w-md max-h-[85vh] bg-[var(--wf-surface)] rounded-2xl shadow-lg flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--wf-border)] sticky top-0 bg-[var(--wf-surface)] z-10">
+          <h2 className="text-base font-semibold">{title}</h2>
+          <button type="button" onClick={onClose} className="rounded-full p-1 text-[var(--wf-subtle)] hover:bg-[var(--wf-muted)]">
+            <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="space-y-3 text-sm text-[var(--wf-subtle)]">
+
+        <div className="flex-1 overflow-y-auto px-5 py-4 text-sm">
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

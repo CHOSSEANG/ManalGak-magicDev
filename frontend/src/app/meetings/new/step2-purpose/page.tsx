@@ -62,7 +62,7 @@ export default function Step2Page() {
           </p>
         </div>
 
-        <StepCard>
+        <StepCard className="rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-muted)]">
           <div className="space-y-6">
             {purposeGroups.map((group) => (
               <div key={group.title} className="space-y-2">

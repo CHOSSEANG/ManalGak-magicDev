@@ -73,6 +73,7 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
-# 로그인 성공 시
+#프론트엔드
 frontend:
   login-success-url: ${FRONTEND_LOGIN_SUCCESS_URL:http://localhost:3000/auth/success}
+  base-url: ${FRONTEND_BASE_URL}

@@ -21,6 +21,7 @@ public enum ErrorCode {
     MEETING_NOT_FOUND(HttpStatus.NOT_FOUND, "모임을 찾을 수 없음"),
     MEETING_EXPIRED(HttpStatus.BAD_REQUEST, "만료된 모임"),
     INVALID_MAX_PARTICIPANTS(HttpStatus.BAD_REQUEST, "최대 참여자 수 범위 오류 (2~10)"),
+    MEETING_NOT_ORGANIZER(HttpStatus.BAD_REQUEST, "모임장이 아닙니다."),
 
     /* =====================
      * 3 참여자 관련 에러
