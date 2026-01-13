@@ -2,7 +2,7 @@
 FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=3030
+ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -14,5 +14,5 @@ COPY public ./public
 # Change ownership
 RUN chown -R nextjs:nodejs /app
 USER nextjs
-EXPOSE 3030
+EXPOSE 3000
 CMD ["node", "server.js"]

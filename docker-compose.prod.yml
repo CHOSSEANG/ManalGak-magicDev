@@ -1,0 +1,31 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: manalgak-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - manalgak-network
+
+  backend:
+    container_name: manalgak-backend-prod
+    environment:
+      - NODE_ENV=production
+    ports: []  # 외부 포트 제거
+    expose:
+      - "8080"  # 내부 네트워크에서만 접근
+
+  frontend:
+    container_name: manalgak-frontend-prod
+    environment:
+      - NODE_ENV=production
+    ports: []  # 외부 포트 제거
+    expose:
+      - "3000"  # 내부 네트워크에서만 접근 (nginx가 여기로 프록시)
