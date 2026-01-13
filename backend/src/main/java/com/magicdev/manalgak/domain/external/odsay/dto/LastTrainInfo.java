@@ -50,4 +50,9 @@ public class LastTrainInfo implements Serializable {
      * 종착역
      */
     private String terminalStation;
+
+    /**
+     * 다음날 막차 여부 (24시 이상일 경우 true)
+     */
+    private boolean isNextDay;
 }

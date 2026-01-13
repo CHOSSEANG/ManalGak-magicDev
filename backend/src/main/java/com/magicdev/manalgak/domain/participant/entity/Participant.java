@@ -1,14 +1,13 @@
 package com.magicdev.manalgak.domain.participant.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "participant")
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,4 +30,23 @@ public class Participant {
 
     @Column(name = "start_address")
     private String startAddress;
+
+    /**
+     * ID 기반 equals 구현 (JPA 엔티티 Best Practice)
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Participant that = (Participant) o;
+        return id != null && id.equals(that.id);
+    }
+
+    /**
+     * 클래스 기반 hashCode 구현 (JPA 엔티티 Best Practice)
+     */
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

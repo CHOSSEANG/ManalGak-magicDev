@@ -79,7 +79,7 @@ public class LastTrainService {
             }
 
             // LastTrainInfo를 LastTrainResponse로 변환
-            LocalDateTime lastTrainTime = parseLastTrainTime(lastTrainInfo.getLastTrainTime());
+            LocalDateTime lastTrainTime = parseLastTrainTime(lastTrainInfo);
 
             return LastTrainResponse.builder()
                     .stationName(lastTrainInfo.getStationName())
@@ -163,6 +163,7 @@ public class LastTrainService {
 
         // HH:mm 형식으로 변환 (24시 이상은 다음날 00시부터 시작)
         int hour = lastBlock.getIdx() % 24;  // 24 -> 0, 25 -> 1
+        boolean isNextDay = lastBlock.getIdx() >= 24;  // 24시 이상이면 다음날
         String lastTrainTime = String.format("%02d:%s", hour, minute);
 
         return LastTrainInfo.builder()
@@ -170,17 +171,25 @@ public class LastTrainService {
                 .lineName(result.getLaneName())
                 .lastTrainTime(lastTrainTime)
                 .terminalStation(terminal)
+                .isNextDay(isNextDay)
                 .build();
     }
 
     /**
      * 막차 시간 문자열을 LocalDateTime으로 변환
-     * @param timeStr HH:mm 형식의 시간 문자열
+     * @param lastTrainInfo 막차 정보 (시간 및 다음날 여부 포함)
      */
-    private LocalDateTime parseLastTrainTime(String timeStr) {
+    private LocalDateTime parseLastTrainTime(LastTrainInfo lastTrainInfo) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime time = LocalTime.parse(timeStr, formatter);
-        return LocalDateTime.now().with(time);
+        LocalTime time = LocalTime.parse(lastTrainInfo.getLastTrainTime(), formatter);
+        LocalDate date = LocalDate.now();
+
+        // 다음날 막차인 경우 (24시 이상)
+        if (lastTrainInfo.isNextDay()) {
+            date = date.plusDays(1);
+        }
+
+        return LocalDateTime.of(date, time);
     }
 
     /**
