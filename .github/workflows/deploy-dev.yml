@@ -129,14 +129,11 @@ jobs:
 
   # Docker Compose로 배포
   deploy:
-    needs: [build-backend, build-frontend]
+    needs: [ build-backend, build-frontend ]
     runs-on: ubuntu-latest
     environment:
       name: development
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -146,113 +143,64 @@ jobs:
         run: |
           ssh-keyscan -H ${{ secrets.DEV_SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Create docker-compose file
+      - name: Deploy to server
         run: |
-          cat > docker-compose.dev.yml << 'EOL'
-          
-          services:
-            backend:
-              image: ${{ needs.build-backend.outputs.backend-image-tag }}
-              container_name: manalgak-dev-backend
-              restart: unless-stopped
-              ports:
-                - "8080:8080"
-              environment:
-                - SPRING_PROFILES_ACTIVE=dev
-                - DB_HOST=${{ secrets.DB_DEV_HOST }}
-                - DB_USERNAME=${{ secrets.DB_DEV_USERNAME }}
-                - DB_PASSWORD=${{ secrets.DB_DEV_PASSWORD }}
-              networks:
-                - manalgak-dev-network
-              healthcheck:
-                test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
-                interval: 30s
-                timeout: 10s
-                retries: 3
-                start_period: 40s
-          
-            frontend:
-              image: ${{ needs.build-frontend.outputs.frontend-image-tag }}
-              container_name: manalgak-dev-frontend
-              restart: unless-stopped
-              ports:
-                - "3000:3000"
-              environment:
-                - NODE_ENV=development
-                - NEXT_PUBLIC_API_URL=http://dev.${{ secrets.DOMAIN_NAME }}/api
-              depends_on:
-                - backend
-              networks:
-                - manalgak-dev-network
-          
-            nginx:
-              image: nginx:alpine
-              container_name: manalgak-dev-nginx
-              restart: unless-stopped
-              ports:
-                - "80:80"
-              volumes:
-                - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-              depends_on:
-                - frontend
-                - backend
-              networks:
-                - manalgak-dev-network
-          
-          networks:
-            manalgak-dev-network:
-              driver: bridge
-          EOL
-
-      - name: Copy files to server and deploy
-        run: |
-          # docker-compose 파일 복사
-          scp docker-compose.dev.yml ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_HOST }}:~/deployment/
-          
-          # 서버에서 Docker Compose 실행
           ssh ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_HOST }} << 'EOF'
           set -e
-          
-          cd ~/deployment
-          
-          echo "🚀 Starting deployment with Docker Compose..."
-          
-          # Docker Registry 로그인
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          
-          # 기존 컨테이너 중지 및 제거
-          echo "🛑 Stopping existing containers..."
-          docker-compose -f docker-compose.dev.yml down
-          
-          # 새 이미지 pull
-          echo "📦 Pulling new images..."
-          docker-compose -f docker-compose.dev.yml pull
-          
-          # 컨테이너 시작
-          echo "🔄 Starting services..."
-          docker-compose -f docker-compose.dev.yml up -d
-          
-          # 헬스 체크
-          echo "⏳ Waiting for services to be healthy..."
-          sleep 30
-          
-          # 서비스 상태 확인
-          echo "📊 Checking service status..."
-          docker-compose -f docker-compose.dev.yml ps
-          
-          # 로그 확인 (최근 50줄)
-          echo "📝 Recent logs:"
-          docker-compose -f docker-compose.dev.yml logs --tail=50
-          
-          # 정리
-          echo "🧹 Cleaning up old images..."
-          docker image prune -f
-          
-          echo "✅ Deployment completed successfully!"
-          echo "🔗 Application is running at: http://dev.${{ secrets.DOMAIN_NAME }}"
-          EOF
 
-      - name: Health check
-        run: |
-          sleep 10
-          curl -f http://${{ secrets.DEV_SERVER_HOST }}/api/health || exit 1
+          # 프로젝트 디렉토리로 이동
+          cd ~/manalgak
+
+          echo "📦 Pulling latest changes from develop branch..."
+          git pull origin develop
+
+          # 2. 루트 .env 생성 (Docker Compose의 변수 치환용)
+          cat > .env << 'EOL'
+          BACKEND_IMAGE=${{ needs.build-backend.outputs.backend-image-tag }}
+          FRONTEND_IMAGE=${{ needs.build-frontend.outputs.frontend-image-tag }}
+          EOL
+
+          echo "📦 생성: 백엔드 환경 변수 파일 (./backend/.env)"
+          cat > ./backend/.env << 'EOL'
+          # Docker 이미지 태그 및 설정
+          SPRING_PROFILES_ACTIVE=dev
+          DB_HOST=${{ secrets.DB_DEV_HOST }}
+          DB_USERNAME=${{ secrets.DB_DEV_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_DEV_PASSWORD }}
+          EOL
+
+          echo "📦 생성: 프론트엔드 환경 변수 파일 (./frontend/.env)"
+          cat > ./frontend/.env << 'EOL'
+          # Docker 이미지 태그 및 설정
+          NODE_ENV=development
+          NEXT_PUBLIC_API_URL=/api
+          EOL
+
+          echo "🐳 Docker login to GitHub Container Registry..."
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+          echo "🛑 Stopping existing containers..."
+          docker-compose down
+
+          echo "📦 Pulling new images..."
+          docker pull ${{ needs.build-backend.outputs.backend-image-tag }}
+          docker pull ${{ needs.build-frontend.outputs.frontend-image-tag }}
+
+          echo "🚀 Starting services..."
+          docker-compose up -d
+
+          echo "⏳ Waiting for services to be healthy..."
+          sleep 20
+
+          echo "📊 Service status:"
+          docker-compose ps
+
+          echo "📝 Recent logs:"
+          docker-compose logs --tail=20
+
+          echo "🧹 Cleaning up unused images..."
+          docker image prune -f
+
+          echo "✅ Deployment completed successfully!"
+          echo "🔗 Application is running at: http://${{ secrets.DEV_SERVER_HOST }}"
+          EOF

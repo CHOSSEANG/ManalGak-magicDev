@@ -1,5 +1,6 @@
 services:
   backend:
+    image: ${BACKEND_IMAGE}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -13,6 +14,7 @@ services:
       - manalgak-network
 
   frontend:
+    image: ${FRONTEND_IMAGE}
     build:
       context: ./frontend
       dockerfile: Dockerfile
