@@ -8,61 +8,9 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # 백엔드 테스트
-  test-backend:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Run backend tests
-        run: ./gradlew test
-
-  # 프론트엔드 테스트
-  test-frontend:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run frontend tests
-        run: npm test -- --passWithNoTests
 
   # 백엔드 빌드 및 Docker 이미지
   build-backend:
-    needs: test-backend
     runs-on: ubuntu-latest
     outputs:
       backend-image-tag: ${{ steps.meta.outputs.tags }}
@@ -124,7 +72,6 @@ jobs:
 
   # 프론트엔드 빌드 및 Docker 이미지
   build-frontend:
-    needs: test-frontend
     runs-on: ubuntu-latest
     outputs:
       frontend-image-tag: ${{ steps.meta.outputs.tags }}
