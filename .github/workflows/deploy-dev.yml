@@ -153,15 +153,21 @@ jobs:
 
           echo "📦 Pulling latest changes from develop branch..."
           git pull origin develop
+          
+          RAW_BACKEND_TAG="${{ needs.build-backend.outputs.backend-image-tag }}"
+          RAW_FRONTEND_TAG="${{ needs.build-frontend.outputs.frontend-image-tag }}"
+          
+          BACKEND_TAG=$(echo "$RAW_BACKEND_TAG" | head -n 1)
+          FRONTEND_TAG=$(echo "$RAW_FRONTEND_TAG" | head -n 1)
 
           # 2. 루트 .env 생성 (Docker Compose의 변수 치환용)
-          cat > .env << 'EOL'
-          BACKEND_IMAGE=${{ needs.build-backend.outputs.backend-image-tag }}
-          FRONTEND_IMAGE=${{ needs.build-frontend.outputs.frontend-image-tag }}
+          cat > .env << EOL
+          BACKEND_IMAGE=$BACKEND_TAG
+          FRONTEND_IMAGE=$FRONTEND_TAG
           EOL
 
           echo "📦 생성: 백엔드 환경 변수 파일 (./backend/.env)"
-          cat > ./backend/.env << 'EOL'
+          cat > ./backend/.env << EOL
           # Docker 이미지 태그 및 설정
           SPRING_PROFILES_ACTIVE=dev
           DB_HOST=${{ secrets.DB_DEV_HOST }}
@@ -170,7 +176,7 @@ jobs:
           EOL
 
           echo "📦 생성: 프론트엔드 환경 변수 파일 (./frontend/.env)"
-          cat > ./frontend/.env << 'EOL'
+          cat > ./frontend/.env << EOL
           # Docker 이미지 태그 및 설정
           NODE_ENV=development
           NEXT_PUBLIC_API_URL=/api
@@ -183,8 +189,8 @@ jobs:
           sudo docker-compose down
 
           echo "📦 Pulling new images..."
-          sudo docker pull ${{ needs.build-backend.outputs.backend-image-tag }}
-          sudo docker pull ${{ needs.build-frontend.outputs.frontend-image-tag }}
+          sudo docker pull $BACKEND_TAG
+          sudo docker pull $FRONTEND_TAG
 
           echo "🚀 Starting services..."
           sudo docker-compose up -d
