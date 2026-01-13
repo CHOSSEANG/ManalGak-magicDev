@@ -72,44 +72,60 @@ jobs:
 
   # 프론트엔드 빌드 및 Docker 이미지
   build-frontend:
-    runs-on: ubuntu-latest
-    outputs:
-      frontend-image-tag: ${{ steps.meta.outputs.tags }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      runs-on: ubuntu-latest
+      outputs:
+        frontend-image-tag: ${{ steps.meta.outputs.tags }}
+      defaults:
+        run:
+          working-directory: ./frontend
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '20'
+            cache: 'npm'
+            cache-dependency-path: ./frontend/package-lock.json
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
+        - name: Install dependencies
+          run: npm ci
 
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+        - name: Build Next.js application
+          run: npm run build
+          env:
+            NEXT_PUBLIC_API_URL: ${{ secrets.DEV_API_URL }}
 
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            NEXT_PUBLIC_API_URL=${{ secrets.DEV_API_URL }}
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
+
+        - name: Extract metadata
+          id: meta
+          uses: docker/metadata-action@v5
+          with:
+            images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+            tags: |
+              type=ref,event=branch
+              type=sha,prefix={{branch}}-
+
+        - name: Log in to Container Registry
+          uses: docker/login-action@v3
+          with:
+            registry: ${{ env.REGISTRY }}
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Build and push frontend image
+          uses: docker/build-push-action@v5
+          with:
+            context: ./frontend
+            file: ./frontend/Dockerfile
+            push: true
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
 
   # Docker Compose로 배포
   deploy:
@@ -133,7 +149,6 @@ jobs:
       - name: Create docker-compose file
         run: |
           cat > docker-compose.dev.yml << 'EOL'
-          version: '3.8'
           
           services:
             backend:
