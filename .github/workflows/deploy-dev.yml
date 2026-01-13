@@ -1,0 +1,153 @@
+name: Deploy to Development (Backend Only)
+on:
+  push:
+    branches: [develop]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # 백엔드 테스트
+  test-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Run backend tests
+        run: ./gradlew test
+
+  # 백엔드 빌드 및 Docker 이미지
+  build-backend:
+    needs: test-backend
+    runs-on: ubuntu-latest
+    outputs:
+      backend-image-tag: ${{ steps.meta.outputs.tags }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build backend JAR
+        run: ./gradlew bootJar
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # 백엔드 배포 (간단한 버전)
+  deploy-backend:
+    needs: build-backend
+    runs-on: ubuntu-latest
+    environment:
+      name: development
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy backend to development
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          set -e
+          
+          echo "🚀 Starting backend deployment to development..."
+          
+          # 기존 백엔드 컨테이너 정리
+          docker stop manalgak-dev-backend 2>/dev/null || true
+          docker rm manalgak-dev-backend 2>/dev/null || true
+          
+          echo "📦 Pulling new backend image: ${{ needs.build-backend.outputs.backend-image-tag }}"
+          docker pull ${{ needs.build-backend.outputs.backend-image-tag }}
+          
+          echo "🔄 Starting backend container..."
+          docker run -d \
+            --name manalgak-dev-backend \
+            --restart unless-stopped \
+            -p 8080:8080 \
+            -e SPRING_PROFILES_ACTIVE=dev \
+            -e DB_HOST="${{ secrets.DB_DEV_HOST }}" \
+            -e DB_USERNAME="${{ secrets.DB_DEV_USERNAME }}" \
+            -e DB_PASSWORD="${{ secrets.DB_DEV_PASSWORD }}" \
+            -e REDIS_HOST="${{ secrets.REDIS_DEV_HOST }}" \
+            -e KAKAO_API_KEY="${{ secrets.KAKAO_DEV_API_KEY }}" \
+            -e ODSAY_API_KEY="${{ secrets.ODSAY_DEV_API_KEY }}" \
+            -e OPENAI_API_KEY="${{ secrets.OPENAI_DEV_API_KEY }}" \
+            -e JWT_SECRET="${{ secrets.JWT_DEV_SECRET }}" \
+            "${{ needs.build-backend.outputs.backend-image-tag }}"
+          
+          echo "⏳ Waiting for backend to start..."
+          sleep 30
+          
+          echo "🧹 Cleanup..."
+          docker system prune -f
+          
+          echo "🎉 Backend deployment completed!"
+          echo "🔗 Backend is running at: http://${{ secrets.SERVER_HOST }}:8080/api"
+          EOF
