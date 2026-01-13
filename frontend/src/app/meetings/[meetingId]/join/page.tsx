@@ -10,7 +10,7 @@ export default function JoinMeetingPage() {
   const handleKakaoLogin = () => {
     const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY!;
     const REDIRECT_URI = `${window.location.origin}/auth/kakao/callback`;
-    const state = `/meetings/${meetingId}/join/nickname`;
+    const state = `/meetings/${meetingId}/step3-members`;
 
     const kakaoAuthUrl =
       `https://kauth.kakao.com/oauth/authorize` +
