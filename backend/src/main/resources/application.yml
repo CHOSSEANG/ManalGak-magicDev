@@ -10,6 +10,15 @@ server:
   servlet:
     context-path: /api
 
+# External API 설정
+api:
+  odsay:
+    key: ${ODSAY_API_KEY}
+    url: https://api.odsay.com
+  kakao:
+    key: ${KAKAO_API_KEY}
+    client-secret: ${KAKAO_CLIENT_SECRET}
+
 # Swagger/OpenAPI 설정
 springdoc:
   api-docs:

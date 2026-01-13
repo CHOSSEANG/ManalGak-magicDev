@@ -2,9 +2,18 @@ package com.magicdev.manalgak.domain.route.service;
 
 import com.magicdev.manalgak.common.cache.CacheKeys;
 import com.magicdev.manalgak.common.cache.CacheTTL;
+import com.magicdev.manalgak.common.exception.BusinessException;
+import com.magicdev.manalgak.common.exception.ErrorCode;
+import com.magicdev.manalgak.common.util.CoordinateUtil;
+import com.magicdev.manalgak.domain.algorithm.entity.MeetingCandidate;
+import com.magicdev.manalgak.domain.algorithm.repository.MeetingCandidateRepository;
+import com.magicdev.manalgak.domain.external.odsay.service.OdsayApiService;
+import com.magicdev.manalgak.domain.participant.entity.Participant;
+import com.magicdev.manalgak.domain.participant.repository.ParticipantRepository;
 import com.magicdev.manalgak.domain.route.dto.RouteResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +27,9 @@ import java.util.stream.Collectors;
 public class RouteService {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final OdsayApiService odsayApiService;
+    private final ObjectProvider<MeetingCandidateRepository> meetingCandidateRepositoryProvider;
+    private final ObjectProvider<ParticipantRepository> participantRepositoryProvider;
 
     public RouteResponse getRoutes(String meetingUuid, Long candidateId) {
         String cacheKey = CacheKeys.routesKey(meetingUuid, candidateId);
@@ -47,7 +59,39 @@ public class RouteService {
     }
 
     private RouteResponse callOdsayApi(String meetingUuid, Long candidateId) {
-        List<RouteResponse.RouteInfo> routes = generateDummyRoutes();
+        MeetingCandidateRepository candidateRepository = meetingCandidateRepositoryProvider.getIfAvailable();
+        ParticipantRepository participantRepository = participantRepositoryProvider.getIfAvailable();
+
+        if (candidateRepository == null || participantRepository == null) {
+            throw new BusinessException("Route data source is not configured", ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+
+        MeetingCandidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CANDIDATE_NOT_FOUND));
+
+        CoordinateUtil.validate(candidate.getLatitude(), candidate.getLongitude());
+
+        List<Participant> participants = participantRepository.findByMeetingUuid(meetingUuid);
+        if (participants == null || participants.isEmpty()) {
+            throw new BusinessException(ErrorCode.INSUFFICIENT_PARTICIPANTS);
+        }
+
+        List<OdsayApiService.ParticipantRoute> participantRoutes = participants.stream()
+                .map(participant -> {
+                    CoordinateUtil.validate(participant.getStartLatitude(), participant.getStartLongitude());
+                    return new OdsayApiService.ParticipantRoute(
+                            participant.getName(),
+                            participant.getStartLongitude(),
+                            participant.getStartLatitude()
+                    );
+                })
+                .toList();
+
+        List<RouteResponse.RouteInfo> routes = odsayApiService.getRoutesParallel(
+                participantRoutes,
+                candidate.getLongitude(),
+                candidate.getLatitude()
+        );
         RouteResponse.RouteStatistics statistics = calculateStatistics(routes);
 
         return RouteResponse.builder()
@@ -67,32 +111,6 @@ public class RouteService {
         } catch (Exception e) {
             log.error("Failed to save to cache: {}", e.getMessage());
         }
-    }
-
-    private List<RouteResponse.RouteInfo> generateDummyRoutes() {
-        return List.of(
-                RouteResponse.RouteInfo.builder()
-                        .participantName("홍길동")
-                        .path("역A → 역B → 역C")
-                        .travelTime(45)
-                        .transferCount(2)
-                        .transportType("지하철 2호선")
-                        .build(),
-                RouteResponse.RouteInfo.builder()
-                        .participantName("김철수")
-                        .path("역D → 역B")
-                        .travelTime(30)
-                        .transferCount(1)
-                        .transportType("지하철 3호선")
-                        .build(),
-                RouteResponse.RouteInfo.builder()
-                        .participantName("이영희")
-                        .path("버스정류장E → 역B")
-                        .travelTime(50)
-                        .transferCount(3)
-                        .transportType("버스+지하철")
-                        .build()
-        );
     }
 
     private RouteResponse.RouteStatistics calculateStatistics(List<RouteResponse.RouteInfo> routes) {
