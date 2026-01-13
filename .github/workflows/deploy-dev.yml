@@ -135,11 +135,6 @@ jobs:
             -e DB_HOST="${{ secrets.DB_DEV_HOST }}" \
             -e DB_USERNAME="${{ secrets.DB_DEV_USERNAME }}" \
             -e DB_PASSWORD="${{ secrets.DB_DEV_PASSWORD }}" \
-            -e REDIS_HOST="${{ secrets.REDIS_DEV_HOST }}" \
-            -e KAKAO_API_KEY="${{ secrets.KAKAO_DEV_API_KEY }}" \
-            -e ODSAY_API_KEY="${{ secrets.ODSAY_DEV_API_KEY }}" \
-            -e OPENAI_API_KEY="${{ secrets.OPENAI_DEV_API_KEY }}" \
-            -e JWT_SECRET="${{ secrets.JWT_DEV_SECRET }}" \
             "${{ needs.build-backend.outputs.backend-image-tag }}"
           
           echo "⏳ Waiting for backend to start..."
