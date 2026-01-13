@@ -1,19 +1,18 @@
 // src/app/meetings/[meetingId]/option-location/page.tsx
-'use client'
-import { useState } from 'react'
-import StepCard from '@/components/meeting/StepCard'
-import StepNavigation from '@/components/layout/StepNavigation'
-import KakaoMap from '@/components/map/KakaoMap'
-
+"use client";
+import { useState } from "react";
+import StepCard from "@/components/meeting/StepCard";
+import StepNavigation from "@/components/layout/StepNavigation";
+import KakaoMap from "@/components/map/KakaoMap";
 
 const middlePlaceMarkers = [
   { lat: 37.563617, lng: 126.997628 },
   { lat: 37.565, lng: 126.99 },
   { lat: 37.56, lng: 127.0 },
-]
+];
 
 export default function OptionRealtimePage() {
-  const [mapLevel, setMapLevel] = useState(5)
+  const [mapLevel, setMapLevel] = useState(5);
   // 와이어프레임 단계: 옵션 1
   return (
     <main className="space-y-6">
@@ -24,8 +23,7 @@ export default function OptionRealtimePage() {
         </p>
       </div>
 
-      
-        {/* <div className="flex items-center justify-between rounded-xl border border-[var(--wf-border)] 
+      {/* <div className="flex items-center justify-between rounded-xl border border-[var(--wf-border)] 
         bg-[var(--wf-muted)] px-4 py-3 hover:bg-[var(--wf-accent)]">
           <span className="text-sm font-semibold">실시간 위치 공유 동의 </span>
           <label className="flex items-center gap-2 text-xs text-[var(--wf-subtle)]">
@@ -33,16 +31,14 @@ export default function OptionRealtimePage() {
             OFF
           </label>
         </div> */}
-        
-        {/* 지도 영역만 */}
-        <div className="h-[60vh] md:h-[60vh] lg:h-[70vh]
-         rounded-xl border border-[var(--wf-border)] overflow-hidden">
-          <KakaoMap
-            markers={middlePlaceMarkers}
-            level={mapLevel}
-          />
-        </div>
-     
+
+      {/* 지도 영역만 */}
+      <div
+        className="h-[60vh] md:h-[60vh] lg:h-[70vh]
+         rounded-xl border border-[var(--wf-border)] overflow-hidden"
+      >
+        <KakaoMap markers={middlePlaceMarkers} level={mapLevel} />
+      </div>
 
       {/* 스텝 네비 */}
       <StepNavigation
@@ -51,7 +47,6 @@ export default function OptionRealtimePage() {
         nextHref="/my"
         nextLabel="내 모임 리스트"
       />
-
     </main>
-  )
+  );
 }
