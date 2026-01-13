@@ -177,29 +177,29 @@ jobs:
           EOL
 
           echo "🐳 Docker login to GitHub Container Registry..."
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
           echo "🛑 Stopping existing containers..."
-          docker-compose down
+          sudo docker-compose down
 
           echo "📦 Pulling new images..."
-          docker pull ${{ needs.build-backend.outputs.backend-image-tag }}
-          docker pull ${{ needs.build-frontend.outputs.frontend-image-tag }}
+          sudo docker pull ${{ needs.build-backend.outputs.backend-image-tag }}
+          sudo docker pull ${{ needs.build-frontend.outputs.frontend-image-tag }}
 
           echo "🚀 Starting services..."
-          docker-compose up -d
+          sudo docker-compose up -d
 
           echo "⏳ Waiting for services to be healthy..."
           sleep 20
 
           echo "📊 Service status:"
-          docker-compose ps
+          sudo docker-compose ps
 
           echo "📝 Recent logs:"
-          docker-compose logs --tail=20
+          sudo docker-compose logs --tail=20
 
           echo "🧹 Cleaning up unused images..."
-          docker image prune -f
+          sudo docker image prune -f
 
           echo "✅ Deployment completed successfully!"
           echo "🔗 Application is running at: http://${{ secrets.DEV_SERVER_HOST }}"
