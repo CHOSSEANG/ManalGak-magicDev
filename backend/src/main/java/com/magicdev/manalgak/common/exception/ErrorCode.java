@@ -50,7 +50,9 @@ public enum ErrorCode {
     KAKAO_API_ERROR(HttpStatus.BAD_GATEWAY, "카카오 API 호출 실패"),
     ODSAY_API_ERROR(HttpStatus.BAD_GATEWAY, "ODsay API 호출 실패"),
     OPENAI_API_ERROR(HttpStatus.BAD_GATEWAY, "OpenAI API 호출 실패"),
-    API_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "API 호출 제한 초과");
+    API_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "API 호출 제한 초과"),
+    EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 API 호출 실패"),
+    LAST_TRAIN_NOT_FOUND(HttpStatus.NOT_FOUND, "막차 정보를 찾을 수 없음");
 
 
     private final HttpStatus httpStatus;
