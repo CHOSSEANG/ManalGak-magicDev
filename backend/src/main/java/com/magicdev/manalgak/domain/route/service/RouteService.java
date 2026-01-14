@@ -8,6 +8,8 @@ import com.magicdev.manalgak.common.util.CoordinateUtil;
 import com.magicdev.manalgak.domain.algorithm.entity.MeetingCandidate;
 import com.magicdev.manalgak.domain.algorithm.repository.MeetingCandidateRepository;
 import com.magicdev.manalgak.domain.external.odsay.service.OdsayApiService;
+import com.magicdev.manalgak.domain.meeting.entity.Meeting;
+import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
 import com.magicdev.manalgak.domain.participant.repository.ParticipantRepository;
 import com.magicdev.manalgak.domain.route.dto.RouteResponse;
@@ -30,6 +32,7 @@ public class RouteService {
     private final OdsayApiService odsayApiService;
     private final ObjectProvider<MeetingCandidateRepository> meetingCandidateRepositoryProvider;
     private final ObjectProvider<ParticipantRepository> participantRepositoryProvider;
+    private final ObjectProvider<MeetingRepository> meetingRepositoryProvider;
 
     public RouteResponse getRoutes(String meetingUuid, Long candidateId) {
         String cacheKey = CacheKeys.routesKey(meetingUuid, candidateId);
@@ -61,8 +64,9 @@ public class RouteService {
     private RouteResponse callOdsayApi(String meetingUuid, Long candidateId) {
         MeetingCandidateRepository candidateRepository = meetingCandidateRepositoryProvider.getIfAvailable();
         ParticipantRepository participantRepository = participantRepositoryProvider.getIfAvailable();
+        MeetingRepository meetingRepository = meetingRepositoryProvider.getIfAvailable();
 
-        if (candidateRepository == null || participantRepository == null) {
+        if (candidateRepository == null || participantRepository == null || meetingRepository == null) {
             throw new BusinessException("Route data source is not configured", ErrorCode.INTERNAL_SERVER_ERROR);
         }
 
@@ -71,18 +75,24 @@ public class RouteService {
 
         CoordinateUtil.validate(candidate.getLatitude(), candidate.getLongitude());
 
-        List<Participant> participants = participantRepository.findByMeetingUuid(meetingUuid);
+        // meetingUuid로 Meeting 조회 후 meetingId로 participants 조회
+        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        List<Participant> participants = participantRepository.findByMeetingId(meeting.getId());
         if (participants == null || participants.isEmpty()) {
             throw new BusinessException(ErrorCode.INSUFFICIENT_PARTICIPANTS);
         }
 
         List<OdsayApiService.ParticipantRoute> participantRoutes = participants.stream()
                 .map(participant -> {
-                    CoordinateUtil.validate(participant.getStartLatitude(), participant.getStartLongitude());
+                    Double latitude = participant.getOrigin().getLatitude().doubleValue();
+                    Double longitude = participant.getOrigin().getLongitude().doubleValue();
+                    CoordinateUtil.validate(latitude, longitude);
                     return new OdsayApiService.ParticipantRoute(
-                            participant.getName(),
-                            participant.getStartLongitude(),
-                            participant.getStartLatitude()
+                            participant.getNickName(),
+                            longitude,
+                            latitude
                     );
                 })
                 .toList();

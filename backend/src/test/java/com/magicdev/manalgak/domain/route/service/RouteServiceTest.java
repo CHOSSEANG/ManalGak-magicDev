@@ -4,6 +4,9 @@ import com.magicdev.manalgak.common.exception.BusinessException;
 import com.magicdev.manalgak.domain.algorithm.entity.MeetingCandidate;
 import com.magicdev.manalgak.domain.algorithm.repository.MeetingCandidateRepository;
 import com.magicdev.manalgak.domain.external.odsay.service.OdsayApiService;
+import com.magicdev.manalgak.domain.meeting.entity.Meeting;
+import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
+import com.magicdev.manalgak.domain.participant.entity.Location;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
 import com.magicdev.manalgak.domain.participant.repository.ParticipantRepository;
 import com.magicdev.manalgak.domain.route.dto.RouteResponse;
@@ -18,6 +21,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class RouteServiceTest {
@@ -43,22 +48,36 @@ class RouteServiceTest {
     private ObjectProvider<ParticipantRepository> participantRepositoryProvider;
 
     @Mock
+    private ObjectProvider<MeetingRepository> meetingRepositoryProvider;
+
+    @Mock
     private MeetingCandidateRepository meetingCandidateRepository;
 
     @Mock
     private ParticipantRepository participantRepository;
 
     @Mock
+    private MeetingRepository meetingRepository;
+
+    @Mock
     private ValueOperations<String, Object> valueOperations;
 
-    @InjectMocks
     private RouteService routeService;
 
     @BeforeEach
     void setUp() {
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(meetingCandidateRepositoryProvider.getIfAvailable()).thenReturn(meetingCandidateRepository);
-        when(participantRepositoryProvider.getIfAvailable()).thenReturn(participantRepository);
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(meetingCandidateRepositoryProvider.getIfAvailable()).thenReturn(meetingCandidateRepository);
+        lenient().when(participantRepositoryProvider.getIfAvailable()).thenReturn(participantRepository);
+        lenient().when(meetingRepositoryProvider.getIfAvailable()).thenReturn(meetingRepository);
+
+        routeService = new RouteService(
+                redisTemplate,
+                odsayApiService,
+                meetingCandidateRepositoryProvider,
+                participantRepositoryProvider,
+                meetingRepositoryProvider
+        );
     }
 
     @Test
@@ -74,8 +93,12 @@ class RouteServiceTest {
         when(meetingCandidateRepository.findById(candidateId))
                 .thenReturn(Optional.of(candidate));
 
+        Meeting meeting = createMockMeeting(meetingUuid);
+        when(meetingRepository.findByMeetingUuid(meetingUuid))
+                .thenReturn(Optional.of(meeting));
+
         List<Participant> participants = createMockParticipants();
-        when(participantRepository.findByMeetingUuid(meetingUuid))
+        when(participantRepository.findByMeetingId(meeting.getId()))
                 .thenReturn(participants);
 
         List<RouteResponse.RouteInfo> mockRoutes = createMockRoutes();
@@ -154,7 +177,11 @@ class RouteServiceTest {
         when(meetingCandidateRepository.findById(candidateId))
                 .thenReturn(Optional.of(candidate));
 
-        when(participantRepository.findByMeetingUuid(meetingUuid))
+        Meeting meeting = createMockMeeting(meetingUuid);
+        when(meetingRepository.findByMeetingUuid(meetingUuid))
+                .thenReturn(Optional.of(meeting));
+
+        when(participantRepository.findByMeetingId(meeting.getId()))
                 .thenReturn(List.of());
 
         // when & then
@@ -164,8 +191,6 @@ class RouteServiceTest {
 
     private MeetingCandidate createMockCandidate() {
         MeetingCandidate candidate = new MeetingCandidate();
-        // Use reflection or builder if available
-        // For simplicity, assuming setters exist
         try {
             var latField = MeetingCandidate.class.getDeclaredField("latitude");
             latField.setAccessible(true);
@@ -180,18 +205,42 @@ class RouteServiceTest {
         return candidate;
     }
 
-    private List<Participant> createMockParticipants() {
-        Participant p1 = Participant.builder()
-                .name("참여자1")
-                .startLatitude(37.4)
-                .startLongitude(126.9)
-                .build();
+    private Meeting createMockMeeting(String meetingUuid) {
+        Meeting meeting = new Meeting();
+        try {
+            var idField = Meeting.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(meeting, 1L);
 
-        Participant p2 = Participant.builder()
-                .name("참여자2")
-                .startLatitude(37.6)
-                .startLongitude(127.1)
-                .build();
+            var uuidField = Meeting.class.getDeclaredField("meetingUuid");
+            uuidField.setAccessible(true);
+            uuidField.set(meeting, meetingUuid);
+        } catch (Exception e) {
+            // fallback
+        }
+        return meeting;
+    }
+
+    private List<Participant> createMockParticipants() {
+        Location origin1 = new Location(
+                new BigDecimal("37.4"),
+                new BigDecimal("126.9"),
+                "서울시 강남구"
+        );
+
+        Location origin2 = new Location(
+                new BigDecimal("37.6"),
+                new BigDecimal("127.1"),
+                "서울시 강북구"
+        );
+
+        Participant p1 = mock(Participant.class);
+        when(p1.getNickName()).thenReturn("참여자1");
+        when(p1.getOrigin()).thenReturn(origin1);
+
+        Participant p2 = mock(Participant.class);
+        when(p2.getNickName()).thenReturn("참여자2");
+        when(p2.getOrigin()).thenReturn(origin2);
 
         return List.of(p1, p2);
     }
