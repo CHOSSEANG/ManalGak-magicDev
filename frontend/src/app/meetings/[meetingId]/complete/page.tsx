@@ -1,44 +1,41 @@
 // src/app/meetings/[meetingId]/complete/page.tsx
-'use client'
+"use client";
 
-import { use } from 'react'
-import CompleteSummaryCard from '@/components/meeting/Step6/CompleteSummaryCard'
-import CompleteMapSection from '@/components/meeting/Step6/CompleteMapSection'
-import CompleteOptionLinks from '@/components/meeting/Step6/CompleteOptionLinks'
-import StepNavigation from '@/components/layout/StepNavigation'
+import { use } from "react";
+import CompleteSummaryCard from "@/components/meeting/Step6/CompleteSummaryCard";
+import CompleteMapSection from "@/components/meeting/Step6/CompleteMapSection";
+import CompleteOptionLinks from "@/components/meeting/Step6/CompleteOptionLinks";
+import StepNavigation from "@/components/layout/StepNavigation";
 
 interface PageProps {
   params: Promise<{
-    meetingId: string
-  }>
+    meetingId: string;
+  }>;
 }
 
 export default function MeetingCompletePage({ params }: PageProps) {
   // ✅ Next.js 15 방식
-  const { meetingId } = use(params)
+  const { meetingId } = use(params);
 
   // TODO: 추후 API 연동
   const meeting = {
-    meetingName: '친구들끼리 친목모임', // ✅ key 수정
-    dateTime: '2026.01.23 12:00',
+    meetingName: "공주파티", // ✅ key 수정
+    dateTime: "2026.01.23 12:00",
     memberCount: 5,
-    category: '카페',
-    placeName: '중간지점 카페',
-    address: '서울시 어쩌구 저쩌동 12-34',
-    parkingInfo: '가능 (유료 10분당 1,200원)',
-    reservationInfo: '가능',
-    phoneNumber: '070-0000-0000',
+    category: "카페",
+    placeName: "이리카페",
+    address: "서울 마포구 와우산로3길 27",
+    parkingInfo: "가능 (유료 10분당 1,200원)",
+    reservationInfo: "가능",
+    phoneNumber: "02-323-7861",
     lat: 37.563617,
     lng: 126.997628,
-  }
+  };
 
   return (
     <main className="space-y-8">
       {/* 확정 장소 지도 */}
-      <CompleteMapSection
-        lat={meeting.lat}
-        lng={meeting.lng}
-      />
+      <CompleteMapSection lat={meeting.lat} lng={meeting.lng} />
 
       {/* 확정 정보 요약 카드 */}
       <CompleteSummaryCard meeting={meeting} />
@@ -54,5 +51,5 @@ export default function MeetingCompletePage({ params }: PageProps) {
         nextLabel="내 모임 리스트"
       />
     </main>
-  )
+  );
 }

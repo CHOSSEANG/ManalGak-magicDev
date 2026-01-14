@@ -1,20 +1,20 @@
 // src/app/layout.tsx
-import type { Metadata } from 'next'
-import Script from 'next/script'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import '@/styles/globals.css'
+import type { Metadata } from "next";
+import Script from "next/script";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import "@/styles/globals.css";
 
 export const metadata: Metadata = {
-  title: '만날각 - 중간 만남 장소 추천',
-  description: '모임 목적에 맞는 중간 만남 장소를 추천해드립니다',
-}
+  title: "만날각 - 중간 만남 장소 추천",
+  description: "모임 목적에 맞는 중간 만남 장소를 추천해드립니다",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="ko">
@@ -22,6 +22,11 @@ export default function RootLayout({
         {/* ✅ 카카오 지도 SDK – 절대 깨지지 않는 방식 */}
         <Script
           src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=58664e8d9e1e49dc74df2e0cf8f05714&autoload=false"
+          strategy="beforeInteractive"
+        />
+        {/* ✅ 카카오톡 공유 JS SDK */}
+        <Script
+          src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
           strategy="beforeInteractive"
         />
       </head>
@@ -40,5 +45,5 @@ export default function RootLayout({
         </TooltipProvider>
       </body>
     </html>
-  )
+  );
 }

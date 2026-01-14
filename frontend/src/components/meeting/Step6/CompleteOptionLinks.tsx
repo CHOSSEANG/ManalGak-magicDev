@@ -1,17 +1,17 @@
 // src/components/meeting/CompleteOptionLinks.tsx
-'use client'
+"use client";
 
-import Link from 'next/link'
-import StepCard from '@/components/meeting/StepCard'
+import Link from "next/link";
+import StepCard from "@/components/meeting/StepCard";
 
 interface Props {
-  meetingId: string
+  meetingId: string;
 }
 
 export default function CompleteOptionLinks({ meetingId }: Props) {
   return (
     <StepCard className="space-y-3">
-      <p className="text-sm font-semibold">옵션 페이지 이동</p>
+      <p className="text-sm font-semibold">옵션 페이지</p>
 
       <div className="flex w-full gap-3">
         <Link
@@ -29,5 +29,5 @@ export default function CompleteOptionLinks({ meetingId }: Props) {
         </Link>
       </div>
     </StepCard>
-  )
+  );
 }
