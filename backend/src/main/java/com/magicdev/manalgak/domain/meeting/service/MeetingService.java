@@ -1,10 +1,6 @@
 package com.magicdev.manalgak.domain.meeting.service;
 
-import com.magicdev.manalgak.domain.meeting.dto.MeetingCreateRequest;
-import com.magicdev.manalgak.domain.meeting.dto.MeetingCreateResponse;
-import com.magicdev.manalgak.domain.meeting.dto.MeetingResponse;
-import com.magicdev.manalgak.domain.meeting.dto.MeetingUpdateRequest;
-import com.magicdev.manalgak.domain.meeting.entity.Meeting;
+import com.magicdev.manalgak.domain.meeting.dto.*;
 
 import java.util.List;
 
@@ -12,11 +8,14 @@ public interface MeetingService {
 
     MeetingCreateResponse createMeeting(MeetingCreateRequest request, Long userId);
 
-    Meeting getMeeting(Long id);
+    MeetingDetailResponse getMeeting(String meetingUuid);
 
-//    List<Meeting> getAllMeetings(Long userId);
+    List<MeetingAllResponse> getAllMeetings(Long userId);
 
-    MeetingResponse updateMeeting(MeetingUpdateRequest request, Long id, Long userId);
+    MeetingResponse updateMeeting(MeetingUpdateRequest request, String meetingUuid, Long userId);
 
-    void deleteMeeting(Long id,Long userId);
+    void deleteMeeting(String meetingUuid,Long userId);
+
+    MeetingCopyResponse copyMeeting(String meetingUuid, Long userId);
+
 }
