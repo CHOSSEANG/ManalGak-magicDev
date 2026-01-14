@@ -16,28 +16,15 @@ spring:
       hibernate:
         format_sql: false
         dialect: org.hibernate.dialect.MySQLDialect
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
 
-#  redis:
-#    host: ${REDIS_HOST:localhost}
-#    port: 6379
+#  flyway:
+#    enabled: true
+#    baseline-on-migrate: true
 
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-
-# 외부 API 설정
-#api:
-#  kakao:
-#    key: ${KAKAO_API_KEY}
-#    local-url: https://dapi.kakao.com
-#    maps-url: https://apis-navi.kakaomobility.com
-#    client-secret: ${KAKAO_CLIENT_SECRET}
-#    redirect-uri: ${KAKAO_REDIRECT_URI}
-#
-#  odsay:
-#    key: ${ODSAY_API_KEY}
-#    url: https://api.odsay.com
-#
 #  openai:
 #    key: ${OPENAI_API_KEY}
 #    url: https://api.openai.com/v1
