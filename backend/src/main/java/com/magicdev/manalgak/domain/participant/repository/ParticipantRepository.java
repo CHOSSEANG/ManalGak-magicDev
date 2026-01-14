@@ -20,4 +20,6 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
     List<Participant> findByUser(User user);
 
     void deleteByMeeting(Meeting meeting);
+
+    List<Participant> findByMeetingIdIn(List<Long> meetingIds);
 }
