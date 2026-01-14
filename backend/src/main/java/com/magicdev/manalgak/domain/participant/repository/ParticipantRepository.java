@@ -4,6 +4,8 @@ import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
 import com.magicdev.manalgak.domain.user.dto.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -13,7 +15,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
 
     boolean existsByMeetingIdAndNickName(Long meetingId, String nickName);
 
-    List<Participant> findByMeetingId(Long meetingId);
+    @Query("SELECT p FROM Participant p JOIN FETCH p.user WHERE p.meeting.id = :meetingId")
+    List<Participant> findByMeetingId(@Param("meetingId") Long meetingId);
 
     long countByMeetingId(Long meetingId);
 
@@ -21,5 +24,6 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
 
     void deleteByMeeting(Meeting meeting);
 
-    List<Participant> findByMeetingIdIn(List<Long> meetingIds);
+    @Query("SELECT p FROM Participant p JOIN FETCH p.user WHERE p.meeting.id IN :meetingIds")
+    List<Participant> findByMeetingIdIn(@Param("meetingIds") List<Long> meetingIds);
 }
