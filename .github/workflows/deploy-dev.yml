@@ -183,6 +183,8 @@ jobs:
           FRONTEND_LOGIN_SUCCESS_URL=${{ secrets.DEV_FRONTEND_LOGIN_SUCCESS_URL }}
           FRONTEND_BASE_URL=${{ secrets.DEV_FRONTEND_BASE_URL }}
           
+          ODSAY_API_KEY=${{secrets.DEV_ODSAY_API_KEY}}
+          
           JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}
           
           NEXT_PUBLIC_API_URL=${{secrets.DEV_NEXT_PUBLIC_API_URL}}
