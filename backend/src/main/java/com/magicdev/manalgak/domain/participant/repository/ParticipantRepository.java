@@ -1,5 +1,6 @@
 package com.magicdev.manalgak.domain.participant.repository;
 
+import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
 import com.magicdev.manalgak.domain.user.dto.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +18,6 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
     long countByMeetingId(Long meetingId);
 
     List<Participant> findByUser(User user);
+
+    void deleteByMeeting(Meeting meeting);
 }

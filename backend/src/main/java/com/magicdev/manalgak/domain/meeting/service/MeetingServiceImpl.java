@@ -119,6 +119,7 @@ public class MeetingServiceImpl implements MeetingService {
     public void deleteMeeting(String meetingUuid, Long userId) {
         Meeting meeting = getMeetingByMeetingUuid(meetingUuid);
         validateIsOrganizer(userId, meeting);
+        participantRepository.deleteByMeeting(meeting);
         meetingRepository.delete(meeting);
     }
 
