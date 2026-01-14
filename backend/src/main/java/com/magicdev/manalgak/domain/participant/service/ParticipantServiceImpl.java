@@ -2,6 +2,7 @@ package com.magicdev.manalgak.domain.participant.service;
 
 import com.magicdev.manalgak.common.exception.BusinessException;
 import com.magicdev.manalgak.common.exception.ErrorCode;
+import com.magicdev.manalgak.common.util.DateTimeUtil;
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantCreateRequest;
@@ -53,7 +54,9 @@ public class ParticipantServiceImpl implements ParticipantService {
             throw new BusinessException(ErrorCode.DUPLICATE_PARTICIPANT_NAME);
         }
 
-
+        if (meeting.getExpiresAt().isBefore(DateTimeUtil.now())) {
+            throw new BusinessException(ErrorCode.MEETING_EXPIRED);
+        }
 
         Participant participant = Participant.create(meeting, user, request.getNickName());
 
