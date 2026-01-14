@@ -14,6 +14,7 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 에러"),
     INVALID_UUID(HttpStatus.BAD_REQUEST, "잘못된 UUID 형식입니다"),
     INVALID_TIME(HttpStatus.BAD_REQUEST, "유효하지 않은 시간 값입니다"),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않은 유저"),
 
     /* =====================
      * 2 모임 관련 에러
@@ -31,6 +32,8 @@ public enum ErrorCode {
     DUPLICATE_PARTICIPANT_NAME(HttpStatus.CONFLICT, "중복된 참여자 이름"),
     PARTICIPANT_NOT_FOUND(HttpStatus.NOT_FOUND, "참여자를 찾을 수 없음"),
     INVALID_PARTICIPANT_TOKEN(HttpStatus.FORBIDDEN, "유효하지 않은 참여자 토큰"),
+    ALREADY_PARTICIPANT(HttpStatus.CONFLICT, "이미 참여한 참여자"),
+    NO_AUTHORITY(HttpStatus.FORBIDDEN, "해당 작업에 대한 권한 없음"),
 
     /* =====================
      * 4 위치 정보 관련 에러
