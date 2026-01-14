@@ -173,6 +173,20 @@ jobs:
           DB_HOST=${{ secrets.DB_DEV_HOST }}
           DB_USERNAME=${{ secrets.DB_DEV_USERNAME }}
           DB_PASSWORD=${{ secrets.DB_DEV_PASSWORD }}
+          
+          KAKAO_API_KEY=${{ secrets.DEV_KAKAO_API_KEY }}
+          KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}
+          KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}
+          
+          FRONTEND_LOGIN_SUCCESS_URL=${{ secrets.DEV_FRONTEND_LOGIN_SUCCESS_URL }}
+          FRONTEND_BASE_URL=${{ secrets.DEV_FRONTEND_BASE_URL }}
+          
+          JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}
+          
+          NEXT_PUBLIC_API_URL=${{secrets.DEV_NEXT_PUBLIC_API_URL}}
+          
+          REDIS_HOST=${{secrets.DEV_REDIS_HOST}}
+          REDIS_PORT=${{secrets.DEV_REDIS_PORT}}
           EOL
 
           echo "📦 생성: 프론트엔드 환경 변수 파일 (./frontend/.env)"
