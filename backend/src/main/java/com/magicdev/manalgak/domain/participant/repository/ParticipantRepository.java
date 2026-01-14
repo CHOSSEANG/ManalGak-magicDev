@@ -1,12 +1,20 @@
 package com.magicdev.manalgak.domain.participant.repository;
 
 import com.magicdev.manalgak.domain.participant.entity.Participant;
+import com.magicdev.manalgak.domain.user.dto.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface ParticipantRepository extends JpaRepository<Participant, Long> {
-    List<Participant> findByMeetingUuid(String meetingUuid);
+
+    boolean existsByMeetingIdAndUser(Long meetingId, User user);
+
+    boolean existsByMeetingIdAndNickName(Long meetingId, String nickName);
+
+    List<Participant> findByMeetingId(Long meetingId);
+
+    long countByMeetingId(Long meetingId);
+
+    List<Participant> findByUser(User user);
 }
