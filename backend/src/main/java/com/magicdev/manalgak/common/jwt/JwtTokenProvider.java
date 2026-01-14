@@ -41,7 +41,7 @@ public class JwtTokenProvider {
     }
 
     // 참여자 JWT 발급
-    public String generateParticipantToken(Long participantId, String meetingId) {
+    public String generateParticipantToken(Long participantId, String meetingUuid) {
 
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expiration);
@@ -50,7 +50,7 @@ public class JwtTokenProvider {
                 .issuedAt(now)
                 .expiration(expiry)
                 .claim("participantId", participantId)
-                .claim("meetingId", meetingId)
+                .claim("meetingUuid", meetingUuid)
                 .signWith(key)
                 .compact();
 
@@ -64,6 +64,7 @@ public class JwtTokenProvider {
                     .parseSignedClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Invalid JWT token: {}", e.getMessage());
             return false;
         }
     }
@@ -87,8 +88,8 @@ public class JwtTokenProvider {
         return getClaims(token).get("participantId", Long.class);
     }
 
-    public String getMeetingId(String token) {
-        return getClaims(token).get("meetingId", String.class);
+    public String getMeetingUuid(String token) {
+        return getClaims(token).get("meetingUuid", String.class);
     }
 
     public String resolveToken(String header){
