@@ -95,9 +95,6 @@ public class Participant {
         if(request.getNickName() != null){
             this.nickName = request.getNickName();
         }
-        if(request.getStatus() != null){
-            this.status = request.getStatus();
-        }
         if(request.getType() != null){
             this.type = request.getType();
         }
