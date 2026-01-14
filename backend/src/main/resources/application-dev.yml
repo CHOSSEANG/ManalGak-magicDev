@@ -44,9 +44,9 @@ spring:
 #    model: gpt-4o-mini
 
 # JWT 설정
-#jwt:
-#  secret: ${JWT_SECRET}
-#  expiration: 604800000
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 604800000
 
 # Swagger/OpenAPI (개발 환경 - 활성화)
 springdoc:
