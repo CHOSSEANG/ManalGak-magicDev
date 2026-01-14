@@ -1,52 +1,120 @@
 package com.magicdev.manalgak.domain.participant.entity;
 
+
+import com.magicdev.manalgak.domain.meeting.entity.Meeting;
+import com.magicdev.manalgak.domain.participant.dto.ParticipantUpdateRequest;
+import com.magicdev.manalgak.domain.user.dto.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "participant")
+@Table(
+        name="participants",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name="uk_meeting_user",
+                        columnNames = {"meeting_id","user_id"}
+                )
+        }
+)
 @Getter
-@Setter
-@ToString
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Participant {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "meeting_uuid", nullable = false)
-    private String meetingUuid;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name ="meeting_id",nullable = false)
+    private Meeting meeting;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(name="nickname",nullable = false)
+    private String nickName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(20)")
+    private ParticipationStatus status;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "origin_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "origin_longitude")),
+            @AttributeOverride(name = "address", column = @Column(name = "origin_address"))
+    })
+    private Location origin;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "return_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "return_longitude")),
+            @AttributeOverride(name = "address", column = @Column(name = "return_address"))
+    })
+    private Location destination;
 
     @Column(nullable = false)
-    private String name;
+    private LocalDateTime joinedAt;
 
-    @Column(name = "start_latitude", nullable = false)
-    private Double startLatitude;
+    private boolean handicap;
 
-    @Column(name = "start_longitude", nullable = false)
-    private Double startLongitude;
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(20)")
+    private TransportType type;
 
-    @Column(name = "start_address")
-    private String startAddress;
-
-    /**
-     * ID 기반 equals 구현 (JPA 엔티티 Best Practice)
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Participant that = (Participant) o;
-        return id != null && id.equals(that.id);
+    public enum ParticipationStatus {
+        INVITED,    // 초대됨
+        CONFIRMED,  // 확정
+        DECLINED    // 불참
     }
 
-    /**
-     * 클래스 기반 hashCode 구현 (JPA 엔티티 Best Practice)
-     */
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
+    public enum TransportType {
+        WALK,        // 도보
+        PUBLIC,      // 대중교통
+        CAR          // 자동차
     }
+
+    public static Participant create(Meeting meeting, User user, String nickName) {
+        Participant p = new Participant();
+        p.meeting = meeting;
+        p.nickName = nickName;
+        p.user = user;
+        p.status = ParticipationStatus.INVITED;
+        p.joinedAt = LocalDateTime.now();
+        return p;
+    }
+
+    public void update(ParticipantUpdateRequest request){
+        if(request.getNickName() != null){
+            this.nickName = request.getNickName();
+        }
+        if(request.getStatus() != null){
+            this.status = request.getStatus();
+        }
+        if(request.getType() != null){
+            this.type = request.getType();
+        }
+        if(request.getHandicap() != null){
+            this.handicap = request.getHandicap();
+        }
+        if(request.getOrigin() != null){
+            this.origin = request.getOrigin();
+        }
+        if(request.getDestination() != null){
+            this.destination = request.getDestination();
+        }
+    }
+
+    public void changeStatus(ParticipationStatus status){
+        this.status = status;
+    }
+
+
 }
