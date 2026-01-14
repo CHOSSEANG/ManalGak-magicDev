@@ -147,7 +147,7 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_HOST }} << EOF
+          ssh ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_HOST }} << 'EOF'
           set -e
 
           # 프로젝트 디렉토리로 이동
