@@ -17,8 +17,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -74,35 +75,40 @@ public class MeetingServiceImpl implements MeetingService {
 
         List<Participant> userParticipants  = participantRepository.findByUser(user);
 
-        List<MeetingAllResponse> result = new ArrayList<>();
-        for(Participant p : userParticipants ){
-            Meeting meeting = p.getMeeting();
+        List<Long> meetingIds = userParticipants.stream()
+                .map(p->p.getMeeting().getId())
+                .distinct()
+                .toList();
 
-            List<ParticipantResponse> participants = participantRepository.findByMeetingId(meeting.getId())
-                    .stream()
-                    .map(ParticipantResponse::from)
-                    .toList();
-            result.add(MeetingAllResponse.from(meeting,participants));
+        if (meetingIds.isEmpty()) {
+            return List.of();
         }
-        return result;
+
+        List<Participant> allParticipants =
+                participantRepository.findByMeetingIdIn(meetingIds);
+
+        Map<Long, List<ParticipantResponse>> participantMap =
+                allParticipants.stream()
+                        .map(ParticipantResponse::from)
+                        .collect(Collectors.groupingBy(
+                                ParticipantResponse::getMeetingId
+                        ));
+
+        return userParticipants.stream()
+                .map(p->{
+                    Meeting meeting = p.getMeeting();
+                    List<ParticipantResponse> participants =
+                            participantMap.getOrDefault(meeting.getId(), List.of());
+                    return MeetingAllResponse.from(meeting,participants);
+                })
+                .distinct()
+                .toList();
     }
 
     public Meeting getMeetingByMeetingUuid (String meetingUuid) {
         return meetingRepository.findByMeetingUuid(meetingUuid).orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
     }
 
-//    @Override
-//    public List<Meeting> getAllMeetings(Long userId) {
-
-//        List<MeetingParticipant> participants = participantRepository.findByUserId(userId);
-//
-//        List<Long> meetingIds = participants.stream()
-//                .map(MeetingParticipant::getMeetingId)
-//                .distinct()
-//                .toList();
-//
-//        return meetingRepository.findAllById(meetingIds);
-//    }
 
     @Override
     @Transactional
