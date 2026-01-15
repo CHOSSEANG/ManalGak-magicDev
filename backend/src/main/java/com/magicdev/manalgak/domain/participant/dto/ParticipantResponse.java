@@ -16,6 +16,7 @@ public class ParticipantResponse {
     private Location origin;
     private Location destination;
     private Participant.TransportType transportType;
+    private Long userId;
 
 
     public static ParticipantResponse from(Participant participant){
@@ -28,6 +29,7 @@ public class ParticipantResponse {
                 .origin(participant.getOrigin())
                 .destination(participant.getDestination())
                 .transportType(participant.getType())
+                .userId(participant.getUser().getId())
                 .build();
     }
 }
