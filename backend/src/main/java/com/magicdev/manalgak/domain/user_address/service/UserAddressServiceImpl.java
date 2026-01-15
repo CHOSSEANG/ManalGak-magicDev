@@ -52,6 +52,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         return UserAddressResponse.from(userAddress);
     }
 
+    @Transactional
     @Override
     public void deleteUserAddress(Long userAddressId, Long userId) {
         UserAddress userAddress = userAddressRepository.findById(userAddressId)
