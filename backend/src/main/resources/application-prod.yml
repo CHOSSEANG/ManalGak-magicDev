@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: jdbc:mysql://${DB_HOST}:3306/manalgak?useSSL=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: ${DB_USERNAME}
+    url: jdbc:mysql://${DB_HOST}:3306/manalgak?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME:admin}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 30
-      minimum-idle: 15
+      maximum-pool-size: 20
+      minimum-idle: 10
 
   jpa:
     hibernate:
@@ -16,52 +16,51 @@ spring:
       hibernate:
         format_sql: false
         dialect: org.hibernate.dialect.MySQLDialect
-
-#  redis:
-#    host: ${REDIS_HOST}
-#    port: 6379
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
 
   flyway:
-    enabled: true
-    baseline-on-migrate: true
+    enabled: false
 
 # 외부 API 설정
-#api:
-#  kakao:
-#    key: ${KAKAO_API_KEY}
-#    local-url: https://dapi.kakao.com
-#    maps-url: https://apis-navi.kakaomobility.com
-#    client-secret: ${KAKAO_CLIENT_SECRET}
-#    redirect-uri: ${KAKAO_REDIRECT_URI}
-#
-#  odsay:
-#    key: ${ODSAY_API_KEY}
-#    url: https://api.odsay.com
-#
-#  openai:
-#    key: ${OPENAI_API_KEY}
-#    url: https://api.openai.com/v1
-#    model: gpt-4o-mini
+api:
+  kakao:
+    key: ${KAKAO_API_KEY}
+    local-url: https://dapi.kakao.com
+    maps-url: https://apis-navi.kakaomobility.com
+    client-secret: ${KAKAO_CLIENT_SECRET}
+    redirect-uri: ${KAKAO_REDIRECT_URI}
+
+  odsay:
+    key: ${ODSAY_API_KEY}
+    url: https://api.odsay.com
+
+  openai:
+    key: ${OPENAI_API_KEY:your-openai-api-key}
+    url: https://api.openai.com/v1
+    model: gpt-4o-mini
 
 # JWT 설정
-#jwt:
-#  secret: ${JWT_SECRET}
-#  expiration: 604800000
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 604800000
 
-# Swagger/OpenAPI (운영 환경 - 비활성화, 보안)
+# Swagger/OpenAPI (개발 환경 - 활성화)
 springdoc:
   swagger-ui:
-    enabled: false  # 운영에서는 Swagger UI 비활성화
+    enabled: true
   api-docs:
-    enabled: false  # OpenAPI 문서도 비활성화
+    enabled: true
 
 # Logging
 logging:
   level:
-    com.magicdev.manalgak: WARN
-    org.springframework.web: WARN
+    com.magicdev.manalgak: INFO
+    org.springframework.web: INFO
 
 # 프론트엔드
-#frontend:
-#  login-success-url: ${FRONTEND_LOGIN_SUCCESS_URL}
-#  base-url: ${FRONTEND_BASE_URL}
+frontend:
+  login-success-url: ${FRONTEND_LOGIN_SUCCESS_URL}
+  base-url: ${FRONTEND_BASE_URL}
