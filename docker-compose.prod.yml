@@ -48,6 +48,9 @@ services:
     networks:
       - manalgak-network
 
+volumes:
+  redis_data:
+
 networks:
   manalgak-network:
     driver: bridge
