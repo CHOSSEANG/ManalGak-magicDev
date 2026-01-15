@@ -19,6 +19,20 @@ services:
     networks:
       - manalgak-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: manalgak-redis
+    restart: unless-stopped
+    networks:
+      - manalgak-network
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   nginx:
     image: nginx:latest
     container_name: manalgak-nginx
