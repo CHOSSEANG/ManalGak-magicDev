@@ -4,6 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -40,22 +42,6 @@ public class JwtTokenProvider {
 
     }
 
-    // 참여자 JWT 발급
-    public String generateParticipantToken(Long participantId, String meetingUuid) {
-
-        Date now = new Date();
-        Date expiry = new Date(now.getTime() + expiration);
-
-        return Jwts.builder()
-                .issuedAt(now)
-                .expiration(expiry)
-                .claim("participantId", participantId)
-                .claim("meetingUuid", meetingUuid)
-                .signWith(key)
-                .compact();
-
-    }
-
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
@@ -84,17 +70,13 @@ public class JwtTokenProvider {
         return getClaims(token).get("kakaoId", Long.class);
     }
 
-    public Long getParticipantId(String token) {
-        return getClaims(token).get("participantId", Long.class);
-    }
-
-    public String getMeetingUuid(String token) {
-        return getClaims(token).get("meetingUuid", String.class);
-    }
-
-    public String resolveToken(String header){
-        if(header != null && header.startsWith("Bearer ")){
-            return header.substring(7);
+    public String resolveTokenFromCookie(HttpServletRequest request){
+        if(request.getCookies() != null){
+            for(Cookie cookie : request.getCookies()){
+                if("token".equals(cookie.getName())){
+                    return cookie.getValue();
+                }
+            }
         }
         return null;
     }
