@@ -17,6 +17,7 @@ public class MeetingDetailResponse {
     private Meeting.MeetingPurpose purpose;
     private Meeting.MeetingStatus status;
     private Integer totalParticipants;
+    private Long organizerId;
 
     private List<ParticipantResponse> participants; // 참여자 리스트
 
@@ -29,6 +30,7 @@ public class MeetingDetailResponse {
                 .status(meeting.getStatus())
                 .totalParticipants(meeting.getTotalParticipants())
                 .participants(participants)
+                .organizerId(meeting.getOrganizerId())
                 .build();
     }
 }

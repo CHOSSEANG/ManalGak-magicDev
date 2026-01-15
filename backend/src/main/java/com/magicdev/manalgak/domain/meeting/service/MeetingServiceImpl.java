@@ -14,6 +14,7 @@ import com.magicdev.manalgak.domain.participant.service.ParticipantService;
 import com.magicdev.manalgak.domain.user.dto.User;
 import com.magicdev.manalgak.domain.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,12 +48,12 @@ public class MeetingServiceImpl implements MeetingService {
         meeting.setMeetingUuid(uuid);
 
         Meeting save = meetingRepository.save(meeting);
-        String shareUrl = frontendBaseUrl+"/m/"+save.getMeetingUuid();
+        String shareUrl = frontendBaseUrl + "/m/" + save.getMeetingUuid();
 
         ParticipantCreateRequest participantCreateRequest = new ParticipantCreateRequest();
         participantCreateRequest.setNickName(request.getMeetingNickName());
-        participantService.joinMeeting(uuid,userId,participantCreateRequest);
-        return MeetingCreateResponse.from(save,shareUrl);
+        participantService.joinMeeting(uuid, userId, participantCreateRequest);
+        return MeetingCreateResponse.from(save, shareUrl);
     }
 
     @Override
@@ -64,48 +65,49 @@ public class MeetingServiceImpl implements MeetingService {
                 .map(ParticipantResponse::from)
                 .toList();
 
-        return MeetingDetailResponse.from(meeting,participants);
+        return MeetingDetailResponse.from(meeting, participants);
     }
 
 
     @Override
-    public List<MeetingAllResponse> getAllMeetings(Long userId) {
+    public Page<MeetingAllResponse> getAllMeetings(Long userId, Pageable pageable) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        List<Participant> userParticipants  = participantRepository.findByUser(user);
-
+        List<Participant> userParticipants = participantRepository.findByUser(user);
         List<Long> meetingIds = userParticipants.stream()
-                .map(p->p.getMeeting().getId())
+                .map(p -> p.getMeeting().getId())
                 .distinct()
                 .toList();
 
         if (meetingIds.isEmpty()) {
-            return List.of();
+            return Page.empty(pageable);
         }
 
-        List<Participant> allParticipants =
-                participantRepository.findByMeetingIdIn(meetingIds);
+        Page<Meeting> meetingsPage = meetingRepository.findByIdIn(
+                meetingIds, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                        Sort.by(Sort.Direction.DESC, "meetingTime"))
+        );
 
-        Map<Long, List<ParticipantResponse>> participantMap =
-                allParticipants.stream()
-                        .map(ParticipantResponse::from)
-                        .collect(Collectors.groupingBy(
-                                ParticipantResponse::getMeetingId
-                        ));
+        List<Participant> allParticipants = participantRepository.findByMeetingIdIn(
+                meetingsPage.getContent().stream().map(Meeting::getId).toList()
+        );
 
-        return userParticipants.stream()
-                .map(p->{
-                    Meeting meeting = p.getMeeting();
+        Map<Long, List<ParticipantResponse>> participantMap = allParticipants.stream()
+                .map(ParticipantResponse::from)
+                .collect(Collectors.groupingBy(ParticipantResponse::getMeetingId));
+
+        List<MeetingAllResponse> responseList = meetingsPage.getContent().stream()
+                .map(meeting -> {
                     List<ParticipantResponse> participants =
                             participantMap.getOrDefault(meeting.getId(), List.of());
-                    return MeetingAllResponse.from(meeting,participants);
+                    return MeetingAllResponse.from(meeting, participants);
                 })
-                .distinct()
                 .toList();
-    }
 
-    public Meeting getMeetingByMeetingUuid (String meetingUuid) {
+        return new PageImpl<>(responseList, pageable, meetingsPage.getTotalElements());
+    }
+    public Meeting getMeetingByMeetingUuid(String meetingUuid) {
         return meetingRepository.findByMeetingUuid(meetingUuid).orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
     }
 
@@ -152,7 +154,7 @@ public class MeetingServiceImpl implements MeetingService {
 
         List<ParticipantResponse> participantResponses = participantService.copyParticipant(oldMeeting, savedMeeting);
 
-        String shareUrl = frontendBaseUrl+"/m/"+savedMeeting.getMeetingUuid();
-        return MeetingCopyResponse.from(savedMeeting,participantResponses,shareUrl);
+        String shareUrl = frontendBaseUrl + "/m/" + savedMeeting.getMeetingUuid();
+        return MeetingCopyResponse.from(savedMeeting, participantResponses, shareUrl);
     }
 }

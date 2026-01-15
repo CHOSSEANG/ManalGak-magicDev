@@ -17,6 +17,7 @@ public class MeetingCreateResponse {
     private String status;
     private String shareUrl;
     private LocalDateTime expiresAt;
+    private Long organizerId;
 
     public static MeetingCreateResponse from(Meeting meeting,String shareUrl){
         return MeetingCreateResponse.builder()
@@ -27,6 +28,7 @@ public class MeetingCreateResponse {
                 .status(meeting.getStatus().name())
                 .shareUrl(shareUrl)
                 .expiresAt(meeting.getExpiresAt())
+                .organizerId(meeting.getOrganizerId())
                 .build();
     }
 }

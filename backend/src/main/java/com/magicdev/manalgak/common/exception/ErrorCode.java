@@ -55,8 +55,13 @@ public enum ErrorCode {
     OPENAI_API_ERROR(HttpStatus.BAD_GATEWAY, "OpenAI API 호출 실패"),
     API_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "API 호출 제한 초과"),
     EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 API 호출 실패"),
-    LAST_TRAIN_NOT_FOUND(HttpStatus.NOT_FOUND, "막차 정보를 찾을 수 없음");
+    LAST_TRAIN_NOT_FOUND(HttpStatus.NOT_FOUND, "막차 정보를 찾을 수 없음"),
 
+    /* =====================
+     * 7 주소 관련 에러
+     * ===================== */
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "주소를 찾을수 없음"),
+    ADDRESS_LIMIT(HttpStatus.BAD_REQUEST, "최대 주소 초과");
 
     private final HttpStatus httpStatus;
     private final String message;

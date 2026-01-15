@@ -11,6 +11,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +26,7 @@ import java.util.List;
 @Slf4j
 @RequestMapping("/v1/meetings")
 public class MeetingController {
-
+    private static final int DEFAULT_PAGE_SIZE = 3;
     private final MeetingService meetingService;
     private final ParticipantService participantService;
 
@@ -66,10 +70,12 @@ public class MeetingController {
 
     @Operation(summary = "모임 전체 조회", description = "해당 유저의 전체 모임을 조회합니다.")
     @GetMapping("/user")
-    public CommonResponse<List<MeetingAllResponse>> getAllMeeting(
-            @AuthenticationPrincipal Long userId
+    public CommonResponse<Page<MeetingAllResponse>> getAllMeeting(
+            @AuthenticationPrincipal Long userId,
+            @PageableDefault(size = DEFAULT_PAGE_SIZE, sort = "meetingTime", direction = Sort.Direction.DESC)
+            Pageable pageable
     ){
-        List<MeetingAllResponse> allMeetings = meetingService.getAllMeetings(userId);
+        Page<MeetingAllResponse> allMeetings = meetingService.getAllMeetings(userId, pageable);
         return CommonResponse.success(allMeetings);
     }
 

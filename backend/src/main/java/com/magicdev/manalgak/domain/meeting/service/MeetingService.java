@@ -1,6 +1,8 @@
 package com.magicdev.manalgak.domain.meeting.service;
 
 import com.magicdev.manalgak.domain.meeting.dto.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -10,7 +12,7 @@ public interface MeetingService {
 
     MeetingDetailResponse getMeeting(String meetingUuid);
 
-    List<MeetingAllResponse> getAllMeetings(Long userId);
+    Page<MeetingAllResponse> getAllMeetings(Long userId, Pageable pageable);
 
     MeetingResponse updateMeeting(MeetingUpdateRequest request, String meetingUuid, Long userId);
 

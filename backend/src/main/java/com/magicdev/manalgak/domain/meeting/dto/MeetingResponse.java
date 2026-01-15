@@ -16,6 +16,7 @@ public class MeetingResponse {
     private Meeting.MeetingPurpose purpose;
     private Meeting.MeetingStatus status;
     private Integer totalParticipants;
+    private Long organizerId;
 
     public static MeetingResponse from(Meeting meeting) {
         return MeetingResponse.builder()
@@ -25,6 +26,7 @@ public class MeetingResponse {
                 .purpose(meeting.getPurpose())
                 .status(meeting.getStatus())
                 .totalParticipants(meeting.getTotalParticipants())
+                .organizerId(meeting.getOrganizerId())
                 .build();
     }
 }
