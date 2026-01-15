@@ -35,9 +35,10 @@ public class UserAddressController {
     @PatchMapping("{userAddressId}")
     public CommonResponse<UserAddressResponse> updateAddress(
             @RequestBody UserAddressRequest request,
-            @PathVariable Long userAddressId
+            @PathVariable Long userAddressId,
+            @AuthenticationPrincipal Long userId
     ) {
-        return CommonResponse.success(userAddressService.updateUserAddress(request,userAddressId));
+        return CommonResponse.success(userAddressService.updateUserAddress(request,userAddressId,userId));
     }
 
     @Operation(summary = "주소 조회", description = "주소를 조회합니다.")
@@ -51,9 +52,10 @@ public class UserAddressController {
     @Operation(summary = "주소 삭제", description = "주소를 삭제합니다.")
     @DeleteMapping("{userAddressId}")
     public CommonResponse<Void> deleteAddresses(
-            @PathVariable Long userAddressId
+            @PathVariable Long userAddressId,
+            @AuthenticationPrincipal Long userId
     ) {
-        userAddressService.deleteUserAddress(userAddressId);
+        userAddressService.deleteUserAddress(userAddressId, userId);
         return CommonResponse.success(null);
     }
 

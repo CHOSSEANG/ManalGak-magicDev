@@ -11,8 +11,8 @@ public interface UserAddressService {
 
     UserAddressResponse saveUserAddress(UserAddressRequest request, Long userId);
 
-    UserAddressResponse updateUserAddress(UserAddressRequest request, Long userAddressId);
+    UserAddressResponse updateUserAddress(UserAddressRequest request, Long userAddressId, Long userId);
 
-    void deleteUserAddress(Long userAddressId);
+    void deleteUserAddress(Long userAddressId, Long userId);
 
 }

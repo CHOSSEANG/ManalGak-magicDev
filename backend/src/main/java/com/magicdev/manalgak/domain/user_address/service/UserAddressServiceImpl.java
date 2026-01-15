@@ -43,14 +43,22 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     @Override
     @Transactional
-    public UserAddressResponse updateUserAddress(UserAddressRequest request, Long userAddressId) {
+    public UserAddressResponse updateUserAddress(UserAddressRequest request, Long userAddressId,Long userId) {
         UserAddress userAddress = userAddressRepository.findById(userAddressId).orElseThrow(()->new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+        if(!userAddress.getUser().getId().equals(userId)){
+            throw new BusinessException(ErrorCode.NO_AUTHORITY);
+        }
         userAddress.update(request.getAddress(), request.getLatitude(),request.getLongitude());
         return UserAddressResponse.from(userAddress);
     }
 
     @Override
-    public void deleteUserAddress(Long userAddressId) {
+    public void deleteUserAddress(Long userAddressId, Long userId) {
+        UserAddress userAddress = userAddressRepository.findById(userAddressId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+        if (!userAddress.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_AUTHORITY);
+        }
         userAddressRepository.deleteById(userAddressId);
     }
 }
