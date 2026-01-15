@@ -26,7 +26,7 @@ import java.util.List;
 @Slf4j
 @RequestMapping("/v1/meetings")
 public class MeetingController {
-
+    private static final int DEFAULT_PAGE_SIZE = 3;
     private final MeetingService meetingService;
     private final ParticipantService participantService;
 
@@ -72,7 +72,7 @@ public class MeetingController {
     @GetMapping("/user")
     public CommonResponse<Page<MeetingAllResponse>> getAllMeeting(
             @AuthenticationPrincipal Long userId,
-            @PageableDefault(size = 3, sort = "meetingTime", direction = Sort.Direction.DESC)
+            @PageableDefault(size = DEFAULT_PAGE_SIZE, sort = "meetingTime", direction = Sort.Direction.DESC)
             Pageable pageable
     ){
         Page<MeetingAllResponse> allMeetings = meetingService.getAllMeetings(userId, pageable);

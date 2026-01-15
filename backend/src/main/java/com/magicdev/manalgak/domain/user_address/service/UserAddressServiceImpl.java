@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserAddressServiceImpl implements UserAddressService {
-
+    private static final int MAX_ADDRESS_COUNT = 3;
     private final UserAddressRepository userAddressRepository;
     private final UserRepository userRepository;
 
@@ -33,7 +33,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     public UserAddressResponse saveUserAddress(UserAddressRequest request, Long userId) {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        if(userAddressRepository.countByUserId(userId) >= 3){
+        if(userAddressRepository.countByUserId(userId) >= MAX_ADDRESS_COUNT){
             throw new BusinessException(ErrorCode.ADDRESS_LIMIT);
         }
         UserAddress userAddress = new UserAddress(user, request.getAddress(), request.getLatitude(), request.getLongitude());
