@@ -24,7 +24,6 @@ public class VoteController {
     @Operation(summary =  "투표 생성 또는 조회",
             description = "해당 모임에 대한 투표를 생성하거나 이미 존재하면 조회합니다.")
     @PostMapping("/meeting/{meetingId}")
-    @ResponseBody
     public CommonResponse<VoteResponse> createVote(
             @PathVariable Long meetingId,
             @RequestBody VoteCreateRequest request
@@ -36,7 +35,6 @@ public class VoteController {
             summary = "투표 조회",
             description = "투표 정보를 조회합니다.")
     @GetMapping("/meeting/{meetingId}")
-    @ResponseBody
     public CommonResponse<VoteResponse> getVoteByMeeting(
             @PathVariable Long meetingId
     ) {

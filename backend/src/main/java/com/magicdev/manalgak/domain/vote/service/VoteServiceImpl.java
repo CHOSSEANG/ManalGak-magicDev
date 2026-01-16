@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -50,7 +51,6 @@ public class VoteServiceImpl implements VoteService{
     @Override
     public VoteResultMessage vote(Long voteId, Long optionId, Long userId) {
 
-        log.info("voteId?={} optionId?={} userId?={}",voteId,optionId,userId);
         Vote vote = voteRepository.findById(voteId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.VOTE_NOT_FOUND));
 
@@ -83,7 +83,6 @@ public class VoteServiceImpl implements VoteService{
         VoteResultMessage result =
                 VoteResultMessage.from(voteId, options, records);
 
-        // 🔥 실시간 반영
         messagingTemplate.convertAndSend("/topic/votes/" + voteId, result);
 
         return result;
@@ -91,13 +90,9 @@ public class VoteServiceImpl implements VoteService{
 
     @Transactional(readOnly = true)
     public VoteResponse getVoteByMeetingId(Long meetingId) {
-        List<Vote> votes = voteRepository.findByMeetingId(meetingId);
+        Vote vote = voteRepository.findFirstByMeetingId(meetingId).orElseThrow(()->
+                new BusinessException(ErrorCode.VOTE_NOT_FOUND));
 
-        if (votes.isEmpty()) {
-            throw new BusinessException(ErrorCode.VOTE_NOT_FOUND);
-        }
-
-        Vote vote = votes.get(0);
         List<VoteOption> options = voteOptionRepository.findByVoteId(vote.getId());
         List<VoteRecord> records = voteRecordRepository.findByVoteId(vote.getId());
         return VoteResponse.from(vote, options,records);
@@ -108,10 +103,12 @@ public class VoteServiceImpl implements VoteService{
             Long meetingId,
             VoteCreateRequest request
     ) {
-        List<Vote> votes = voteRepository.findByMeetingId(meetingId);
-        if (!votes.isEmpty()) {
+        Optional<Vote> existingVote = voteRepository.findFirstByMeetingId(meetingId);
+
+        if (existingVote.isPresent()) {
             throw new BusinessException(ErrorCode.VOTE_ALREADY_EXISTS);
         }
+
         Meeting meeting = meetingRepository.findById(meetingId).orElseThrow(()->
                 new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
@@ -124,9 +121,5 @@ public class VoteServiceImpl implements VoteService{
         return getVote(vote.getId());
     }
 
-    @Transactional(readOnly = true)
-    public List<Vote> getVotesByMeetingId(Long meetingId) {
-        return voteRepository.findByMeetingId(meetingId);
-    }
 }
 

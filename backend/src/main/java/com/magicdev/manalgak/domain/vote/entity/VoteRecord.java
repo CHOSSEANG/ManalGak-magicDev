@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
         name = "vote_records",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_vote_user",
-                        columnNames = {"vote_id", "user_id"}
+                        name = "uk_vote_participant",
+                        columnNames = {"vote_id", "participant_id"}
                 )
         }
 )
