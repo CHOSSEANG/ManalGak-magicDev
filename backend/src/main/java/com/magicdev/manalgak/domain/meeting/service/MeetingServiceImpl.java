@@ -50,9 +50,7 @@ public class MeetingServiceImpl implements MeetingService {
         Meeting save = meetingRepository.save(meeting);
         String shareUrl = frontendBaseUrl + "/m/" + save.getMeetingUuid();
 
-        ParticipantCreateRequest participantCreateRequest = new ParticipantCreateRequest();
-        participantCreateRequest.setNickName(request.getMeetingNickName());
-        participantService.joinMeeting(uuid, userId, participantCreateRequest);
+        participantService.joinMeeting(uuid, userId);
         return MeetingCreateResponse.from(save, shareUrl);
     }
 

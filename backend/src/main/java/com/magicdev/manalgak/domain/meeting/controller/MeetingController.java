@@ -82,9 +82,8 @@ public class MeetingController {
     @Operation(summary = "모임 참여", description = "모임에 참여합니다.")
     @PostMapping("/{meetingUuid}/participants")
     public CommonResponse<ParticipantResponse> joinMeeting(@PathVariable String meetingUuid,
-                                                            @RequestBody ParticipantCreateRequest request,
                                                             @AuthenticationPrincipal Long userId){
-        return CommonResponse.success(participantService.joinMeeting(meetingUuid,userId, request));
+        return CommonResponse.success(participantService.joinMeeting(meetingUuid,userId));
     }
 
     @Operation(summary = "참여자 수정", description = "참여자의 정보를 수정합니다.")

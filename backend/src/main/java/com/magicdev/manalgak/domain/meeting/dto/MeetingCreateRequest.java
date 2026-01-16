@@ -10,14 +10,15 @@ import java.time.LocalDateTime;
 public class MeetingCreateRequest {
 
     private String meetingName;
-    private String meetingNickName;
     private LocalDateTime meetingTime;
+    private Meeting.MeetingPurpose purpose;
 
     public Meeting toEntity(Long organizerId){
         Meeting meeting = new Meeting();
         meeting.setMeetingName(this.meetingName);
         meeting.setOrganizerId(organizerId);
         meeting.setMeetingTime(this.meetingTime);
+        meeting.setPurpose(this.purpose);
         return meeting;
     }
 }
