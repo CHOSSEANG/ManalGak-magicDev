@@ -1,7 +1,6 @@
 package com.magicdev.manalgak.domain.vote.entity;
 
 import com.magicdev.manalgak.domain.participant.entity.Participant;
-import com.magicdev.manalgak.domain.user.dto.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

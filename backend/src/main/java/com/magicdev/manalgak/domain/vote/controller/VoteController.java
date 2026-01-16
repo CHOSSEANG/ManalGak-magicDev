@@ -21,8 +21,8 @@ public class VoteController {
 
     private final VoteService voteService;
 
-    @Operation(summary =  "투표 생성 또는 조회",
-            description = "해당 모임에 대한 투표를 생성하거나 이미 존재하면 조회합니다.")
+    @Operation(summary =  "투표 생성",
+            description = "해당 모임에 대한 투표를 생성합니다.")
     @PostMapping("/meeting/{meetingId}")
     public CommonResponse<VoteResponse> createVote(
             @PathVariable Long meetingId,

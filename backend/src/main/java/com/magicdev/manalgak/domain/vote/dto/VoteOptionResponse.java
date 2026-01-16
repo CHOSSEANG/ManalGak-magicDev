@@ -26,7 +26,7 @@ public class VoteOptionResponse {
         return new VoteOptionResponse(
                 option.getId(),
                 option.getContent(),
-                option.getVoteCount(),
+                voters.size(),
                 voters
         );
     }

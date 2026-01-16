@@ -27,7 +27,7 @@ public class VoteResultMessage {
                     .map(r -> new ParticipantInfo(r.getParticipant().getId(), r.getParticipant().getNickName()))
                     .collect(Collectors.toList());
 
-            return new OptionInfo(option.getId(), option.getContent(), option.getCount(), voters);
+            return new OptionInfo(option.getId(), option.getContent(),  voters.size(), voters);
         }).collect(Collectors.toList());
 
         return new VoteResultMessage(voteId, options);
