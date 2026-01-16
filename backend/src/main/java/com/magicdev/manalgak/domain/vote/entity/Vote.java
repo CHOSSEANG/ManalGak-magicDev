@@ -20,4 +20,11 @@ public class Vote {
     @JoinColumn(name = "meeting_id", nullable = false)
     private Meeting meeting;
 
+
+    public static Vote create(Meeting meeting) {
+        Vote vote = new Vote();
+        vote.meeting = meeting;
+        return vote;
+    }
+
 }

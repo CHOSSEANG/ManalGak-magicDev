@@ -1,5 +1,6 @@
 package com.magicdev.manalgak.domain.vote.entity;
 
+import com.magicdev.manalgak.domain.participant.entity.Participant;
 import com.magicdev.manalgak.domain.user.dto.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -33,6 +34,18 @@ public class VoteRecord {
     private VoteOption voteOption;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id",nullable = false)
-    private User user;
+    @JoinColumn(name = "participant_id",nullable = false)
+    private Participant participant;
+
+    public void changeOption(VoteOption option){
+        this.voteOption = option;
+    }
+
+    public static VoteRecord create(Vote vote, VoteOption option, Participant participant) {
+        VoteRecord record = new VoteRecord();
+        record.vote = vote;
+        record.voteOption = option;
+        record.participant = participant;
+        return record;
+    }
 }

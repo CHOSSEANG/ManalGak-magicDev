@@ -31,4 +31,16 @@ public class VoteOption {
             this.voteCount--;
         }
     }
+
+    public static VoteOption create(Vote vote, String content){
+        VoteOption option = new VoteOption();
+        option.vote = vote;
+        option.content =content;
+        option.voteCount = 0;
+        return option;
+    }
+
+    public int getCount() {
+        return this.voteCount;
+    }
 }
