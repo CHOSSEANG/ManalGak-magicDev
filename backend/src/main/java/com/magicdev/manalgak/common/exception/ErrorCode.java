@@ -60,8 +60,15 @@ public enum ErrorCode {
     /* =====================
      * 7 주소 관련 에러
      * ===================== */
-    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "주소를 찾을수 없음"),
-    ADDRESS_LIMIT(HttpStatus.BAD_REQUEST, "최대 주소 초과");
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "주소를 찾을 수 없음"),
+    ADDRESS_LIMIT(HttpStatus.BAD_REQUEST, "최대 주소 초과"),
+
+
+    /* =====================
+     * 8 투표 관련 에러
+     * ===================== */
+    VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "투표를 찾을 수 없음"),
+    VOTE_OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 옵션을 찾을 수 없음");
 
     private final HttpStatus httpStatus;
     private final String message;
