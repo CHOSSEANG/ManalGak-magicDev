@@ -7,10 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface VoteRecordRepository extends JpaRepository<VoteOption, Long> {
-    Optional<VoteRecord> findByVoteIdAndUserId(Long voteId, Long userId);
+public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
+    Optional<VoteRecord> findByVoteIdAndParticipantId(Long voteId, Long participantId);
 
-    boolean existsByVoteIdAndUserId(Long voteId, Long userId);
 
     List<VoteRecord> findByVoteId(Long voteId);
+
 }
