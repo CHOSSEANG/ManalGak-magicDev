@@ -25,11 +25,11 @@ public class VoteController {
             description = "해당 모임에 대한 투표를 생성하거나 이미 존재하면 조회합니다.")
     @PostMapping("/meeting/{meetingId}")
     @ResponseBody
-    public CommonResponse<VoteResponse> createOrGetVote(
+    public CommonResponse<VoteResponse> createVote(
             @PathVariable Long meetingId,
             @RequestBody VoteCreateRequest request
     ) {
-        VoteResponse vote = voteService.getVoteByMeetingIdOrCreate(meetingId, request);
+        VoteResponse vote = voteService.createVote(meetingId, request);
         return CommonResponse.success(vote);
     }
     @Operation(

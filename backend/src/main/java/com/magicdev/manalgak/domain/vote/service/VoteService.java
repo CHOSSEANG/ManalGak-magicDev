@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface VoteService {
 
-    Long createVote(Long meetingId, VoteCreateRequest request);
+    VoteResponse createVote(Long meetingId, VoteCreateRequest request);
 
     VoteResponse getVote(Long voteId);
 
@@ -19,8 +19,4 @@ public interface VoteService {
 
     VoteResponse getVoteByMeetingId(Long meetingId);
 
-    VoteResponse getVoteByMeetingIdOrCreate(
-            Long meetingId,
-            VoteCreateRequest request
-    );
 }

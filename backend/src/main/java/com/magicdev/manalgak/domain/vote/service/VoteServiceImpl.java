@@ -35,22 +35,6 @@ public class VoteServiceImpl implements VoteService{
     private final ParticipantRepository participantRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @Transactional
-    @Override
-    public Long createVote(Long meetingId, VoteCreateRequest request) {
-
-        Meeting meeting = meetingRepository.findById(meetingId).orElseThrow(()->
-                new BusinessException(ErrorCode.MEETING_NOT_FOUND));
-
-        Vote vote = Vote.create(meeting);
-        voteRepository.save(vote);
-        request.getOptions().forEach(optionContent -> {
-            VoteOption option = VoteOption.create(vote, optionContent);
-            voteOptionRepository.save(option);
-        });
-
-        return vote.getId();
-    }
 
     @Transactional
     @Override
@@ -120,18 +104,24 @@ public class VoteServiceImpl implements VoteService{
     }
 
     @Transactional
-    public VoteResponse getVoteByMeetingIdOrCreate(
+    public VoteResponse createVote(
             Long meetingId,
             VoteCreateRequest request
     ) {
         List<Vote> votes = voteRepository.findByMeetingId(meetingId);
-
         if (!votes.isEmpty()) {
-            return getVote(votes.get(0).getId());
+            throw new BusinessException(ErrorCode.VOTE_ALREADY_EXISTS);
         }
+        Meeting meeting = meetingRepository.findById(meetingId).orElseThrow(()->
+                new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
-        Long voteId = createVote(meetingId, request);
-        return getVote(voteId);
+        Vote vote = Vote.create(meeting);
+        voteRepository.save(vote);
+        request.getOptions().forEach(optionContent -> {
+            VoteOption option = VoteOption.create(vote, optionContent);
+            voteOptionRepository.save(option);
+        });
+        return getVote(vote.getId());
     }
 
     @Transactional(readOnly = true)
