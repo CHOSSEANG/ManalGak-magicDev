@@ -12,5 +12,5 @@ public class UserAddressRequest {
     private BigDecimal latitude;
     private BigDecimal longitude;
     private String address;
-
+    private String category;
 }

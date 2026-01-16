@@ -36,7 +36,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         if(userAddressRepository.countByUserId(userId) >= MAX_ADDRESS_COUNT){
             throw new BusinessException(ErrorCode.ADDRESS_LIMIT);
         }
-        UserAddress userAddress = new UserAddress(user, request.getAddress(), request.getLatitude(), request.getLongitude());
+        UserAddress userAddress = new UserAddress(user, request.getAddress(), request.getLatitude(), request.getLongitude(), request.getCategory());
         UserAddress save = userAddressRepository.save(userAddress);
         return UserAddressResponse.from(save);
     }
@@ -48,7 +48,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         if(!userAddress.getUser().getId().equals(userId)){
             throw new BusinessException(ErrorCode.NO_AUTHORITY);
         }
-        userAddress.update(request.getAddress(), request.getLatitude(),request.getLongitude());
+        userAddress.update(request.getAddress(), request.getLatitude(),request.getLongitude(),request.getCategory());
         return UserAddressResponse.from(userAddress);
     }
 

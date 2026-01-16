@@ -31,17 +31,22 @@ public class UserAddress {
     @Column(length = 255)
     private String address;
 
-    public UserAddress(User user, String address, BigDecimal latitude, BigDecimal longitude) {
+    @Column(length = 50)
+    private String category;
+
+    public UserAddress(User user, String address, BigDecimal latitude, BigDecimal longitude, String category) {
         this.user = user;
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.category =category;
     }
 
-    public void update(String address, BigDecimal latitude, BigDecimal longitude) {
+    public void update(String address, BigDecimal latitude, BigDecimal longitude, String category) {
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.category = category;
     }
 
 
