@@ -25,25 +25,11 @@ export default function CreateEntryPage() {
       <main className="space-y-6 pb-28">
         <section className="space-y-4">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold">새 모임 생성하기</h1>
+            <h1 className="text-2xl font-semibold">모임 리스트 보기</h1>
             <p className="text-sm text-[var(--wf-subtle)]">
               모임의 이름을 정하고, 설정을 시작해 주세요
             </p>
           </div>
-
-          <StepCard className="space-y-2">
-            <h2 className="text-base font-semibold">모임 이름</h2>
-            <p className="text-xs text-[var(--wf-subtle)]">
-              참여자들이 알아보기 쉬운 이름을 입력해 주세요
-            </p>
-            <input
-              type="text"
-              placeholder="예) 대학 동기 정기 모임"
-              className="w-full rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface)] px-4 py-3 text-sm"
-            />
-          </StepCard>
-
-          <div className="h-px w-full bg-[var(--wf-border)]" />
 
           <StepCard className="space-y-3">
             <h2 className="text-base font-semibold">기존 모임에서 시작하기</h2>
@@ -87,7 +73,7 @@ export default function CreateEntryPage() {
 
       <StepNavigation
         prevHref="/auth/kakao/callback"
-        nextHref="/meetings/new/step1-date"
+        nextHref="/meetings/new/step1-basic"
       />
     </>
   );
