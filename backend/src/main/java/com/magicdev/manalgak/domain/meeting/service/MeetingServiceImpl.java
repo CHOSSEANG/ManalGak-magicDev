@@ -6,6 +6,8 @@ import com.magicdev.manalgak.common.util.UuidGenerator;
 import com.magicdev.manalgak.domain.meeting.dto.*;
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
+import com.magicdev.manalgak.domain.meeting.service.command.CreateMeetingCommand;
+import com.magicdev.manalgak.domain.meeting.service.command.UpdateMeetingCommand;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantCreateRequest;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantResponse;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
@@ -42,17 +44,15 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
-    public MeetingCreateResponse createMeeting(MeetingCreateRequest request, Long userId) {
-        Meeting meeting = request.toEntity(userId);
+    public MeetingCreateResponse createMeeting(CreateMeetingCommand createMeetingCommand, Long userId) {
+        Meeting meeting = createMeetingCommand.toEntity();
         String uuid = UuidGenerator.generate();
         meeting.setMeetingUuid(uuid);
 
         Meeting save = meetingRepository.save(meeting);
         String shareUrl = frontendBaseUrl + "/m/" + save.getMeetingUuid();
 
-        ParticipantCreateRequest participantCreateRequest = new ParticipantCreateRequest();
-        participantCreateRequest.setNickName(request.getMeetingNickName());
-        participantService.joinMeeting(uuid, userId, participantCreateRequest);
+        participantService.joinMeeting(uuid, userId);
         return MeetingCreateResponse.from(save, shareUrl);
     }
 
@@ -114,10 +114,10 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
-    public MeetingResponse updateMeeting(MeetingUpdateRequest updated, String meetingUuid, Long userId) {
+    public MeetingResponse updateMeeting(UpdateMeetingCommand updateMeetingCommand, String meetingUuid, Long userId) {
         Meeting meeting = getMeetingByMeetingUuid(meetingUuid);
         validateIsOrganizer(userId, meeting);
-        meeting.update(updated);
+        meeting.update(updateMeetingCommand);
         return MeetingResponse.from(meeting);
     }
 
