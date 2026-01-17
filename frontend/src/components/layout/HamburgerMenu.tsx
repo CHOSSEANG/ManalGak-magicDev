@@ -17,17 +17,11 @@ const MANALGAK_STEPS = [
 ];
 
 const CREATE_STEPS = [
-  { step: "Step 0.", label: "모임 생성", href: "/meetings/new" },
-  { step: "Step 1.", label: "날짜 & 시간", href: "/meetings/new/step1-date" },
-  { step: "Step 2.", label: "모임 목적", href: "/meetings/new/step2-purpose" },
-  { step: "Step 3.", label: "참여 멤버", href: "/meetings/new/step3-members" },
+  { label: "모임 리스트 보기", href: "/meetings/new" },
+  { step: "Step 1.", label: "기본 정보", href: "/meetings/new/step1-basic" },
+  { step: "Step 2.", label: "참여 멤버", href: "/meetings/new/step3-members" },
   {
-    step: "Step 4.",
-    label: "출발지 & 이동수단",
-    href: "/meetings/new/step4-origin",
-  },
-  {
-    step: "Step 5.",
+    step: "Step 3.",
     label: "중간지점 & 추천장소",
     href: "/meetings/new/step5-place",
   },

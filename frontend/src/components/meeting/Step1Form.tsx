@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import StepCard from "@/components/meeting/StepCard";
-import SingleSelectGrid from "@/components/ui/SingleSelectGrid";
 
 // 아이콘 불러오기
 import {
@@ -227,7 +226,7 @@ export default function Step1Form() {
           날짜 및 시간
         </p>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           {/* 날짜 버튼 */}
           <div className="flex-1 flex flex-col gap-2">
             <button
@@ -288,8 +287,8 @@ export default function Step1Form() {
 
       {/* 1. 달력 모달 */}
       {isCalendarOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-          <div className="w-full max-w-md animate-in slide-in-from-bottom-5 rounded-2xl bg-white p-5 shadow-lg sm:slide-in-from-bottom-0 sm:zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md animate-in rounded-2xl bg-white p-5 shadow-lg sm:zoom-in-95">
             <h3 className="text-base font-semibold">날짜 선택</h3>
             <p className="mt-1 text-xs text-[var(--wf-subtle)]">
               만날 날짜를 선택해주세요.
@@ -326,8 +325,8 @@ export default function Step1Form() {
 
       {/* 2. 시간 모달 */}
       {isTimeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-          <div className="w-full max-w-md animate-in slide-in-from-bottom-5 rounded-2xl bg-white p-5 shadow-lg sm:slide-in-from-bottom-0 sm:zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md animate-in rounded-2xl bg-white p-5 shadow-lg sm:zoom-in-95">
             <h3 className="text-base font-semibold">시간 선택</h3>
             <p className="mt-1 text-xs text-[var(--wf-subtle)]">
               시작 시간은 필수, 종료 시간은 선택입니다.

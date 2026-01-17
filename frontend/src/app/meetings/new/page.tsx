@@ -25,7 +25,7 @@ export default function CreateEntryPage() {
       <main className="space-y-6 pb-28">
         <section className="space-y-4">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold">새 모임 생성하기</h1>
+            <h1 className="text-2xl font-semibold">모임 리스트 보기</h1>
             <p className="text-sm text-[var(--wf-subtle)]">
               모임의 이름을 정하고, 설정을 시작해 주세요
             </p>
