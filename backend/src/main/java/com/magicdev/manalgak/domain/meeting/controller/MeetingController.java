@@ -36,7 +36,7 @@ public class MeetingController {
             @RequestBody MeetingCreateRequest request,
             @AuthenticationPrincipal Long userId
     ){
-        return CommonResponse.success(meetingService.createMeeting(request, userId));
+        return CommonResponse.success(meetingService.createMeeting(request.toCommand(userId), userId));
     }
 
     @Operation(summary = "모임 수정", description = "모임내용을 수정합니다.")
@@ -46,7 +46,7 @@ public class MeetingController {
             @PathVariable String meetingUuid,
             @AuthenticationPrincipal Long userId
     ){
-        return CommonResponse.success(meetingService.updateMeeting(request,meetingUuid, userId));
+        return CommonResponse.success(meetingService.updateMeeting(request.toCommand(),meetingUuid, userId));
     }
 
     @Operation(summary = "모임 삭제", description = "모임을 삭제합니다")

@@ -6,6 +6,8 @@ import com.magicdev.manalgak.common.util.UuidGenerator;
 import com.magicdev.manalgak.domain.meeting.dto.*;
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
+import com.magicdev.manalgak.domain.meeting.service.command.CreateMeetingCommand;
+import com.magicdev.manalgak.domain.meeting.service.command.UpdateMeetingCommand;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantCreateRequest;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantResponse;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
@@ -42,8 +44,8 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
-    public MeetingCreateResponse createMeeting(MeetingCreateRequest request, Long userId) {
-        Meeting meeting = request.toEntity(userId);
+    public MeetingCreateResponse createMeeting(CreateMeetingCommand createMeetingCommand, Long userId) {
+        Meeting meeting = createMeetingCommand.toEntity();
         String uuid = UuidGenerator.generate();
         meeting.setMeetingUuid(uuid);
 
@@ -112,10 +114,10 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
-    public MeetingResponse updateMeeting(MeetingUpdateRequest updated, String meetingUuid, Long userId) {
+    public MeetingResponse updateMeeting(UpdateMeetingCommand updateMeetingCommand, String meetingUuid, Long userId) {
         Meeting meeting = getMeetingByMeetingUuid(meetingUuid);
         validateIsOrganizer(userId, meeting);
-        meeting.update(updated);
+        meeting.update(updateMeetingCommand);
         return MeetingResponse.from(meeting);
     }
 

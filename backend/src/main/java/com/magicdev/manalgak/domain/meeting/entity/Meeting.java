@@ -1,7 +1,7 @@
 package com.magicdev.manalgak.domain.meeting.entity;
 
 import com.magicdev.manalgak.common.util.DateTimeUtil;
-import com.magicdev.manalgak.domain.meeting.dto.MeetingUpdateRequest;
+import com.magicdev.manalgak.domain.meeting.service.command.UpdateMeetingCommand;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -74,24 +74,24 @@ public class Meeting {
         DRINK
     }
 
-    public void update(MeetingUpdateRequest request) {
-        if (request.getMeetingName() != null) {
-            this.meetingName = request.getMeetingName();
+    public void update(UpdateMeetingCommand command) {
+        if (command.getMeetingName() != null) {
+            this.meetingName = command.getMeetingName();
         }
-        if (request.getMeetingTime() != null) {
-            this.meetingTime = request.getMeetingTime();
+        if (command.getMeetingTime() != null) {
+            this.meetingTime = command.getMeetingTime();
         }
-        if (request.getEndTime() != null) {
-            this.endTime = request.getEndTime();
+        if (command.getEndTime() != null) {
+            this.endTime = command.getEndTime();
         }
-        if (request.getPurpose() != null) {
-            this.purpose = request.getPurpose();
+        if (command.getPurpose() != null) {
+            this.purpose = command.getPurpose();
         }
-        if (request.getStatus() != null) {
-            this.status = request.getStatus();
+        if (command.getStatus() != null) {
+            this.status = command.getStatus();
         }
-        if (request.getTotalParticipants() != null) {
-            this.totalParticipants = request.getTotalParticipants();
+        if (command.getTotalParticipants() != null) {
+            this.totalParticipants = command.getTotalParticipants();
         }
     }
 }

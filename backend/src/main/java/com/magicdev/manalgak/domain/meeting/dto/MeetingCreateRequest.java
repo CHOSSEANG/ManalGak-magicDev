@@ -1,6 +1,7 @@
 package com.magicdev.manalgak.domain.meeting.dto;
 
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
+import com.magicdev.manalgak.domain.meeting.service.command.CreateMeetingCommand;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -13,12 +14,12 @@ public class MeetingCreateRequest {
     private LocalDateTime meetingTime;
     private Meeting.MeetingPurpose purpose;
 
-    public Meeting toEntity(Long organizerId){
-        Meeting meeting = new Meeting();
-        meeting.setMeetingName(this.meetingName);
-        meeting.setOrganizerId(organizerId);
-        meeting.setMeetingTime(this.meetingTime);
-        meeting.setPurpose(this.purpose);
-        return meeting;
+    public CreateMeetingCommand toCommand(Long organizerId) {
+        return CreateMeetingCommand.builder()
+                .meetingName(this.meetingName)
+                .meetingTime(this.meetingTime)
+                .purpose(this.purpose)
+                .organizerId(organizerId)
+                .build();
     }
 }
