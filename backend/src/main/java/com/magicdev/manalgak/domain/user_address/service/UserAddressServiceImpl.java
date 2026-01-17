@@ -4,10 +4,10 @@ import com.magicdev.manalgak.common.exception.BusinessException;
 import com.magicdev.manalgak.common.exception.ErrorCode;
 import com.magicdev.manalgak.domain.user.dto.User;
 import com.magicdev.manalgak.domain.user.repository.UserRepository;
-import com.magicdev.manalgak.domain.user_address.dto.UserAddressRequest;
 import com.magicdev.manalgak.domain.user_address.dto.UserAddressResponse;
 import com.magicdev.manalgak.domain.user_address.entity.UserAddress;
 import com.magicdev.manalgak.domain.user_address.repository.UserAddressRepository;
+import com.magicdev.manalgak.domain.user_address.service.command.UserAddressCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,25 +30,25 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public UserAddressResponse saveUserAddress(UserAddressRequest request, Long userId) {
+    public UserAddressResponse saveUserAddress(UserAddressCommand userAddressCommand, Long userId) {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         if(userAddressRepository.countByUserId(userId) >= MAX_ADDRESS_COUNT){
             throw new BusinessException(ErrorCode.ADDRESS_LIMIT);
         }
-        UserAddress userAddress = new UserAddress(user, request.getAddress(), request.getLatitude(), request.getLongitude(), request.getCategory());
+        UserAddress userAddress = new UserAddress(user, userAddressCommand.getAddress(), userAddressCommand.getLatitude(), userAddressCommand.getLongitude(), userAddressCommand.getCategory());
         UserAddress save = userAddressRepository.save(userAddress);
         return UserAddressResponse.from(save);
     }
 
     @Override
     @Transactional
-    public UserAddressResponse updateUserAddress(UserAddressRequest request, Long userAddressId,Long userId) {
+    public UserAddressResponse updateUserAddress(UserAddressCommand userAddressCommand, Long userAddressId,Long userId) {
         UserAddress userAddress = userAddressRepository.findById(userAddressId).orElseThrow(()->new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
         if(!userAddress.getUser().getId().equals(userId)){
             throw new BusinessException(ErrorCode.NO_AUTHORITY);
         }
-        userAddress.update(request.getAddress(), request.getLatitude(),request.getLongitude(),request.getCategory());
+        userAddress.update(userAddressCommand.getAddress(), userAddressCommand.getLatitude(),userAddressCommand.getLongitude(),userAddressCommand.getCategory());
         return UserAddressResponse.from(userAddress);
     }
 

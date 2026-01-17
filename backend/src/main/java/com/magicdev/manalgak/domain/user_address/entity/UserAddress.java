@@ -43,10 +43,10 @@ public class UserAddress {
     }
 
     public void update(String address, BigDecimal latitude, BigDecimal longitude, String category) {
-        this.address = address;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.category = category;
+        if(address != null) this.address = address;
+        if(latitude != null) this.latitude = latitude;
+        if(longitude != null) this.longitude = longitude;
+        if(category != null) this.category = category;
     }
 
 
