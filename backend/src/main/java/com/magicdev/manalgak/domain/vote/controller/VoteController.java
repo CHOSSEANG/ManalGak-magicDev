@@ -28,7 +28,7 @@ public class VoteController {
             @PathVariable Long meetingId,
             @RequestBody VoteCreateRequest request
     ) {
-        VoteResponse vote = voteService.createVote(meetingId, request);
+        VoteResponse vote = voteService.createVote(meetingId, request.getOptions());
         return CommonResponse.success(vote);
     }
     @Operation(

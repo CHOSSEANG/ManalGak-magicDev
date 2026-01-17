@@ -6,7 +6,6 @@ import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
 import com.magicdev.manalgak.domain.participant.repository.ParticipantRepository;
-import com.magicdev.manalgak.domain.vote.dto.VoteCreateRequest;
 import com.magicdev.manalgak.domain.vote.dto.VoteResponse;
 import com.magicdev.manalgak.domain.vote.dto.VoteResultMessage;
 import com.magicdev.manalgak.domain.vote.entity.Vote;
@@ -101,7 +100,7 @@ public class VoteServiceImpl implements VoteService{
     @Transactional
     public VoteResponse createVote(
             Long meetingId,
-            VoteCreateRequest request
+            List<String> options
     ) {
         Optional<Vote> existingVote = voteRepository.findFirstByMeetingId(meetingId);
 
@@ -114,10 +113,10 @@ public class VoteServiceImpl implements VoteService{
 
         Vote vote = Vote.create(meeting);
         voteRepository.save(vote);
-        request.getOptions().forEach(optionContent -> {
-            VoteOption option = VoteOption.create(vote, optionContent);
-            voteOptionRepository.save(option);
-        });
+        List<VoteOption> optionsToSave = options.stream()
+                .map(optionContent -> VoteOption.create(vote, optionContent))
+                .toList();
+        voteOptionRepository.saveAll(optionsToSave);
         return getVote(vote.getId());
     }
 
