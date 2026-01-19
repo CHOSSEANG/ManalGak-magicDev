@@ -24,25 +24,24 @@ export default function HomePage() {
    * 카카오 로그인 시작
    */
   const handleKakaoLogin = () => {
-    const REST_API_KEY =
-      process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+    const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+    const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
 
-    // 🔴 필수 방어: REST API KEY 없으면 진행 금지
-    if (!REST_API_KEY) {
+    // 🔴 필수 방어: REST API KEY 또는 REDIRECT URI 없으면 진행 금지
+    if (!REST_API_KEY || !REDIRECT_URI) {
       alert(
         "카카오 로그인 설정이 완료되지 않았습니다.\n관리자에게 문의해주세요."
       );
       return;
     }
 
-    const REDIRECT_URI = `${window.location.origin}/auth/kakao/callback`;
     const state = "/meetings/new";
 
     const kakaoAuthUrl =
-      `https://kauth.kakao.com/oauth/authorize` +
+      "https://kauth.kakao.com/oauth/authorize" +
       `?client_id=${REST_API_KEY}` +
       `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-      `&response_type=code` +
+      "&response_type=code" +
       `&state=${encodeURIComponent(state)}`;
 
     window.location.href = kakaoAuthUrl;

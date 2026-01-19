@@ -19,12 +19,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        {/* 카카오 지도 SDK */}
         <Script
           src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false`}
           strategy="beforeInteractive"
         />
-        {/* 카카오 공유 SDK */}
         <Script
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
           strategy="beforeInteractive"
@@ -33,18 +31,14 @@ export default function RootLayout({
 
       <body>
         <TooltipProvider delayDuration={200}>
-          {/* 앱 전체 배경 */}
-          <div className="min-h-screen bg-[var(--wf-bg)] text-[var(--wf-text)]">
+          {/* 전체 앱: 세로 플렉스 */}
+          <div className="h-screen  min-h-screen flex flex-col bg-[var(--wf-bg)] text-[var(--wf-text)]">
             <Header />
 
-            {/* ✅ 여기부터가 핵심 */}
-            <main className="flex justify-center">
-              {/* 
-                app-container:
-                - 모바일/태블릿: 고정 폭
-                - PC 이상: 좌우 여백만 증가
-              */}
-              <div className="app-container w-full py-6">
+            {/* ✅ main이 남은 높이를 차지 + (중요) min-h-0 */}
+            <main className="flex-1 min-h-0 flex justify-center">
+              {/* ✅ app-container가 스크롤 담당: (중요) flex-1 + min-h-0 + overflow */}
+              <div className="app-container w-full flex-1 min-h-0 overflow-y-auto py-6">
                 {children}
               </div>
             </main>
