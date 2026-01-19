@@ -22,6 +22,10 @@
 --wf-overlay: rgba(17, 17, 17, 0.35);  /* 선택/hover용 연톤 배경 (카카오 옐로우를 연하게) */
 --wf-highlight-soft: rgba(254, 229, 0, 0.22);
 
+--wf-highlight-strong: #E0C200;
+--wf-highlight-strong2: #C9AF00;
+
+
   /* Text */
   --wf-text: #1a1a1a;       /* 거의 블랙 */
   --wf-subtle: #6f6f6f;     /* 보조 텍스트 */
