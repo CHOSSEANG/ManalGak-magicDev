@@ -9,15 +9,22 @@
    =============================== */
 :root {
   --wf-font: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
-  --wf-bg: #f6f5f2;
-  --wf-surface: #ffffff;
-  --wf-muted: #e6e4df;
-  --wf-border: #d4d0c7;
-  --wf-accent: #cfd7df;
-  --wf-highlight: #efe0b2;
+
+  /* Backgrounds */
+  --wf-bg: #f7f6f3;          /* 따뜻한 아이보리 */
+  --wf-surface: #ffffff;     /* 카드 / 패널 */
+  --wf-muted: #ebe9e3;      /* input, muted 영역 */
+  --wf-border: #d9d6cf;     /* 웜 그레이 보더 */
+
+  /* Accents */
+--wf-highlight: #FEE500; /* Kakao Yellow (Primary) */
+--wf-accent: #a7823f;
+  /* Kakao Brown (Text/Icon/Active) */
   --wf-overlay: rgba(17, 17, 17, 0.35);
-  --wf-text: #1a1a1a;
-  --wf-subtle: #6b6b6b;
+
+  /* Text */
+  --wf-text: #1a1a1a;       /* 거의 블랙 */
+  --wf-subtle: #6f6f6f;     /* 보조 텍스트 */
 }
 
 /* ===============================

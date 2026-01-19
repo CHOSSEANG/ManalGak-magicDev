@@ -1,10 +1,10 @@
 // src/components/layout/HamburgerMenu.tsx
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Calendar,
-  PlusCircle,
   Users,
   MapPin,
   CheckCircle,
@@ -18,12 +18,13 @@ interface HamburgerMenuProps {
   isOpen: boolean
   onClose: () => void
 }
+
 const MY_MENUS = [
   { label: '내 모임', href: '/meetings/new', icon: Calendar },
 ]
+
 /** 메인 플로우 메뉴 */
 const MENUS = [
-
   { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: Users },
   { label: '추천 장소 선택', href: '/meetings/new/step5-place', icon: MapPin },
   { label: '모임 확정', href: '/meetings/meeting-001/complete', icon: CheckCircle },
@@ -55,13 +56,36 @@ export default function HamburgerMenu({
         className="fixed left-0 top-0 h-full w-[85%] max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Menu List */}
+        {/* Profile */}
         <nav className="space-y-1">
+          <Link
+            href="/my"
+            onClick={onClose}
+            className="flex items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)] active:bg-[var(--wf-accent)]"
+          >
+            <div className="h-12 w-12 rounded-full bg-[var(--wf-accent)] flex items-center justify-center overflow-hidden border border-[var(--wf-border)]">
+              <img
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3QGgGtn4zUi2Q5Ee1vmAFie8A-B9HrkyA3SLakKMzouzeQgmqLVy2eqlUGFW21W7Uhfwe_6B3LJhu7B6gqIH8PtxvZ5VuwmFjwMIfCdf8t0FFiEtzVno2GI9GmYpZPaHki3CvleZbugNP1J2-qcDO75kqexuHAqntXxRuRVEb_dZZpUrFPSidKPXL-PDzIxfzsi_hUKCgTSRcxv_A6HJoZtHV4zRKBRTrGJQEp9Nap8aCIHZAaCgD8zQd3fPgtB5hpxVGyEvBD9tr"
+                alt="사용자 프로필 이미지"
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <p className="text-base font-semibold text-[var(--wf-text)] leading-tight">
+                김만날
+              </p>
+              <p className="text-xs text-[var(--wf-subtle)] mt-0.5">
+                mannal_kim@email.com
+              </p>
+            </div>
+          </Link>
+
           {MY_MENUS.map(({ label, href, icon: Icon }) => (
             <button
               key={href}
               onClick={() => handleNavigate(href)}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-hover)]"
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-accent)] active:bg-[var(--wf-accent)]"
             >
               <div className="flex items-center gap-4">
                 <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
@@ -72,19 +96,16 @@ export default function HamburgerMenu({
           ))}
         </nav>
 
-
-        {/* Divider */}
         <div className="my-4 border-t border-[var(--wf-border)]" />
 
-        
-        {/* Menu List */}
+        {/* Meeting */}
         <nav className="space-y-1">
-          <p className="flex w-full text-xs font-semibold text-[var(--wf-text)] ">MEETING</p>
+          <p className="text-xs font-semibold text-[var(--wf-text)]">MEETING</p>
           {MENUS.map(({ label, href, icon: Icon }) => (
             <button
               key={href}
               onClick={() => handleNavigate(href)}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-hover)]"
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-accent)] active:bg-[var(--wf-accent)]"
             >
               <div className="flex items-center gap-4">
                 <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
@@ -95,17 +116,16 @@ export default function HamburgerMenu({
           ))}
         </nav>
 
-        {/* Divider */}
         <div className="my-4 border-t border-[var(--wf-border)]" />
 
-        {/* Extra Menus */}
+        {/* Personal */}
         <nav className="space-y-1">
-          <p className="flex w-full text-xs font-semibold text-[var(--wf-text)] ">PERSONAL</p>
+          <p className="text-xs font-semibold text-[var(--wf-text)]">PERSONAL</p>
           {EXTRA_MENUS.map(({ label, href, icon: Icon }) => (
             <button
               key={href}
               onClick={() => handleNavigate(href)}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-hover)]"
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-accent)] active:bg-[var(--wf-accent)]"
             >
               <div className="flex items-center gap-4">
                 <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
@@ -120,7 +140,6 @@ export default function HamburgerMenu({
         <div className="mt-auto pt-6">
           <button
             onClick={() => {
-              // TODO: logout logic
               onClose()
             }}
             className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-[var(--wf-text)] bg-[var(--wf-muted)] hover:bg-[var(--wf-hover)]"
