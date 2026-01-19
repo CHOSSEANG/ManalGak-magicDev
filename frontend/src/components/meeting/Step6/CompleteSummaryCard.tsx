@@ -14,7 +14,7 @@ import {
 export interface MeetingSummary {
   meetingName: string
   dateTime: string
-  memberCount: number
+  memberCount?: number
   category: string
   placeName: string
   address: string

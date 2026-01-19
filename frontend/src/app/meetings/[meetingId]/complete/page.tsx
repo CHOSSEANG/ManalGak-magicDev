@@ -51,15 +51,15 @@ export default function MeetingCompletePage({ params }: PageProps) {
   }
 
   const meeting = {
-    meetingName: data.meetingName,
-    dateTime: data.dateTime,
-    memberCount: data.members.length,
-    category: data.category,
-    placeName: data.place.name,
-    address: data.place.address,
-    parkingInfo: "",
-    reservationInfo: "",
-    phoneNumber: "",
+    meetingName: data.meetingName ?? "",
+    dateTime: data.dateTime ?? "",
+    memberCount: data.memberCount,
+    category: data.category ?? "",
+    placeName: data.placeName ?? "",
+    address: data.address ?? "",
+    parkingInfo: data.parkingInfo ?? "",
+    reservationInfo: data.reservationInfo ?? "",
+    phoneNumber: data.phoneNumber ?? "",
   };
 
   return (
@@ -71,7 +71,7 @@ export default function MeetingCompletePage({ params }: PageProps) {
         </p>
       </div>
       {/* 확정 장소 지도 */}
-      <CompleteMapSection lat={data.place.lat} lng={data.place.lng} />
+      <CompleteMapSection lat={data.lat} lng={data.lng} />
 
       {/* 확정 정보 요약 카드 */}
       <CompleteSummaryCard meeting={meeting} />
