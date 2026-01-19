@@ -37,3 +37,6 @@ node_modules/
 
 # Backend documentation
 backend/claude-docs/
+
+# Local environment files
+backend/.env.rds
