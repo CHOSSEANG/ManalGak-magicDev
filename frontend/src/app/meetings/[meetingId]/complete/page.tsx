@@ -5,6 +5,7 @@ import { use } from "react";
 import CompleteSummaryCard from "@/components/meeting/Step6/CompleteSummaryCard";
 import CompleteMapSection from "@/components/meeting/Step6/CompleteMapSection";
 import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
+import { useMeetingComplete } from "@/lib/hooks/useMeetingComplete";
 
 interface PageProps {
   params: Promise<{
@@ -15,41 +16,67 @@ interface PageProps {
 export default function MeetingCompletePage({ params }: PageProps) {
   // ✅ Next.js 15 방식
   const { meetingId } = use(params);
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- meetingId reserved for API wiring
-  void meetingId;
+  const { data, isLoading, error } = useMeetingComplete(meetingId);
 
-  // TODO: 추후 API 연동
+  if (isLoading) {
+    return (
+      <main className="space-y-6 pb-24">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold">📍 확정 모임 정보</h1>
+          <p className="text-sm text-[var(--wf-subtle)]">
+            카카오톡으로 메시지를 전송 할 수 있습니다.
+          </p>
+        </div>
+        <p className="text-sm text-[var(--wf-subtle)]">로딩 중...</p>
+        <BottomTabNavigation />
+      </main>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <main className="space-y-6 pb-24">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold">📍 확정 모임 정보</h1>
+          <p className="text-sm text-[var(--wf-subtle)]">
+            카카오톡으로 메시지를 전송 할 수 있습니다.
+          </p>
+        </div>
+        <p className="text-sm text-[var(--wf-subtle)]">
+          모임 정보를 불러오지 못했습니다.
+        </p>
+        <BottomTabNavigation />
+      </main>
+    );
+  }
+
   const meeting = {
-    meetingName: "공주파티", // ✅ key 수정
-    dateTime: "2026.01.23 12:00",
-    memberCount: 5,
-    category: "카페",
-    placeName: "이리카페",
-    address: "서울 마포구 와우산로3길 27",
-    parkingInfo: "가능 (유료 10분당 1,200원)",
-    reservationInfo: "가능",
-    phoneNumber: "02-323-7861",
-    lat: 37.563617,
-    lng: 126.997628,
+    meetingName: data.meetingName,
+    dateTime: data.dateTime,
+    memberCount: data.members.length,
+    category: data.category,
+    placeName: data.place.name,
+    address: data.place.address,
+    parkingInfo: "",
+    reservationInfo: "",
+    phoneNumber: "",
   };
 
   return (
-       <main className="space-y-6 pb-24">
-              <div className="space-y-2">
-                <h1 className="text-2xl font-semibold">
-                  📍 확정 모임 정보
-                </h1>
-                <p className="text-sm text-[var(--wf-subtle)]">
-                  카카오톡으로 메시지를 전송 할 수 있습니다.
-                </p>
-              </div>
+    <main className="space-y-6 pb-24">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold">📍 확정 모임 정보</h1>
+        <p className="text-sm text-[var(--wf-subtle)]">
+          카카오톡으로 메시지를 전송 할 수 있습니다.
+        </p>
+      </div>
       {/* 확정 장소 지도 */}
-      <CompleteMapSection lat={meeting.lat} lng={meeting.lng} />
+      <CompleteMapSection lat={data.place.lat} lng={data.place.lng} />
 
       {/* 확정 정보 요약 카드 */}
       <CompleteSummaryCard meeting={meeting} />
 
-       <BottomTabNavigation />
+      <BottomTabNavigation />
     </main>
   );
 }

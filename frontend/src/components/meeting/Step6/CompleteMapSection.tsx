@@ -7,23 +7,18 @@ interface Props {
   lng: number;
 }
 
-
-
 export default function CompleteMapSection({ lat, lng }: Props) {
-  // eslint: lat/lng reserved for API wiring
-  void lat;
-  void lng;
   return (
     <div className="h-56 rounded-xl border border-[var(--wf-border)] overflow-hidden">
         <KakaoMap
           center={{
-            lat: 37.5489,
-            lng: 126.9238,
+            lat,
+            lng,
           }}
           markers={[
             {
-              lat: 37.5489,
-              lng: 126.9238,
+              lat,
+              lng,
             },
           ]}
           level={4}

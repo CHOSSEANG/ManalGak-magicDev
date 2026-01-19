@@ -28,3 +28,18 @@ export interface MeetingResponse {
     timestamp: string;
   };
 }
+
+export interface MeetingCompleteResponse {
+  meetingId: string;
+  meetingName: string;
+  dateTime: string;
+  category: string;
+  members: { id: string; name: string }[];
+  place: {
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+  };
+  messageSent: boolean;
+}
