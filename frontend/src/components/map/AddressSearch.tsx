@@ -45,7 +45,9 @@ export default function AddressSearch({ onSelect }: AddressSearchProps) {
       oncomplete: (data) => {
         const roadAddress = data.roadAddress;
         const jibunAddress = data.jibunAddress;
-        onSelect(roadAddress || jibunAddress);
+        const selectedAddress = roadAddress || jibunAddress;
+        if (!selectedAddress) return;
+        onSelect(selectedAddress);
       },
       width: "100%",
       height: "100%",

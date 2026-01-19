@@ -52,19 +52,19 @@ export default function HomePage() {
    * 카카오 지도 미리보기
    */
   useEffect(() => {
-    // eslint: window.kakao type comes from global.d.ts
-    if (!window.kakao) return;
+    const maps = window.kakao?.maps;
+    if (!maps?.load) return;
 
-    window.kakao.maps.load(() => {
+    maps.load(() => {
       const container = document.getElementById("map");
       if (!container) return;
 
       const options = {
-        center: new window.kakao.maps.LatLng(37.5636, 126.9976),
+        center: new maps.LatLng(37.5636, 126.9976),
         level: 5,
       };
 
-      new window.kakao.maps.Map(container, options);
+      new maps.Map(container, options);
     });
   }, []);
 

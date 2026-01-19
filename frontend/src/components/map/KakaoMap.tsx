@@ -43,18 +43,19 @@ export default function KakaoMap({
   useEffect(() => {
     if (!mapRef.current) return
     if (mapInstanceRef.current) return
-    if (!window.kakao?.maps?.load) return
+    const maps = window.kakao?.maps
+    if (!maps?.load) return
 
-    window.kakao.maps.load(() => {
+    maps.load(() => {
       // 🔒 여기 들어왔다는 건 SDK 내부 초기화 완료
       if (mapInstanceRef.current) return
 
-      const kakaoCenter = new window.kakao.maps.LatLng(
+      const kakaoCenter = new maps.LatLng(
         initialCenter.lat,
         initialCenter.lng
       )
 
-      const map = new window.kakao.maps.Map(mapRef.current!, {
+      const map = new maps.Map(mapRef.current!, {
         center: kakaoCenter,
         level,
       })
@@ -71,14 +72,15 @@ export default function KakaoMap({
   /** 마커 */
   useEffect(() => {
     const map = mapInstanceRef.current
-    if (!map || !window.kakao?.maps?.LatLng) return
+    const maps = window.kakao?.maps
+    if (!map || !maps?.LatLng || !maps.Marker) return
 
     markersRef.current.forEach((m) => m.setMap(null))
     markersRef.current = markers.map(
       (p) =>
-        new window.kakao.maps.Marker({
+        new maps.Marker({
           map,
-          position: new window.kakao.maps.LatLng(p.lat, p.lng),
+          position: new maps.LatLng(p.lat, p.lng),
         })
     )
   }, [markers])

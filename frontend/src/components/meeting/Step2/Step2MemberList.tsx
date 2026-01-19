@@ -10,6 +10,8 @@ export interface Member {
   id: string;
   name: string;
   status: MemberStatus;
+  // build: optional nickname used by MemberStatusList
+  nickname?: string;
 }
 
 const initialMembers: Member[] = [

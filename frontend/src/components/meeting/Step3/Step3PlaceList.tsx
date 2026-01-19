@@ -31,6 +31,8 @@ const middlePlaceMarkers = [{ lat: 37.563617, lng: 126.997628 }]
 export default function Step5PlaceList() {
   const router = useRouter()
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null)
+  // build: define modal setter used by button
+  const [, setShowMiddleModal] = useState(false)
 
   return (
     <div className="space-y-4">
