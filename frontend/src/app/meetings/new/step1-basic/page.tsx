@@ -1,5 +1,5 @@
 import StepNavigation from "@/components/layout/StepNavigation";
-import Step1Form from "@/components/meeting/Step1Form";
+import Step1Form from "@/components/meeting/Step1/Step1Form";
 
 export default function Step1BasicPage() {
   return (
@@ -19,7 +19,7 @@ export default function Step1BasicPage() {
       {/* 다음 단계는 Step 3 (참여자 입력)로 이동 */}
       <StepNavigation
         prevHref="/meetings/new"
-        nextHref="/meetings/new/step3-members"
+        nextHref="/meetings/new/step2-meetingmembers"
       />
     </>
   );

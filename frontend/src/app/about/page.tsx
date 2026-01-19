@@ -20,6 +20,7 @@ export default function AboutPage() {
           onClick={() => setActiveTab('intro')}
         />
         <TabButton
+          // eslint-disable-next-line jsx-a11y/alt-text -- lucide icon is decorative
           icon={<Image size={16} />}
           label="미리 보기"
           active={activeTab === 'preview'}

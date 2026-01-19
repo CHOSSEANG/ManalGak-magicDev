@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 
 const stepMap: Record<string, number> = {
   "/meetings/new/step1-basic": 33,
-  "/meetings/new/step3-members": 67,
-  "/meetings/new/step5-place": 100,
+  "/meetings/new/step2-meetingmembers": 67,
+  "/meetings/new/step3-result": 100,
 };
 
 export default function MeetingsNewLayout({
@@ -24,8 +24,8 @@ export default function MeetingsNewLayout({
           <div className="flex justify-between text-xs px-1">
             {[
               ["Step 1.", "기본 정보", "/meetings/new/step1-basic"],
-              ["Step 2.", "참여 멤버", "/meetings/new/step3-members"],
-              ["Step 3.", "중간지점 & 추천장소", "/meetings/new/step5-place"],
+              ["Step 2.", "참여 멤버", "/meetings/new/step2-meetingmembers"],
+              ["Step 3.", "중간지점 & 추천장소", "/meetings/new/step3-result"],
             ].map(([step, label, path]) => {
               const isActive = pathname === path;
               return (

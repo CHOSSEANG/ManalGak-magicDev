@@ -7,3 +7,5 @@ export const createMeeting = (payload: unknown) =>
   apiClient.post('/meetings', payload)
 export const getMeeting = (meetingUuid: string) =>
   apiClient.get(`/meetings/${meetingUuid}`)
+export const getMeetingDetail = (meetingUuid: string) =>
+  apiClient.get(`/v1/meetings/${meetingUuid}`)

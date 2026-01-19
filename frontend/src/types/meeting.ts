@@ -22,8 +22,52 @@ export interface MeetingCreateRequest {
 export interface MeetingResponse {
   success: boolean;
   data: Meeting;
-  error: any;
+  // eslint: avoid any for API error payload
+  error: unknown;
   meta: {
     timestamp: string;
   };
+}
+
+export type MeetingPurposeV1 =
+  | 'STUDY_CAFE'
+  | 'CAFE'
+  | 'ROOM_CAFE'
+  | 'MOVIE'
+  | 'SHOPPING'
+  | 'KARAOKE'
+  | 'RESTAURANT'
+  | 'BRUNCH'
+  | 'DRINK';
+
+export type MeetingStatusV1 = 'PENDING' | 'COMPLETED';
+
+export interface LocationResponse {
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+}
+
+export interface ParticipantResponse {
+  participantId?: number;
+  meetingId?: number;
+  status?: 'INVITED' | 'CONFIRMED' | 'DECLINED';
+  nickName?: string;
+  profileImageUrl?: string;
+  origin?: LocationResponse;
+  destination?: LocationResponse;
+  transportType?: 'WALK' | 'PUBLIC' | 'CAR';
+  userId?: number;
+  handicap?: boolean;
+}
+
+export interface MeetingDetailResponse {
+  meetingName?: string;
+  meetingTime?: string;
+  endTime?: string;
+  purpose?: MeetingPurposeV1;
+  status?: MeetingStatusV1;
+  totalParticipants?: number;
+  organizerId?: number;
+  participants?: ParticipantResponse[];
 }

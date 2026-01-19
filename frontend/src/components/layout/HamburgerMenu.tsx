@@ -1,177 +1,192 @@
 // src/components/layout/HamburgerMenu.tsx
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { X, ChevronRight } from "lucide-react";
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+  Calendar,
+  Users,
+  MapPin,
+  CheckCircle,
+  LocateFixed,
+  Calculator,
+  LogOut,
+  ChevronRight,
+} from 'lucide-react'
 
 interface HamburgerMenuProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
-const MANALGAK_STEPS = [
-  { step: "", label: "만날각 소개", href: "/about#intro" },
-  { step: "", label: "미리 보기", href: "/about#preview" },
-  { step: "", label: "만든 사람들", href: "/about#team" },
-];
+const MY_MENUS = [
+  { label: '내 모임', href: '/meetings/new', icon: Calendar },
+]
 
-const CREATE_STEPS = [
-  { label: "모임 리스트 보기", href: "/meetings/new" },
-  { step: "Step 1.", label: "기본 정보", href: "/meetings/new/step1-basic" },
-  { step: "Step 2.", label: "참여 멤버", href: "/meetings/new/step3-members" },
-  {
-    step: "Step 3.",
-    label: "중간지점 & 추천장소",
-    href: "/meetings/new/step5-place",
-  },
-];
+const MENUS = [
+  { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: Users },
+  { label: '추천 장소 선택', href: '/meetings/new/step3-result', icon: MapPin },
+  { label: '모임 확정', href: '/meetings/meeting-001/complete', icon: CheckCircle },
+]
 
-const OPTIONS = [
-  {
-    step: "옵션 1.",
-    label: "실시간 위치 공유",
-    href: "/meetings/meeting-001/option-location",
-  },
-  {
-    step: "옵션 2.",
-    label: "회비 정산",
-    href: "/meetings/meeting-001/option-fee",
-  },
-];
+const EXTRA_MENUS = [
+  { label: '실시간 위치 공유', href: '/meetings/meeting-001/option-location', icon: LocateFixed },
+  { label: '회비 계산기', href: '/meetings/meeting-001/option-fee', icon: Calculator },
+]
 
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
-  const router = useRouter();
+  const router = useRouter()
+
+  const [user, setUser] = useState<{
+    name: string
+    email?: string
+    profileImage?: string
+  } | null>(null)
+
+  /** 메뉴 열릴 때마다 user 다시 읽기 */
+  useEffect(() => {
+    if (!isOpen) return
+
+    const storedUser = localStorage.getItem('user')
+    setUser(storedUser ? JSON.parse(storedUser) : null)
+  }, [isOpen])
+
+  if (!isOpen) return null
+
+  const isLoggedIn = !!user
 
   const handleNavigate = (href: string) => {
-    router.push(href);
-    onClose();
-  };
-
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!isOpen) return null;
+    router.push(href)
+    onClose()
+  }
 
   return (
-    <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose}>
       <aside
-        className="h-full w-72 bg-[var(--wf-surface)] border-r border-[var(--wf-border)] p-6"
+        className="fixed left-0 top-0 h-full w-[85%] max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <span className="text-base font-semibold">전체 메뉴</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--wf-border)] hover:bg-[var(--wf-muted)]"
-            aria-label="메뉴 닫기"
+        {/* Profile */}
+        <nav className="space-y-1">
+          <div
+            onClick={() => {
+              if (isLoggedIn) handleNavigate('/my')
+              else handleNavigate('/')
+            }}
+            className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)]"
           >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Menu */}
-        <nav className="space-y-1 text-sm">
-          {/* 만날각 소개 */}
-          <section>
-            <div className="rounded-xl border border-[var(--wf-border)]">
-              <button
-                onClick={() => handleNavigate("/about")}
-                className="flex w-full items-center justify-between rounded-xl px-4 py-3 font-medium hover:bg-[#FEE500] hover:text-[#191919]"
-              >
-                만날각 소개
-                <ChevronRight className="h-4 w-4 opacity-60" />
-              </button>
-
-              <ul className="pt-1 text-[13px] text-[var(--wf-subtle)]">
-                {MANALGAK_STEPS.map((item) => (
-                  <li key={item.href}>
-                    <button
-                      onClick={() => handleNavigate(item.href)}
-                      className="flex w-full rounded-md pl-7 py-2 text-left hover:bg-[#FEE500] hover:text-[#191919]"
-                    >
-                      <span className="mr-2 font-medium">{item.step}</span>
-                      <span>{item.label}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+            <div className="h-12 w-12 rounded-full bg-[var(--wf-accent)] flex items-center justify-center overflow-hidden border">
+              {user?.profileImage ? (
+                // eslint-disable-next-line @next/next/no-img-element -- profile image uses user-provided URL
+                <img
+                  src={user.profileImage}
+                  alt="프로필 이미지"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-sm font-semibold text-white">
+                  {user?.name?.[0] ?? '?'}
+                </span>
+              )}
             </div>
-          </section>
 
-          {/* 모임 생성 */}
-          <section>
-            <div className="rounded-xl border border-[var(--wf-border)]">
-              <button
-                onClick={() => handleNavigate("/meetings/new")}
-                className="flex w-full items-center justify-between rounded-xl px-4 py-3 font-medium hover:bg-[#FEE500] hover:text-[#191919]"
-              >
-                모임 생성 (상세설정 스탭확인)
-                <ChevronRight className="h-4 w-4 opacity-60" />
-              </button>
-
-              <ul className="pt-1 text-[13px] text-[var(--wf-subtle)]">
-                {CREATE_STEPS.map((item) => (
-                  <li key={item.href}>
-                    <button
-                      onClick={() => handleNavigate(item.href)}
-                      className="flex w-full rounded-md pl-7 py-2 text-left hover:bg-[#FEE500] hover:text-[#191919]"
-                    >
-                      <span className="mr-2 font-medium">{item.step}</span>
-                      <span>{item.label}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+            <div className="flex flex-col">
+              <p className="text-base font-semibold">
+                {user?.name ?? '로그인 필요'}
+              </p>
+              {user?.email && (
+                <p className="text-xs text-[var(--wf-subtle)]">
+                  {user.email}
+                </p>
+              )}
             </div>
-          </section>
+          </div>
 
-          {/* 모임 확정 */}
-          <section>
-            <div className="rounded-xl border border-[var(--wf-border)]">
+          {/* 로그인 후에만 MY_MENUS */}
+          {isLoggedIn &&
+            MY_MENUS.map(({ label, href, icon: Icon }) => (
               <button
-                onClick={() => handleNavigate("/meetings/meeting-001/complete")}
-                className="flex w-full items-center justify-between rounded-xl px-4 py-3 font-medium hover:bg-[#FEE500] hover:text-[#191919]"
+                key={href}
+                onClick={() => handleNavigate(href)}
+                className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-highlight-soft)]"
               >
-                모임 확정 내용
-                <ChevronRight className="h-4 w-4 opacity-60" />
+                <div className="flex items-center gap-4">
+                  <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
+                  <span>{label}</span>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-40" />
               </button>
-
-              <ul className="pt-1 text-[13px] text-[var(--wf-subtle)]">
-                {OPTIONS.map((item) => (
-                  <li key={item.href}>
-                    <button
-                      onClick={() => handleNavigate(item.href)}
-                      className="flex w-full rounded-md pl-7 py-2 text-left hover:bg-[#FEE500] hover:text-[#191919]"
-                    >
-                      <span className="mr-2 font-medium">{item.step}</span>
-                      <span>{item.label}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          {/* 내 페이지 */}
-          <section>
-            <div className="rounded-xl border border-[var(--wf-border)]">
-              <button
-                onClick={() => handleNavigate("/my")}
-                className="flex w-full items-center justify-between rounded-xl px-4 py-3 font-medium hover:bg-[#FEE500] hover:text-[#191919]"
-              >
-                내 페이지
-                <ChevronRight className="h-4 w-4 opacity-60" />
-              </button>
-            </div>
-          </section>
+            ))}
         </nav>
+
+        <div className="my-4 border-t" />
+
+        {/* MEETING */}
+        <nav className="space-y-1">
+          <p className="text-xs font-semibold">MEETING</p>
+          {MENUS.map(({ label, href, icon: Icon }) => (
+            <button
+              key={href}
+              onClick={() => handleNavigate(href)}
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-highlight-soft)]"
+            >
+              <div className="flex items-center gap-4">
+                <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
+                <span>{label}</span>
+              </div>
+              <ChevronRight className="h-4 w-4 opacity-40" />
+            </button>
+          ))}
+        </nav>
+
+        <div className="my-4 border-t" />
+
+        {/* PERSONAL */}
+        <nav className="space-y-1">
+          <p className="text-xs font-semibold">PERSONAL</p>
+          {EXTRA_MENUS.map(({ label, href, icon: Icon }) => (
+            <button
+              key={href}
+              onClick={() => handleNavigate(href)}
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-highlight-soft)]"
+            >
+              <div className="flex items-center gap-4">
+                <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
+                <span>{label}</span>
+              </div>
+              <ChevronRight className="h-4 w-4 opacity-40" />
+            </button>
+          ))}
+        </nav>
+
+        {/* Bottom Button */}
+        <div className="mt-auto pt-6">
+          {isLoggedIn ? (
+            <button
+              onClick={() => {
+                localStorage.removeItem('accessToken')
+                localStorage.removeItem('user')
+                onClose()
+                router.replace('/')
+              }}
+              className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]"
+            >
+              <LogOut className="h-5 w-5" />
+              로그아웃
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                onClose()
+                router.push('/')
+              }}
+              className="flex w-full items-center justify-center rounded-xl px-4 py-3 bg-[var(--wf-accent)] text-white"
+            >
+              로그인
+            </button>
+          )}
+        </div>
       </aside>
     </div>
-  );
+  )
 }

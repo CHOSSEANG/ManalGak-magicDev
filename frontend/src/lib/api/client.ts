@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -16,7 +17,7 @@ apiClient.interceptors.request.use(
     // participant_token이 있으면 헤더에 추가
     const token = localStorage.getItem('participant_token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers['X-Participant-Token'] = token;
     }
     return config;
   },

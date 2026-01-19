@@ -1,7 +1,8 @@
 import { ButtonHTMLAttributes } from "react";
 import clsx from "clsx";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {}
+// eslint: empty interface removed to satisfy lint
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>;
 
 export default function Button({ children, className, ...props }: ButtonProps) {
   return (

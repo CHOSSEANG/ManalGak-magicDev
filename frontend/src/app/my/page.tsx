@@ -2,13 +2,91 @@
 "use client";
 
 import StepCard from "@/components/meeting/StepCard";
-import { useState } from "react";
+import WireframeModal from "@/components/ui/WireframeModal";
+import AddressSearch from "@/components/map/AddressSearch";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+/** ===== 타입 ===== */
+interface User {
+  name: string;
+  profileImage?: string;
+}
+
+interface Bookmark {
+  id: number;
+  label: string;
+  address: string;
+  isEditing: boolean;
+}
 
 export default function MyPage() {
+  const router = useRouter();
+
+  /** ===== 로그인 사용자 ===== */
+  const [user, setUser] = useState<User | null>(null);
+
+  /** ===== 북마크 ===== */
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+
+  /** ✅ 주소 검색 대상 북마크 index */
+  const [activeBookmarkIndex, setActiveBookmarkIndex] =
+    useState<number | null>(null);
+
+  /** ===== 초기 로드 ===== */
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
+    const storedBookmarks = localStorage.getItem("bookmarks");
+    if (storedBookmarks) {
+      setBookmarks(JSON.parse(storedBookmarks));
+    } else {
+      setBookmarks(
+        Array.from({ length: 3 }).map((_, i) => ({
+          id: i,
+          label: "",
+          address: "",
+          isEditing: true,
+        }))
+      );
+    }
+  }, []);
+
+  /** ===== 북마크 헬퍼 ===== */
+  const updateBookmark = (index: number, data: Partial<Bookmark>) => {
+    setBookmarks((prev) =>
+      prev.map((b, i) => (i === index ? { ...b, ...data } : b))
+    );
+  };
+
+  const saveBookmark = (index: number) => {
+    setBookmarks((prev) => {
+      const next = prev.map((b, i) =>
+        i === index ? { ...b, isEditing: false } : b
+      );
+      localStorage.setItem("bookmarks", JSON.stringify(next));
+      return next;
+    });
+  };
+
+  /** ===== 로그아웃 ===== */
+  const handleAuthButton = () => {
+    if (user) {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+    }
+    router.replace("/");
+  };
+
+  const [searchAddressOpen, setSearchAddressOpen] = useState(false);
+
   return (
     <>
       <main className="space-y-8 pb-24">
-        {/* Header */}
+        {/* ===== Header ===== */}
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold">내 페이지</h1>
           <p className="text-sm text-[var(--wf-subtle)]">
@@ -16,102 +94,133 @@ export default function MyPage() {
           </p>
         </div>
 
-        {/* Profile */}
-        <StepCard className="space-y-4">
+        {/* ===== Profile ===== */}
+        <StepCard>
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full border border-[var(--wf-border)] bg-[var(--wf-muted)]" />
-            <div className="space-y-1">
-              <p className="text-base font-semibold">김철수</p>
-              <p className="text-sm text-[var(--wf-subtle)]">kim@example.com</p>
+            <div className="h-16 w-16 rounded-full overflow-hidden border bg-[var(--wf-muted)] flex items-center justify-center">
+              {user?.profileImage ? (
+                // eslint-disable-next-line @next/next/no-img-element -- profile image uses stored URL
+                <img
+                  src={user.profileImage}
+                  alt="프로필 이미지"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-lg font-semibold">
+                  {user?.name?.[0] ?? "?"}
+                </span>
+              )}
             </div>
+            <p className="text-base font-semibold">
+              {user?.name ?? "로그인이 필요합니다"}
+            </p>
           </div>
         </StepCard>
 
-        {/* Bookmark Origins */}
+        {/* ===== Bookmark Origins ===== */}
         <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">북마크 출발지</h2>
-          </div>
-
-          <StepCard className="divide-y">
-            {[
-              { label: "우리집", address: "서울 강남구 역삼동 123-45" },
-              { label: "회사", address: "서울 강남구 역삼동 123-45" },
-              { label: "학교", address: "서울 강남구 역삼동 123-45" },
-              { label: "카페 1", address: "서울 강남구 역삼동 123-45" },
-              { label: "카페 2", address: "서울 강남구 역삼동 123-45" },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center justify-between py-3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-6 rounded-full bg-[var(--wf-muted)]" />
-                  <div>
-                    <p className="text-sm font-medium">{item.label}</p>
-                    <p className="text-xs text-[var(--wf-subtle)]">
-                      {item.address}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="rounded-md border border-[var(--wf-border)] px-3 py-1 text-xs"
-                >
-                  수정
-                </button>
-              </div>
-            ))}
-          </StepCard>
-          {/* TODO: 출발지 수정 모달 (지도 연동 예정) */}
-        </section>
-
-        {/* Recent Meetings */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">최근 내 모임 리스트</h2>
-            <button type="button" className="text-xs text-[var(--wf-subtle)]">
-              더보기
-            </button>
-          </div>
+          <h2 className="text-lg font-semibold">출발지 북마크</h2>
 
           <StepCard className="space-y-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="space-y-1 border-b pb-3 last:border-b-0">
+            {bookmarks.map((item, index) => (
+              <div key={item.id} className="flex items-center gap-2">
+                {/* 라벨 */}
+                <input
+                  type="text"
+                  placeholder="라벨"
+                  value={item.label}
+                  disabled={!item.isEditing}
+                  onChange={(e) =>
+                    updateBookmark(index, { label: e.target.value })
+                  }
+                  className="w-24 rounded-md border px-2 py-2 text-sm disabled:bg-[var(--wf-muted)]"
+                />
+
+                {/* 주소 검색 */}
+               <button
+  type="button"
+  disabled={!item.isEditing}
+  onClick={() => {
+    setActiveBookmarkIndex(index);
+    setSearchAddressOpen(true);
+  }}
+  className="flex-1 rounded-md border px-3 py-2 text-left text-sm disabled:bg-[var(--wf-muted)]"
+>
+  {item.address || "주소 검색"}
+</button>
+
+                {/* 저장 / 수정 */}
+                {item.isEditing ? (
+                  <button
+                    type="button"
+                    disabled={!item.address}
+                    onClick={() => saveBookmark(index)}
+                    className="rounded-md bg-[var(--wf-highlight)] px-3 py-2 text-sm font-semibold disabled:opacity-40"
+                  >
+                    저장
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateBookmark(index, { isEditing: true })
+                    }
+                    className="rounded-md border px-3 py-2 text-sm"
+                  >
+                    수정
+                  </button>
+                )}
+              </div>
+            ))}
+          </StepCard>
+        </section>
+
+        {/* ===== Recent Meetings ===== */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">최근 내 모임 리스트</h2>
+
+          <StepCard className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="border-b pb-3 last:border-b-0">
                 <p className="text-sm font-semibold">친구들끼리 친목모임</p>
                 <p className="text-xs text-[var(--wf-subtle)]">
-                  2026.01.23 12:00 · 서울시 어쩌구 저쩌동
-                </p>
-                <p className="text-xs text-[var(--wf-subtle)]">
-                  총 5인 · 3만원 +@
+                  2026.01.23 12:00 · 서울 어딘가
                 </p>
               </div>
             ))}
           </StepCard>
         </section>
 
-        {/* Settings */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">설정</h2>
-
-          <StepCard>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">알림 설정</span>
-              <div className="h-6 w-11 rounded-full bg-[var(--wf-muted)] relative">
-                <div className="absolute right-1 top-1 h-4 w-4 rounded-full bg-white shadow" />
-              </div>
-            </div>
-          </StepCard>
-        </section>
-
-        {/* Logout */}
+        {/* ===== Login / Logout ===== */}
         <button
           type="button"
+          onClick={handleAuthButton}
           className="w-full rounded-2xl bg-[var(--wf-highlight)] px-6 py-4 text-sm font-semibold"
         >
-          로그아웃
+          {user ? "로그아웃" : "로그인"}
         </button>
       </main>
+
+      {/* ===== 주소 검색 모달 ===== */}
+      {/* 주소 검색 모달 (단일 인스턴스) */}
+      <WireframeModal
+        open={searchAddressOpen}
+        title="주소 검색"
+        onClose={() => {
+          setSearchAddressOpen(false);
+          setActiveBookmarkIndex(null);
+        }}
+      >
+        {activeBookmarkIndex !== null && (
+          <AddressSearch
+            onSelect={(address: string) => {
+              updateBookmark(activeBookmarkIndex, { address });
+              setSearchAddressOpen(false);
+              setActiveBookmarkIndex(null);
+            }}
+          />
+        )}
+      </WireframeModal>
     </>
   );
 }

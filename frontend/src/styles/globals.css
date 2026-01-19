@@ -9,15 +9,27 @@
    =============================== */
 :root {
   --wf-font: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
-  --wf-bg: #f6f5f2;
-  --wf-surface: #ffffff;
-  --wf-muted: #e6e4df;
-  --wf-border: #d4d0c7;
-  --wf-accent: #cfd7df;
-  --wf-highlight: #efe0b2;
-  --wf-overlay: rgba(17, 17, 17, 0.35);
-  --wf-text: #1a1a1a;
-  --wf-subtle: #6b6b6b;
+
+  /* Backgrounds */
+  --wf-bg: #ffffff;          /* 따뜻한 아이보리 */
+  --wf-bg-soft: rgba(255, 255, 255, 0.8);
+  --wf-surface: #ffffff;     /* 카드 / 패널 */
+  --wf-muted: #ebe9e3;      /* input, muted 영역 */
+  --wf-border: #d9d6cf;     /* 웜 그레이 보더 */
+
+  /* Accents */
+--wf-highlight: #FEE500; /* Kakao Yellow (Primary) */
+--wf-accent: #a7823f;    /* Kakao Brown (Text/Icon/Active) */
+--wf-overlay: rgba(17, 17, 17, 0.35);  /* 선택/hover용 연톤 배경 (카카오 옐로우를 연하게) */
+--wf-highlight-soft: rgba(254, 229, 0, 0.22);
+
+--wf-highlight-strong: #E0C200;
+--wf-highlight-strong2: #C9AF00;
+
+
+  /* Text */
+  --wf-text: #212121;       /* 거의 블랙 */
+  --wf-subtle: #6f6f6f;     /* 보조 텍스트 */
 }
 
 /* ===============================
@@ -59,5 +71,35 @@ body {
     --border: 12 6.5% 15.1%;
     --input: 12 6.5% 15.1%;
     --ring: 24 5.7% 82.9%;
+  }
+}
+
+/* src/styles/globals.css */
+
+/* ===== Global Layout Container ===== */
+.app-container {
+  width: 100%;
+  max-width: 1024px;     /* 콘텐츠 최대 폭 */
+  margin-left: auto;
+  margin-right: auto;
+
+  /* 모바일 기본 여백 */
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* ===== Tablet ===== */
+@media (min-width: 640px) {
+  .app-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* ===== Desktop ===== */
+@media (min-width: 1024px) {
+  .app-container {
+    padding-left: 32px;
+    padding-right: 32px;
   }
 }

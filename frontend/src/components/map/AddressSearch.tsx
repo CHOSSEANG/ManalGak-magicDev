@@ -2,12 +2,14 @@
 // 주소검색 모달은 여기서만 유지합니다
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import Script from "next/script";
 
 declare global {
   interface Window {
-    daum: any;
+    daum?: {
+      Postcode?: DaumPostcodeConstructor;
+    };
   }
 }
 
@@ -15,33 +17,49 @@ interface AddressSearchProps {
   onSelect: (address: string) => void;
 }
 
+type DaumPostcodeData = {
+  roadAddress?: string;
+  jibunAddress?: string;
+};
+
+type DaumPostcodeConstructor = new (options: {
+  oncomplete: (data: DaumPostcodeData) => void;
+  width: string;
+  height: string;
+}) => {
+  embed: (container: HTMLElement) => void;
+};
+
 export default function AddressSearch({ onSelect }: AddressSearchProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const isEmbeddedRef = useRef(false);
 
-  const embedPostcode = () => {
+  // eslint: stabilize callback for hook deps
+  const embedPostcode = useCallback(() => {
     if (!window.daum?.Postcode || !containerRef.current) return;
     if (isEmbeddedRef.current) return;
 
     isEmbeddedRef.current = true;
 
     new window.daum.Postcode({
-      oncomplete: (data: any) => {
+      oncomplete: (data) => {
         const roadAddress = data.roadAddress;
         const jibunAddress = data.jibunAddress;
-        onSelect(roadAddress || jibunAddress);
+        const selectedAddress = roadAddress || jibunAddress;
+        if (!selectedAddress) return;
+        onSelect(selectedAddress);
       },
       width: "100%",
       height: "100%",
     }).embed(containerRef.current);
-  };
+  }, [onSelect]);
 
   useEffect(() => {
     // SDK가 이미 로드된 경우 (대부분 여기로 들어옴)
     if (window.daum) {
       embedPostcode();
     }
-  }, []);
+  }, [embedPostcode]);
 
   return (
     <>

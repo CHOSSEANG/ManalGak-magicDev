@@ -1,7 +1,6 @@
 // src/app/meetings/[meetingId]/option-location/page.tsx
 "use client";
 import { useState } from "react";
-import StepCard from "@/components/meeting/StepCard";
 import StepNavigation from "@/components/layout/StepNavigation";
 import KakaoMap from "@/components/map/KakaoMap";
 
@@ -12,7 +11,8 @@ const middlePlaceMarkers = [
 ];
 
 export default function OptionRealtimePage() {
-  const [mapLevel, setMapLevel] = useState(5);
+  // eslint: setter unused in wireframe screen
+  const [mapLevel] = useState(5);
   // 와이어프레임 단계: 옵션 1
   return (
     <main className="space-y-6">
@@ -42,7 +42,7 @@ export default function OptionRealtimePage() {
 
       {/* 스텝 네비 */}
       <StepNavigation
-        prevHref="/meetings/new/step5-place"
+        prevHref="/meetings/meeting-001/complete"
         prevLabel="이전"
         nextHref="/my"
         nextLabel="내 모임 리스트"
