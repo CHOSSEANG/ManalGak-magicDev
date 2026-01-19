@@ -33,7 +33,8 @@ export default function MeetingCompletePage({ params }: PageProps) {
   };
 
   return (
-    <main className="space-y-8">
+    <main className="space-y-1">
+      <h1 className="text-xl font-semibold">확정된 모임 정보</h1>
       {/* 확정 장소 지도 */}
       <CompleteMapSection lat={meeting.lat} lng={meeting.lng} />
 

@@ -82,8 +82,6 @@ export default function CompleteSummaryCard({ meeting }: Props) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-semibold">확정된 모임 정보</h2>
-
       <StepCard className="space-y-5 rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-surface)] p-6 shadow-sm">
         <div className="space-y-4">
           {/* 모임명 */}
