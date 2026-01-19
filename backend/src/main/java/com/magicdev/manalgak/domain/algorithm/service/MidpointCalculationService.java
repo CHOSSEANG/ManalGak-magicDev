@@ -3,13 +3,13 @@ package com.magicdev.manalgak.domain.algorithm.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.magicdev.manalgak.domain.algorithm.Model.Coordinate;
 import com.magicdev.manalgak.domain.algorithm.Model.DistanceInfo;
 import com.magicdev.manalgak.domain.algorithm.Model.WeightedCoordinate;
 
-@Component
+@Service
 public class MidpointCalculationService {
 	/**
 	 * 순수 좌표 데이터만으로 중간지점 계산

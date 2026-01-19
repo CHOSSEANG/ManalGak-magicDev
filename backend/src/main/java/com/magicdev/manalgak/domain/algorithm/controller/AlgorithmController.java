@@ -12,11 +12,14 @@ import com.magicdev.manalgak.domain.algorithm.Model.Coordinate;
 import com.magicdev.manalgak.domain.algorithm.dto.CalculateRequest;
 import com.magicdev.manalgak.domain.algorithm.service.MidpointCalculationService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/midpoint")
+@RequiredArgsConstructor
 public class AlgorithmController {
 
-	private MidpointCalculationService midpointCalculationService;
+	private final MidpointCalculationService midpointCalculationService;
 
 	@PostMapping
 	public Coordinate midpointFind(@RequestBody CalculateRequest calculateRequest ){
