@@ -1,14 +1,12 @@
 "use client";
 
-import { StepProgress } from "@/components/ui/StepProgres";
+import { StepProgress } from "@/components/ui/StepProgress";
 import { usePathname } from "next/navigation";
 
 const stepMap: Record<string, number> = {
-  "/meetings/new/step1-date": 20,
-  "/meetings/new/step2-purpose": 40,
-  "/meetings/new/step3-members": 60,
-  "/meetings/new/step4-origin": 80,
-  "/meetings/new/step5-place": 100,
+  "/meetings/new/step1-basic": 33,
+  "/meetings/new/step2-meetingmembers": 67,
+  "/meetings/new/step3-result": 100,
 };
 
 export default function MeetingsNewLayout({
@@ -25,11 +23,9 @@ export default function MeetingsNewLayout({
         <div className="relative">
           <div className="flex justify-between text-xs px-1">
             {[
-              ["Step 1.", "날짜 & 시간", "/meetings/new/step1-date"],
-              ["Step 2.", "모임 목적", "/meetings/new/step2-purpose"],
-              ["Step 3.", "참여 멤버", "/meetings/new/step3-members"],
-              ["Step 4.", "출발지 & 이동수단", "/meetings/new/step4-origin"],
-              ["Step 5.", "중간지점 & 추천장소", "/meetings/new/step5-place"],
+              ["Step 1.", "기본 정보", "/meetings/new/step1-basic"],
+              ["Step 2.", "참여 멤버", "/meetings/new/step2-meetingmembers"],
+              ["Step 3.", "중간지점 & 추천장소", "/meetings/new/step3-result"],
             ].map(([step, label, path]) => {
               const isActive = pathname === path;
               return (

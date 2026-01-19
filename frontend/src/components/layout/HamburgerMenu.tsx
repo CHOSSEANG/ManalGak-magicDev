@@ -23,12 +23,29 @@ const MY_MENUS = [
   { label: '내 모임', href: '/meetings/new', icon: Calendar },
 ]
 
+<<<<<<< HEAD
 /** 메인 플로우 메뉴 */
 const MENUS = [
   { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: Users },
   { label: '추천 장소 선택', href: '/meetings/new/step5-place', icon: MapPin },
   { label: '모임 확정', href: '/meetings/meeting-001/complete', icon: CheckCircle },
 ]
+=======
+const CREATE_STEPS = [
+  { label: "모임 리스트 보기", href: "/meetings/new" },
+  { step: "Step 1.", label: "기본 정보", href: "/meetings/new/step1-basic" },
+  {
+    step: "Step 2.",
+    label: "참여 멤버",
+    href: "/meetings/new/step2-meetingmembers",
+  },
+  {
+    step: "Step 3.",
+    label: "중간지점 & 추천장소",
+    href: "/meetings/new/step3-result",
+  },
+];
+>>>>>>> origin/frontend/9rii/step3_4
 
 /** 하단 옵션 메뉴 */
 const EXTRA_MENUS = [

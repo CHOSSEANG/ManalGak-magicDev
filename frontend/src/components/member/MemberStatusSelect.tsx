@@ -1,21 +1,19 @@
 // src/components/member/MemberStatusSelect.tsx
-import { MemberStatus } from '@/components/meeting/Step3/Step3MemberList'
+
+import { MemberStatus } from "../meeting/Step2/Step2MemberList";
 
 const statusOptions: { value: MemberStatus; label: string }[] = [
-  { value: 'confirmed', label: '확정' },
-  { value: 'pending', label: '대기' },
-  { value: 'invited', label: '초대' },
-]
+  { value: "confirmed", label: "확정" },
+  { value: "pending", label: "대기" },
+  { value: "invited", label: "초대" },
+];
 
 interface Props {
-  value: MemberStatus
-  onChange: (status: MemberStatus) => void
+  value: MemberStatus;
+  onChange: (status: MemberStatus) => void;
 }
 
-export default function MemberStatusSelect({
-  value,
-  onChange,
-}: Props) {
+export default function MemberStatusSelect({ value, onChange }: Props) {
   return (
     <select
       value={value}
@@ -28,5 +26,5 @@ export default function MemberStatusSelect({
         </option>
       ))}
     </select>
-  )
+  );
 }

@@ -63,6 +63,7 @@ export default function Step5PlaceList() {
           ))}
         </div>
 
+<<<<<<< HEAD:frontend/src/components/meeting/Step5/Step5PlaceList.tsx
       {/* ================= 추천 장소 선택 ================= */}
       <StepCard className="space-y-3">
         <h2 className="text-base font-semibold">추천 장소 선택하기</h2>
@@ -72,6 +73,21 @@ export default function Step5PlaceList() {
             ? ' 모임장이 한 곳을 선택해 주세요.'
             : ' 모임장이 장소를 선택 중입니다.'}
         </p>
+=======
+      {/* ================= 중간지점 ================= */}
+      <StepCard className="space-y-3 lg:col-span-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold">중간지점</h2>
+          {isLeader && (
+            <button
+              onClick={() => setShowMiddleModal(true)}
+              className="rounded-lg border px-3 py-1 text-xs"
+            >
+              중간지점 선택
+            </button>
+          )}
+        </div>
+>>>>>>> origin/frontend/9rii/step3_4:frontend/src/components/meeting/Step3/Step3PlaceList.tsx
 
         <div className="space-y-2">
           {recommendedPlaces.map((place) => {
