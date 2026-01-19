@@ -21,7 +21,7 @@ export default function RootLayout({
       <head>
         {/* ✅ 카카오 지도 SDK – 절대 깨지지 않는 방식 */}
         <Script
-          src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=58664e8d9e1e49dc74df2e0cf8f05714&autoload=false"
+          src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false`}
           strategy="beforeInteractive"
         />
         {/* ✅ 카카오톡 공유 JS SDK */}
