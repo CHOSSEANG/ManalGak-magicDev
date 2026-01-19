@@ -42,7 +42,7 @@ export default function OptionRealtimePage() {
 
       {/* 스텝 네비 */}
       <StepNavigation
-        prevHref="/meetings/new/step5-place"
+        prevHref="/meetings/meeting-001/complete"
         prevLabel="이전"
         nextHref="/my"
         nextLabel="내 모임 리스트"

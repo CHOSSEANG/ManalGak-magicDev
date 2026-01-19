@@ -119,7 +119,7 @@ export default function Step1Form() {
   const openCalendar = () => {
     const d = selectedDate ?? new Date();
     setDateDraft(
-      `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+      `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
     );
     setIsCalendarOpen(true);
   };
@@ -158,9 +158,7 @@ export default function Step1Form() {
       {/* 1. 모임 정보 (모임명 입력) */}
       <StepCard className="space-y-2">
         <div className="space-y-2">
-          <p className="text-sm font-semibold text-[var(--wf-subtle)]">
-            모임 정보
-          </p>
+          <p className="text-sm font-semibold text-black">모임 정보</p>
           <input
             type="text"
             value={meetingName}
@@ -174,9 +172,7 @@ export default function Step1Form() {
       {/* 2. 모임 목적 (컴팩트 버전) */}
       <StepCard className="space-y-2">
         <div className="space-y-2">
-          <p className="text-sm font-semibold text-[var(--wf-subtle)]">
-            모임 목적
-          </p>
+          <p className="text-sm font-semibold text-black">모임 목적</p>
           <div className="space-y-3 pt-1">
             {purposeGroups.map((group) => (
               <div key={group.title} className="space-y-1">
@@ -222,9 +218,7 @@ export default function Step1Form() {
 
       {/* 3. 날짜 및 시간 (가로 배치 & 로직 연결) */}
       <StepCard className="space-y-2">
-        <p className="text-sm font-semibold text-[var(--wf-subtle)]">
-          날짜 및 시간
-        </p>
+        <p className="text-sm font-semibold text-black">날짜 및 시간</p>
 
         <div className="flex gap-2">
           {/* 날짜 버튼 */}
@@ -263,9 +257,7 @@ export default function Step1Form() {
 
       {/* 4. 예상 날씨 */}
       <StepCard className="space-y-2">
-        <p className="text-sm font-semibold text-[var(--wf-subtle)]">
-          예상 날씨
-        </p>
+        <p className="text-sm font-semibold text-black">예상 날씨</p>
         <div className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-4">
           {!canShowWeather ? (
             <div className="flex h-16 items-center justify-center text-xs text-gray-400">
@@ -290,9 +282,7 @@ export default function Step1Form() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md animate-in rounded-2xl bg-white p-5 shadow-lg sm:zoom-in-95">
             <h3 className="text-base font-semibold">날짜 선택</h3>
-            <p className="mt-1 text-xs text-[var(--wf-subtle)]">
-              만날 날짜를 선택해주세요.
-            </p>
+            <p className="mt-1 text-xs text-black">만날 날짜를 선택해주세요.</p>
 
             <div className="mt-4">
               <input
@@ -328,7 +318,7 @@ export default function Step1Form() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md animate-in rounded-2xl bg-white p-5 shadow-lg sm:zoom-in-95">
             <h3 className="text-base font-semibold">시간 선택</h3>
-            <p className="mt-1 text-xs text-[var(--wf-subtle)]">
+            <p className="mt-1 text-xs text-black">
               시작 시간은 필수, 종료 시간은 선택입니다.
             </p>
 

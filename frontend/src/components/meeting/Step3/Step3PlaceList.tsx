@@ -80,7 +80,7 @@ export default function Step5PlaceList() {
       </StepCard>
 
       {/* ================= 중간지점 ================= */}
-      <StepCard className="space-y-3">
+      <StepCard className="space-y-3 lg:col-span-2">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">중간지점</h2>
           {isLeader && (

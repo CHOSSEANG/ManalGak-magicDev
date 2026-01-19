@@ -1,32 +1,32 @@
 // src/components/meeting/MemberList.tsx
 
-'use client'
+"use client";
 
-import { useState } from 'react'
-import StepCard from '@/components/meeting/StepCard'
+import { useState } from "react";
+import StepCard from "@/components/meeting/StepCard";
 
 const initialMembers = [
-  { id: 'u1', name: '이름각', status: 'confirmed' },
-  { id: 'u2', name: '이름각', status: 'pending' },
-  { id: 'u3', name: '이름각', status: 'confirmed' },
-  { id: 'u4', name: '이름각', status: 'invited' },
-  { id: 'u5', name: '이름각', status: 'pending' },
-]
+  { id: "u1", name: "이름각", status: "confirmed" },
+  { id: "u2", name: "이름각", status: "pending" },
+  { id: "u3", name: "이름각", status: "confirmed" },
+  { id: "u4", name: "이름각", status: "invited" },
+  { id: "u5", name: "이름각", status: "pending" },
+];
 
 const statusOptions = [
-  { value: 'confirmed', label: '확정' },
-  { value: 'pending', label: '대기' },
-  { value: 'invited', label: '초대' },
-]
+  { value: "confirmed", label: "확정" },
+  { value: "pending", label: "대기" },
+  { value: "invited", label: "초대" },
+];
 
 export default function MemberList() {
-  const [members, setMembers] = useState(initialMembers)
+  const [members, setMembers] = useState(initialMembers);
 
   const handleStatusChange = (id: string, status: string) => {
     setMembers((prev) =>
-      prev.map((member) => (member.id === id ? { ...member, status } : member))
-    )
-  }
+      prev.map((member) => (member.id === id ? { ...member, status } : member)),
+    );
+  };
 
   // 와이어프레임 단계: 멤버 관리 UI
   return (
@@ -41,9 +41,9 @@ export default function MemberList() {
             <div
               key={`summary-${member.id}`}
               className={`flex h-16 w-16 flex-col items-center justify-center rounded-xl border border-[var(--wf-border)] ${
-                member.status === 'confirmed'
-                  ? 'bg-[var(--wf-accent)]'
-                  : 'bg-[var(--wf-surface)]'
+                member.status === "confirmed"
+                  ? "bg-[var(--wf-accent)]"
+                  : "bg-[var(--wf-surface)]"
               }`}
             >
               <div className="h-6 w-6 rounded-full bg-[var(--wf-muted)]" />
@@ -94,5 +94,5 @@ export default function MemberList() {
         </div>
       </StepCard>
     </div>
-  )
+  );
 }

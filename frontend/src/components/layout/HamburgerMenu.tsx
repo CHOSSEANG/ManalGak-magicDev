@@ -19,11 +19,15 @@ const MANALGAK_STEPS = [
 const CREATE_STEPS = [
   { label: "모임 리스트 보기", href: "/meetings/new" },
   { step: "Step 1.", label: "기본 정보", href: "/meetings/new/step1-basic" },
-  { step: "Step 2.", label: "참여 멤버", href: "/meetings/new/step3-members" },
+  {
+    step: "Step 2.",
+    label: "참여 멤버",
+    href: "/meetings/new/step2-meetingmembers",
+  },
   {
     step: "Step 3.",
     label: "중간지점 & 추천장소",
-    href: "/meetings/new/step5-place",
+    href: "/meetings/new/step3-result",
   },
 ];
 
