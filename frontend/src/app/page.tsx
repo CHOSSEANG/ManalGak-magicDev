@@ -27,14 +27,6 @@ export default function HomePage() {
     const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
     const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
 
-    // 🔴 필수 방어: REST API KEY 또는 REDIRECT URI 없으면 진행 금지
-    if (!REST_API_KEY || !REDIRECT_URI) {
-      alert(
-        "카카오 로그인 설정이 완료되지 않았습니다.\n관리자에게 문의해주세요."
-      );
-      return;
-    }
-
     const state = "/meetings/new";
 
     const kakaoAuthUrl =
@@ -47,9 +39,7 @@ export default function HomePage() {
     window.location.href = kakaoAuthUrl;
   };
 
-  /**
-   * 카카오 지도 미리보기
-   */
+  /** * 카카오 지도 미리보기 */
   useEffect(() => {
     const maps = window.kakao?.maps;
     if (!maps?.load) return;
@@ -91,17 +81,16 @@ export default function HomePage() {
             카카오 지도 미리보기
           </p>
         </StepCard>
+        <Button type="button" onClick={handleKakaoLogin}>
+          카카오 로그인
+        </Button>
       </div>
 
       {/* 로그인 영역 */}
       <div className="flex flex-col gap-3">
-        <Button type="button" onClick={handleKakaoLogin}>
-          카카오 로그인
-        </Button>
+        
 
-        <p className="text-xs text-[var(--wf-subtle)]">
-          카카오 계정으로 로그인
-        </p>
+
       </div>
     </main>
   );
