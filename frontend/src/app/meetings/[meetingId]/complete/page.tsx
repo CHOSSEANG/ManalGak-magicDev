@@ -40,15 +40,12 @@ export default function MeetingCompletePage({ params }: PageProps) {
       {/* 확정 정보 요약 카드 */}
       <CompleteSummaryCard meeting={meeting} />
 
-      {/* 옵션 이동 링크 */}
-      <CompleteOptionLinks meetingId={meetingId} />
-
       {/* 스텝 네비 */}
       <StepNavigation
         prevHref="/meetings/new/step5-place"
-        prevLabel="중간지점/추천장소"
+        prevLabel="추천장소 재선택"
         nextHref="/my"
-        nextLabel="내 모임 리스트"
+        nextLabel="내 페이지"
       />
     </main>
   );

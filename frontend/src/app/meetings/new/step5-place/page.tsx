@@ -23,7 +23,7 @@ export default function Step5Page() {
       <StepNavigation
         prevHref="/meetings/new/step4-origin"
         nextHref="/meetings/meeting-001/complete"
-        nextLabel="모임 확정"
+        nextLabel="확정 내용 확인"
       />
     </>
   );

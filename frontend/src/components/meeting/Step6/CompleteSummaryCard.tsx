@@ -2,6 +2,7 @@
 "use client";
 
 import StepCard from "@/components/meeting/StepCard";
+import KakaoMap from "@/components/map/KakaoMap";
 
 declare global {
   interface Window {
