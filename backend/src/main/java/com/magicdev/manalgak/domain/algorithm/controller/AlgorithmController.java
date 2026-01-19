@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.magicdev.manalgak.domain.algorithm.Model.Coordinate;
+import com.magicdev.manalgak.domain.algorithm.dto.CalculateRequest;
 import com.magicdev.manalgak.domain.algorithm.service.MidpointCalculationService;
 
 @RestController
@@ -18,12 +19,12 @@ public class AlgorithmController {
 	private MidpointCalculationService midpointCalculationService;
 
 	@PostMapping
-	public Coordinate midpointFind(@RequestBody List<Coordinate> coordinates){
+	public Coordinate midpointFind(@RequestBody CalculateRequest calculateRequest ){
 		/**
 		 * 가장 기본적인 구현 - 이것만 있어도 충분
 		 */
 		// 1단계: 기하학적 중심점 계산 (필수)
-		Coordinate midpoint = midpointCalculationService.calculateGeometricCenter(coordinates);
+		Coordinate midpoint = midpointCalculationService.calculateGeometricCenter(calculateRequest.getCoordinates());
 
 		return midpoint;
 	}
