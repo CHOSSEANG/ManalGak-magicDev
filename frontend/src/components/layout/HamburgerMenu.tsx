@@ -2,6 +2,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Calendar,
@@ -23,26 +24,37 @@ const MY_MENUS = [
   { label: '내 모임', href: '/meetings/new', icon: Calendar },
 ]
 
-/** 메인 플로우 메뉴 */
 const MENUS = [
   { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: Users },
   { label: '추천 장소 선택', href: '/meetings/new/step3-result', icon: MapPin },
   { label: '모임 확정', href: '/meetings/meeting-001/complete', icon: CheckCircle },
 ]
 
-/** 하단 옵션 메뉴 */
 const EXTRA_MENUS = [
   { label: '실시간 위치 공유', href: '/meetings/meeting-001/option-location', icon: LocateFixed },
   { label: '회비 계산기', href: '/meetings/meeting-001/option-fee', icon: Calculator },
 ]
 
-export default function HamburgerMenu({
-  isOpen,
-  onClose,
-}: HamburgerMenuProps) {
+export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   const router = useRouter()
 
+  const [user, setUser] = useState<{
+    name: string
+    email?: string
+    profileImage?: string
+  } | null>(null)
+
+  /** 메뉴 열릴 때마다 user 다시 읽기 */
+  useEffect(() => {
+    if (!isOpen) return
+
+    const storedUser = localStorage.getItem('user')
+    setUser(storedUser ? JSON.parse(storedUser) : null)
+  }, [isOpen])
+
   if (!isOpen) return null
+
+  const isLoggedIn = !!user
 
   const handleNavigate = (href: string) => {
     router.push(href)
@@ -51,103 +63,124 @@ export default function HamburgerMenu({
 
   return (
     <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose}>
-      {/* Drawer */}
       <aside
         className="fixed left-0 top-0 h-full w-[85%] max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Profile */}
         <nav className="space-y-1">
-          <Link
-            href="/my"
-            onClick={onClose}
-            className="flex items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)] active:bg-[var(--wf-accent)]"
+          <div
+            onClick={() => {
+              if (isLoggedIn) handleNavigate('/my')
+              else handleNavigate('/')
+            }}
+            className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)]"
           >
-            <div className="h-12 w-12 rounded-full bg-[var(--wf-accent)] flex items-center justify-center overflow-hidden border border-[var(--wf-border)]">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3QGgGtn4zUi2Q5Ee1vmAFie8A-B9HrkyA3SLakKMzouzeQgmqLVy2eqlUGFW21W7Uhfwe_6B3LJhu7B6gqIH8PtxvZ5VuwmFjwMIfCdf8t0FFiEtzVno2GI9GmYpZPaHki3CvleZbugNP1J2-qcDO75kqexuHAqntXxRuRVEb_dZZpUrFPSidKPXL-PDzIxfzsi_hUKCgTSRcxv_A6HJoZtHV4zRKBRTrGJQEp9Nap8aCIHZAaCgD8zQd3fPgtB5hpxVGyEvBD9tr"
-                alt="사용자 프로필 이미지"
-                className="h-full w-full object-cover"
-              />
+            <div className="h-12 w-12 rounded-full bg-[var(--wf-accent)] flex items-center justify-center overflow-hidden border">
+              {user?.profileImage ? (
+                <img src={user.profileImage} className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-sm font-semibold text-white">
+                  {user?.name?.[0] ?? '?'}
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col">
-              <p className="text-base font-semibold text-[var(--wf-text)] leading-tight">
-                김만날
+              <p className="text-base font-semibold">
+                {user?.name ?? '로그인 필요'}
               </p>
-              <p className="text-xs text-[var(--wf-subtle)] mt-0.5">
-                mannal_kim@email.com
-              </p>
+              {user?.email && (
+                <p className="text-xs text-[var(--wf-subtle)]">
+                  {user.email}
+                </p>
+              )}
             </div>
-          </Link>
+          </div>
 
-          {MY_MENUS.map(({ label, href, icon: Icon }) => (
-            <button
-              key={href}
-              onClick={() => handleNavigate(href)}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-highlight-soft)] active:bg-[var(--wf-accent)]"
-            >
-              <div className="flex items-center gap-4">
-                <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
-                <span className="text-base font-medium">{label}</span>
-              </div>
-              <ChevronRight className="h-4 w-4 opacity-40" />
-            </button>
-          ))}
+          {/* 로그인 후에만 MY_MENUS */}
+          {isLoggedIn &&
+            MY_MENUS.map(({ label, href, icon: Icon }) => (
+              <button
+                key={href}
+                onClick={() => handleNavigate(href)}
+                className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-highlight-soft)]"
+              >
+                <div className="flex items-center gap-4">
+                  <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
+                  <span>{label}</span>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-40" />
+              </button>
+            ))}
         </nav>
 
-        <div className="my-4 border-t border-[var(--wf-border)]" />
+        <div className="my-4 border-t" />
 
-        {/* Meeting */}
+        {/* MEETING */}
         <nav className="space-y-1">
-          <p className="text-xs font-semibold text-[var(--wf-text)]">MEETING</p>
+          <p className="text-xs font-semibold">MEETING</p>
           {MENUS.map(({ label, href, icon: Icon }) => (
             <button
               key={href}
               onClick={() => handleNavigate(href)}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-highlight-soft)] active:bg-[var(--wf-accent)]"
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-highlight-soft)]"
             >
               <div className="flex items-center gap-4">
                 <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
-                <span className="text-base font-medium">{label}</span>
+                <span>{label}</span>
               </div>
               <ChevronRight className="h-4 w-4 opacity-40" />
             </button>
           ))}
         </nav>
 
-        <div className="my-4 border-t border-[var(--wf-border)]" />
+        <div className="my-4 border-t" />
 
-        {/* Personal */}
+        {/* PERSONAL */}
         <nav className="space-y-1">
-          <p className="text-xs font-semibold text-[var(--wf-text)]">PERSONAL</p>
+          <p className="text-xs font-semibold">PERSONAL</p>
           {EXTRA_MENUS.map(({ label, href, icon: Icon }) => (
             <button
               key={href}
               onClick={() => handleNavigate(href)}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-highlight-soft)] active:bg-[var(--wf-accent)]"
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-highlight-soft)]"
             >
               <div className="flex items-center gap-4">
                 <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
-                <span className="text-base font-medium">{label}</span>
+                <span>{label}</span>
               </div>
               <ChevronRight className="h-4 w-4 opacity-40" />
             </button>
           ))}
         </nav>
 
-        {/* Logout */}
+        {/* Bottom Button */}
         <div className="mt-auto pt-6">
-          <button
-            onClick={() => {
-              onClose()
-            }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-[var(--wf-text)] 
-            bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]"
-          >
-            <LogOut className="h-5 w-5" />
-            로그아웃
-          </button>
+          {isLoggedIn ? (
+            <button
+              onClick={() => {
+                localStorage.removeItem('accessToken')
+                localStorage.removeItem('user')
+                onClose()
+                router.replace('/')
+              }}
+              className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]"
+            >
+              <LogOut className="h-5 w-5" />
+              로그아웃
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                onClose()
+                router.push('/')
+              }}
+              className="flex w-full items-center justify-center rounded-xl px-4 py-3 bg-[var(--wf-accent)] text-white"
+            >
+              로그인
+            </button>
+          )}
         </div>
       </aside>
     </div>

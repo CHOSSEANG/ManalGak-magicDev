@@ -19,12 +19,12 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        {/* ✅ 카카오 지도 SDK – 절대 깨지지 않는 방식 */}
+        {/* 카카오 지도 SDK */}
         <Script
           src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false`}
           strategy="beforeInteractive"
         />
-        {/* ✅ 카카오톡 공유 JS SDK */}
+        {/* 카카오 공유 SDK */}
         <Script
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
           strategy="beforeInteractive"
@@ -33,14 +33,23 @@ export default function RootLayout({
 
       <body>
         <TooltipProvider delayDuration={200}>
-          <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[var(--wf-bg)] text-[var(--wf-text)]">
+          {/* 앱 전체 배경 */}
+          <div className="min-h-screen bg-[var(--wf-bg)] text-[var(--wf-text)]">
             <Header />
-            <main className="flex-1 overflow-y-auto">
-              <div className="mx-auto w-full max-w-[1440px] px-4 py-6">
+
+            {/* ✅ 여기부터가 핵심 */}
+            <main className="flex justify-center">
+              {/* 
+                app-container:
+                - 모바일/태블릿: 고정 폭
+                - PC 이상: 좌우 여백만 증가
+              */}
+              <div className="app-container w-full py-6">
                 {children}
               </div>
-              <Footer />
             </main>
+
+            <Footer />
           </div>
         </TooltipProvider>
       </body>

@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import StepCard from "@/components/meeting/StepCard";
 import Button from "@/components/ui/Button";
 
@@ -13,13 +14,36 @@ declare global {
 }
 
 export default function HomePage() {
-  // 카카오 로그인 시작
-  const handleKakaoLogin = () => {
-    const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY!;
-    const REDIRECT_URI = `${window.location.origin}/auth/kakao/callback`;
+  const router = useRouter();
 
-    // 메인 페이지에서는 특정 모임이 없으므로 기본 이동 경로 지정
-    const state = "/my";
+  /**
+   * ✅ 이미 로그인된 상태면
+   * 홈(/) 접근 시 서비스 페이지로 이동
+   */
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      router.replace("/meetings/new");
+    }
+  }, [router]);
+
+  /**
+   * 카카오 로그인 시작
+   */
+  const handleKakaoLogin = () => {
+    const REST_API_KEY =
+      process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+
+    // 🔴 필수 방어: REST API KEY 없으면 진행 금지
+    if (!REST_API_KEY) {
+      alert(
+        "카카오 로그인 설정이 완료되지 않았습니다.\n관리자에게 문의해주세요."
+      );
+      return;
+    }
+
+    const REDIRECT_URI = `${window.location.origin}/auth/kakao/callback`;
+    const state = "/meetings/new";
 
     const kakaoAuthUrl =
       `https://kauth.kakao.com/oauth/authorize` +
@@ -31,7 +55,9 @@ export default function HomePage() {
     window.location.href = kakaoAuthUrl;
   };
 
-  // 카카오 지도 미리보기
+  /**
+   * 카카오 지도 미리보기
+   */
   useEffect(() => {
     if (!window.kakao) return;
 
@@ -50,6 +76,7 @@ export default function HomePage() {
 
   return (
     <main className="flex min-h-[80vh] flex-col justify-between gap-8">
+      {/* 상단 소개 */}
       <div className="space-y-6">
         <div className="space-y-2">
           <p className="text-sm text-[var(--wf-subtle)]">
@@ -57,10 +84,11 @@ export default function HomePage() {
           </p>
           <h1 className="text-3xl font-semibold">만날각</h1>
           <p className="text-sm text-[var(--wf-subtle)]">
-            모임 목적별 중간지점 추천 서비스{" "}
+            모임 목적별 중간지점 추천 서비스
           </p>
         </div>
 
+        {/* 지도 미리보기 */}
         <StepCard className="space-y-3">
           <div
             id="map"
@@ -72,7 +100,7 @@ export default function HomePage() {
         </StepCard>
       </div>
 
-      {/* 로그인 */}
+      {/* 로그인 영역 */}
       <div className="flex flex-col gap-3">
         <Button type="button" onClick={handleKakaoLogin}>
           카카오 로그인

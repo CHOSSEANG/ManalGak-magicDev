@@ -73,3 +73,33 @@ body {
     --ring: 24 5.7% 82.9%;
   }
 }
+
+/* src/styles/globals.css */
+
+/* ===== Global Layout Container ===== */
+.app-container {
+  width: 100%;
+  max-width: 1024px;     /* 콘텐츠 최대 폭 */
+  margin-left: auto;
+  margin-right: auto;
+
+  /* 모바일 기본 여백 */
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* ===== Tablet ===== */
+@media (min-width: 640px) {
+  .app-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* ===== Desktop ===== */
+@media (min-width: 1024px) {
+  .app-container {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
