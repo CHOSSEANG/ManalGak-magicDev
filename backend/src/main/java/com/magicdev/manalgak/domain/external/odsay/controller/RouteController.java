@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController("odsayRouteController")
-@RequestMapping("/api/v1/meetings/{meetingUuid}/candidates/{candidateId}/routes")
+@RequestMapping("/v1/meetings/{meetingUuid}/candidates/{candidateId}/routes")
 @RequiredArgsConstructor
 @Tag(name = "ODsay Routes", description = "ODsay 경로 조회 API")
 public class RouteController {

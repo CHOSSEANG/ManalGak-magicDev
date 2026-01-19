@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/routes")
+@RequestMapping("/v1/routes")
 @RequiredArgsConstructor
 @Tag(name = "Routes", description = "경로 관련 API")
 public class RouteController {
