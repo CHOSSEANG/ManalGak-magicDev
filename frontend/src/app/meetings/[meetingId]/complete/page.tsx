@@ -2,6 +2,7 @@
 "use client";
 
 import { use } from "react";
+import { useSearchParams } from "next/navigation";
 import CompleteSummaryCard from "@/components/meeting/Step6/CompleteSummaryCard";
 import CompleteMapSection from "@/components/meeting/Step6/CompleteMapSection";
 import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
@@ -16,50 +17,28 @@ interface PageProps {
 export default function MeetingCompletePage({ params }: PageProps) {
   // ✅ Next.js 15 방식
   const { meetingId } = use(params);
-  const { data, isLoading, error } = useMeetingComplete(meetingId);
-
-  if (isLoading) {
-    return (
-      <main className="space-y-6 pb-24">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">📍 확정 모임 정보</h1>
-          <p className="text-sm text-[var(--wf-subtle)]">
-            카카오톡으로 메시지를 전송 할 수 있습니다.
-          </p>
-        </div>
-        <p className="text-sm text-[var(--wf-subtle)]">로딩 중...</p>
-        <BottomTabNavigation />
-      </main>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <main className="space-y-6 pb-24">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">📍 확정 모임 정보</h1>
-          <p className="text-sm text-[var(--wf-subtle)]">
-            카카오톡으로 메시지를 전송 할 수 있습니다.
-          </p>
-        </div>
-        <p className="text-sm text-[var(--wf-subtle)]">
-          모임 정보를 불러오지 못했습니다.
-        </p>
-        <BottomTabNavigation />
-      </main>
-    );
-  }
+  const searchParams = useSearchParams();
+  const candidateIdParam = searchParams.get("candidateId");
+  const candidateId = candidateIdParam ? Number(candidateIdParam) : undefined;
+  const resolvedCandidateId = Number.isFinite(candidateId)
+    ? candidateId
+    : undefined;
+  const { data, isLoading, error } = useMeetingComplete(
+    meetingId,
+    resolvedCandidateId
+  );
+  const resolvedData = !isLoading && !error ? data : null;
 
   const meeting = {
-    meetingName: data.meetingName ?? "",
-    dateTime: data.dateTime ?? "",
-    memberCount: data.memberCount,
-    category: data.category ?? "",
-    placeName: data.placeName ?? "",
-    address: data.address ?? "",
-    parkingInfo: data.parkingInfo ?? "",
-    reservationInfo: data.reservationInfo ?? "",
-    phoneNumber: data.phoneNumber ?? "",
+    meetingName: resolvedData?.meetingName ?? "",
+    dateTime: resolvedData?.dateTime ?? "",
+    memberCount: resolvedData?.memberCount,
+    category: resolvedData?.category ?? "",
+    placeName: resolvedData?.placeName ?? "",
+    address: resolvedData?.address ?? "",
+    parkingInfo: resolvedData?.parkingInfo ?? "",
+    reservationInfo: resolvedData?.reservationInfo ?? "",
+    phoneNumber: resolvedData?.phoneNumber ?? "",
   };
 
   return (
@@ -71,7 +50,7 @@ export default function MeetingCompletePage({ params }: PageProps) {
         </p>
       </div>
       {/* 확정 장소 지도 */}
-      <CompleteMapSection lat={data.lat} lng={data.lng} />
+      <CompleteMapSection lat={resolvedData?.lat} lng={resolvedData?.lng} />
 
       {/* 확정 정보 요약 카드 */}
       <CompleteSummaryCard meeting={meeting} />

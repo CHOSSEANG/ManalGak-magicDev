@@ -1,32 +1,10 @@
 import { useEffect, useState } from 'react'
 
-import {
-  getMeetingCandidate,
-  getMeetingDetail,
-  getMeetingLastTrain,
-} from '@/lib/api/meeting'
-
-interface MeetingApiResponse {
-  meetingName?: string
-  candidateId?: string
-  members?: { id?: string; name?: string }[]
-}
-
-interface CandidateApiResponse {
-  dateTime?: string
-  category?: string
-  members?: { id?: string; name?: string }[]
-  place?: {
-    name?: string
-    address?: string
-    lat?: number
-    lng?: number
-  }
-}
-
-interface LastTrainApiResponse {
-  dateTime?: string
-}
+import { getMeetingDetail } from '@/lib/api/meeting'
+import { getCandidatePlaces } from '@/lib/api/place'
+import type { CommonResponse } from '@/types/api'
+import type { MeetingDetailResponse } from '@/types/meeting'
+import type { PlaceResponse, PlaceCandidate } from '@/types/place'
 
 export interface MeetingCompleteViewModel {
   meetingName?: string
@@ -48,13 +26,13 @@ interface UseMeetingCompleteState {
   error: Error | null
 }
 
-const isNonEmptyString = (value: unknown): value is string =>
-  typeof value === 'string' && value.trim().length > 0
-
 const isNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value)
 
-export const useMeetingComplete = (meetingId: string) => {
+export const useMeetingComplete = (
+  meetingId: string,
+  candidateId?: number
+) => {
   const [state, setState] = useState<UseMeetingCompleteState>({
     data: null,
     isLoading: true,
@@ -71,55 +49,35 @@ export const useMeetingComplete = (meetingId: string) => {
 
     const fetchMeetingComplete = async () => {
       try {
-        const meetingData = (await getMeetingDetail(
-          meetingId
-        )) as MeetingApiResponse
-        const candidateId = isNonEmptyString(meetingData?.candidateId)
-          ? meetingData.candidateId
-          : ''
-
-        const [candidateData, lastTrainData] = await Promise.all([
-          candidateId
-            ? (getMeetingCandidate(
-                meetingId,
-                candidateId
-              ) as Promise<CandidateApiResponse>)
-            : Promise.resolve(null),
-          getMeetingLastTrain(meetingId) as Promise<LastTrainApiResponse>,
-        ])
-
-        const resolvedDateTime =
-          (candidateData && isNonEmptyString(candidateData.dateTime)
-            ? candidateData.dateTime
-            : null) ??
-          (lastTrainData && isNonEmptyString(lastTrainData.dateTime)
-            ? lastTrainData.dateTime
-            : '')
-
-        const candidateMembers = Array.isArray(candidateData?.members)
-          ? candidateData.members
-          : null
-        const meetingMembers = Array.isArray(meetingData?.members)
-          ? meetingData.members
-          : null
+        const meetingResponse =
+          (await getMeetingDetail(
+            meetingId
+          )) as CommonResponse<MeetingDetailResponse>
+        const meetingData = meetingResponse?.data
         const memberCount =
-          candidateMembers?.length ?? meetingMembers?.length
+          isNumber(meetingData?.totalParticipants)
+            ? meetingData?.totalParticipants
+            : meetingData?.participants?.length
 
-        const place = candidateData?.place
+        let placeData: PlaceCandidate | undefined
+        if (isNumber(candidateId)) {
+          const placeResponse =
+            (await getCandidatePlaces(
+              meetingId,
+              candidateId
+            )) as CommonResponse<PlaceResponse>
+          placeData = placeResponse?.data?.places?.[0]
+        }
 
         const viewModel: MeetingCompleteViewModel = {
-          meetingName: isNonEmptyString(meetingData?.meetingName)
-            ? meetingData.meetingName
-            : '',
-          dateTime: resolvedDateTime,
+          meetingName: meetingData?.meetingName ?? '',
+          dateTime: meetingData?.meetingTime ?? '',
           memberCount,
-          category: isNonEmptyString(candidateData?.category)
-            ? candidateData.category
-            : '',
-          placeName: isNonEmptyString(place?.name) ? place.name : '',
-          address: isNonEmptyString(place?.address) ? place.address : '',
-          lat: isNumber(place?.lat) ? place.lat : undefined,
-          lng: isNumber(place?.lng) ? place.lng : undefined,
+          category: placeData?.categoryName ?? '',
+          placeName: placeData?.placeName ?? '',
+          address: placeData?.address ?? '',
+          lat: isNumber(placeData?.latitude) ? placeData.latitude : undefined,
+          lng: isNumber(placeData?.longitude) ? placeData.longitude : undefined,
           parkingInfo: '',
           reservationInfo: '',
           phoneNumber: '',
@@ -141,7 +99,7 @@ export const useMeetingComplete = (meetingId: string) => {
     return () => {
       isActive = false
     }
-  }, [meetingId])
+  }, [meetingId, candidateId])
 
   return state
 }
