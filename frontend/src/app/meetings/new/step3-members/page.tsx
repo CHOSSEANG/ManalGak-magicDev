@@ -1,7 +1,7 @@
 // src/app/meetings/new/step3-members/page.tsx
 
-import StepNavigation from '@/components/layout/StepNavigation'
-import MemberList from '@/components/meeting/Step3/Step3MemberList'
+import StepNavigation from "@/components/layout/StepNavigation";
+import MemberList from "@/components/meeting/Step3/Step3MemberList";
 
 export default function Step3Page() {
   // 와이어프레임 단계: Step 3
@@ -18,9 +18,9 @@ export default function Step3Page() {
       </main>
 
       <StepNavigation
-        prevHref="/meetings/new/step2-purpose"
+        prevHref="/meetings/new/step1-basic"
         nextHref="/meetings/new/step4-origin"
       />
     </>
-  )
+  );
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ParticipantRepository extends JpaRepository<Participant, Long> {
 
@@ -26,4 +27,6 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
 
     @Query("SELECT p FROM Participant p JOIN FETCH p.user WHERE p.meeting.id IN :meetingIds")
     List<Participant> findByMeetingIdIn(@Param("meetingIds") List<Long> meetingIds);
+
+    Optional<Participant>  findByMeeting_IdAndUser_Id(Long meetingId, Long userId);
 }

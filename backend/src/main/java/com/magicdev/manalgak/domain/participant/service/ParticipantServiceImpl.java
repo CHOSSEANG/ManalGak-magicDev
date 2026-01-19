@@ -33,7 +33,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     private static final int MAX_COUNT = 10;
 
     @Override
-    public ParticipantResponse joinMeeting(String meetingUuid, Long userId, ParticipantCreateRequest request) {
+    public ParticipantResponse joinMeeting(String meetingUuid, Long userId) {
 
         Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
@@ -50,15 +50,12 @@ public class ParticipantServiceImpl implements ParticipantService {
             throw new BusinessException(ErrorCode.ALREADY_PARTICIPANT);
         }
 
-        if (participantRepository.existsByMeetingIdAndNickName(meeting.getId(), request.getNickName())) {
-            throw new BusinessException(ErrorCode.DUPLICATE_PARTICIPANT_NAME);
-        }
 
         if (meeting.getExpiresAt().isBefore(DateTimeUtil.now())) {
             throw new BusinessException(ErrorCode.MEETING_EXPIRED);
         }
 
-        Participant participant = Participant.create(meeting, user, request.getNickName());
+        Participant participant = Participant.create(meeting, user, user.getNickname());
 
         participantRepository.save(participant);
 
