@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/meetings/{meetingUuid}/candidates/{candidateId}")
+@RequestMapping("/v1/meetings/{meetingUuid}/candidates/{candidateId}")
 @RequiredArgsConstructor
 @Tag(name = "Places", description = "장소 관련 API")
 public class PlaceController {

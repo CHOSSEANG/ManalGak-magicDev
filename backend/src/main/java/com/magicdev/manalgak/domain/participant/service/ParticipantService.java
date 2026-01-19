@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface ParticipantService {
 
-    ParticipantResponse joinMeeting(String meetingUuid, Long userId, ParticipantCreateRequest request);
+    ParticipantResponse joinMeeting(String meetingUuid, Long userId);
 
     ParticipantResponse updateParticipant(String meetingUuid, Long participantId, Long userId, ParticipantUpdateRequest request);
 

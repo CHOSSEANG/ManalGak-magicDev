@@ -197,9 +197,11 @@ jobs:
 
           echo "📦 생성: 프론트엔드 환경 변수 파일 (./frontend/.env)"
           cat > ./frontend/.env << EOL
-          # Docker 이미지 태그 및 설정
-          NODE_ENV=production
-          NEXT_PUBLIC_API_URL=/api
+          # Kakao Login (Frontend OAuth 시작용)
+          NEXT_PUBLIC_KAKAO_REST_API_KEY=${{secrets.PROD_NEXT_PUBLIC_KAKAO_REST_API_KEY}}
+          
+          # Kakao JS SDK (지도 / JS SDK)
+          NEXT_PUBLIC_KAKAO_JS_KEY=${{secrets.PROD_NEXT_PUBLIC_KAKAO_JS_KEY}}
           EOL
 
           echo "🐳 Docker login to GitHub Container Registry..."

@@ -28,7 +28,7 @@ public class UserAddressController {
             @RequestBody UserAddressRequest request,
             @AuthenticationPrincipal Long userId
     ) {
-        return CommonResponse.success(userAddressService.saveUserAddress(request,userId));
+        return CommonResponse.success(userAddressService.saveUserAddress(request.toCommand(),userId));
     }
 
     @Operation(summary = "주소 수정", description = "주소를 수정합니다.")
@@ -38,7 +38,7 @@ public class UserAddressController {
             @PathVariable Long userAddressId,
             @AuthenticationPrincipal Long userId
     ) {
-        return CommonResponse.success(userAddressService.updateUserAddress(request,userAddressId,userId));
+        return CommonResponse.success(userAddressService.updateUserAddress(request.toCommand(),userAddressId,userId));
     }
 
     @Operation(summary = "주소 조회", description = "주소를 조회합니다.")
