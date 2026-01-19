@@ -85,7 +85,7 @@ export default function HamburgerMenu({
             <button
               key={href}
               onClick={() => handleNavigate(href)}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-accent)] active:bg-[var(--wf-accent)]"
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-highlight-soft)] active:bg-[var(--wf-accent)]"
             >
               <div className="flex items-center gap-4">
                 <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
@@ -105,7 +105,7 @@ export default function HamburgerMenu({
             <button
               key={href}
               onClick={() => handleNavigate(href)}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-accent)] active:bg-[var(--wf-accent)]"
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-highlight-soft)] active:bg-[var(--wf-accent)]"
             >
               <div className="flex items-center gap-4">
                 <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
@@ -125,7 +125,7 @@ export default function HamburgerMenu({
             <button
               key={href}
               onClick={() => handleNavigate(href)}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-accent)] active:bg-[var(--wf-accent)]"
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 transition hover:bg-[var(--wf-highlight-soft)] active:bg-[var(--wf-accent)]"
             >
               <div className="flex items-center gap-4">
                 <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
@@ -142,7 +142,8 @@ export default function HamburgerMenu({
             onClick={() => {
               onClose()
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-[var(--wf-text)] bg-[var(--wf-muted)] hover:bg-[var(--wf-hover)]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-[var(--wf-text)] 
+            bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]"
           >
             <LogOut className="h-5 w-5" />
             로그아웃

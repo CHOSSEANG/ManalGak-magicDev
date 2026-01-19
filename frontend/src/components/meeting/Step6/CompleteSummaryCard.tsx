@@ -165,7 +165,8 @@ export default function CompleteSummaryCard({ meeting }: Props) {
       {/* CTA */}
       <button
         onClick={handleSendKakao}
-        className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--wf-highlight)] py-4 text-lg font-bold text-[var(--wf-text)] shadow-xl shadow-yellow-500/20 transition active:scale-[0.99]"
+        className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--wf-highlight)]  hover:bg-[var(--wf-accent)]
+        py-4 text-lg font-bold text-[var(--wf-text)] shadow-xl shadow-yellow-500/20 transition active:scale-[0.99]"
       >
         확정 장소 메시지 전송
         <Send className="h-5 w-5 transition-transform group-hover:translate-x-1" />

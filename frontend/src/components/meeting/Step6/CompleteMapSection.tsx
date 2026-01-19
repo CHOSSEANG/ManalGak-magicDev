@@ -1,12 +1,13 @@
 "use client";
 
-import StepCard from "@/components/meeting/StepCard";
 import KakaoMap from "@/components/map/KakaoMap";
 
 interface Props {
   lat: number;
   lng: number;
 }
+
+
 
 export default function CompleteMapSection({ lat, lng }: Props) {
   return (

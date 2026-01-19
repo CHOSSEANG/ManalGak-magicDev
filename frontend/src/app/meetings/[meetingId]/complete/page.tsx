@@ -4,8 +4,7 @@
 import { use } from "react";
 import CompleteSummaryCard from "@/components/meeting/Step6/CompleteSummaryCard";
 import CompleteMapSection from "@/components/meeting/Step6/CompleteMapSection";
-import CompleteOptionLinks from "@/components/meeting/Step6/CompleteOptionLinks";
-import StepNavigation from "@/components/layout/StepNavigation";
+import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
 
 interface PageProps {
   params: Promise<{
@@ -33,21 +32,22 @@ export default function MeetingCompletePage({ params }: PageProps) {
   };
 
   return (
-    <main className="space-y-1">
-      <h1 className="text-xl font-semibold">확정된 모임 정보</h1>
+       <main className="space-y-6 pb-24">
+              <div className="space-y-2">
+                <h1 className="text-2xl font-semibold">
+                  📍 확정 모임 정보
+                </h1>
+                <p className="text-sm text-[var(--wf-subtle)]">
+                  카카오톡으로 메시지를 전송 할 수 있습니다.
+                </p>
+              </div>
       {/* 확정 장소 지도 */}
       <CompleteMapSection lat={meeting.lat} lng={meeting.lng} />
 
       {/* 확정 정보 요약 카드 */}
       <CompleteSummaryCard meeting={meeting} />
 
-      {/* 스텝 네비 */}
-      <StepNavigation
-        prevHref="/meetings/new/step5-place"
-        prevLabel="추천장소 재선택"
-        nextHref="/my"
-        nextLabel="내 페이지"
-      />
+       <BottomTabNavigation />
     </main>
   );
 }

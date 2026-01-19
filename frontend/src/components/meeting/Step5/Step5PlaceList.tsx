@@ -114,7 +114,8 @@ export default function Step5PlaceList() {
         <button
           disabled={!selectedPlace}
           onClick={() => router.push('/meetings/meeting-001/complete')}
-          className="w-full rounded-2xl bg-[var(--wf-highlight)] py-4 text-base font-semibold text-[var(--wf-text)] disabled:opacity-40"
+          className="w-full rounded-2xl bg-[var(--wf-highlight)]  hover:bg-[var(--wf-accent)]
+          py-4 text-base font-semibold text-[var(--wf-text)] disabled:opacity-40"
         >
           추천 장소 확정
         </button>

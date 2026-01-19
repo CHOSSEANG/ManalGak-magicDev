@@ -11,7 +11,8 @@
   --wf-font: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
 
   /* Backgrounds */
-  --wf-bg: #f7f6f3;          /* 따뜻한 아이보리 */
+  --wf-bg: #ffffff;          /* 따뜻한 아이보리 */
+  --wf-bg-soft: rgba(255, 255, 255, 0.8);
   --wf-surface: #ffffff;     /* 카드 / 패널 */
   --wf-muted: #ebe9e3;      /* input, muted 영역 */
   --wf-border: #d9d6cf;     /* 웜 그레이 보더 */
@@ -27,7 +28,7 @@
 
 
   /* Text */
-  --wf-text: #1a1a1a;       /* 거의 블랙 */
+  --wf-text: #212121;       /* 거의 블랙 */
   --wf-subtle: #6f6f6f;     /* 보조 텍스트 */
 }
 
