@@ -1,6 +1,8 @@
 // src/app/layout.tsx
+
 import type { Metadata } from "next";
 import Script from "next/script";
+import { AuthProvider } from "@/context/auth";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,10 +21,12 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        {/* 카카오 지도 SDK */}
         <Script
           src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false`}
           strategy="beforeInteractive"
         />
+        {/* 카카오 공유 SDK */}
         <Script
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
           strategy="beforeInteractive"
@@ -30,22 +34,23 @@ export default function RootLayout({
       </head>
 
       <body>
-        <TooltipProvider delayDuration={200}>
-          {/* 전체 앱: 세로 플렉스 */}
-          <div className="h-screen  min-h-screen flex flex-col bg-[var(--wf-bg)] text-[var(--wf-text)]">
-            <Header />
+        <AuthProvider>
+          <TooltipProvider delayDuration={200}>
+            {/* 전체 앱: 세로 플렉스 */}
+            <div className="h-screen min-h-screen flex flex-col bg-[var(--wf-bg)] text-[var(--wf-text)]">
+              <Header />
 
-            {/* ✅ main이 남은 높이를 차지 + (중요) min-h-0 */}
-            <main className="flex-1 min-h-0 flex justify-center">
-              {/* ✅ app-container가 스크롤 담당: (중요) flex-1 + min-h-0 + overflow */}
-              <div className="app-container w-full flex-1 min-h-0 overflow-y-auto py-6">
-                {children}
-              </div>
-            </main>
+              {/* main: 남은 영역 차지 + 스크롤 컨텍스트 */}
+              <main className="flex-1 min-h-0 flex justify-center">
+                <div className="app-container w-full flex-1 min-h-0 overflow-y-auto py-6">
+                  {children}
+                </div>
+              </main>
 
-            <Footer />
-          </div>
-        </TooltipProvider>
+              <Footer />
+            </div>
+          </TooltipProvider>
+        </AuthProvider>
       </body>
     </html>
   );
