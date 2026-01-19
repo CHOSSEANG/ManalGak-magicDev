@@ -5,7 +5,8 @@ type RecommendOption = {
   label: string
   description: string
   type: 'radius' | 'category' | 'sort' | 'openOnly'
-  value?: any
+  // eslint: flexible value type without any
+  value?: unknown
 }
 
 const MORE_RECOMMEND_OPTIONS: RecommendOption[] = [

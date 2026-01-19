@@ -4,6 +4,8 @@ interface Props {
 
 export default function JoinMeetingSummary({ meetingId }: Props) {
   // TODO: meetingId로 step1, step2 데이터 fetch
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- meetingId reserved for fetch
+  void meetingId;
 
   return (
     <div className="space-y-8">

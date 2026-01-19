@@ -11,12 +11,6 @@ import {
   Send,
 } from 'lucide-react'
 
-declare global {
-  interface Window {
-    Kakao: any
-  }
-}
-
 export interface MeetingSummary {
   meetingName: string
   dateTime: string
@@ -49,6 +43,7 @@ export default function CompleteSummaryCard({ meeting }: Props) {
   const lng = 126.977969
 
   const handleSendKakao = () => {
+    // eslint: Kakao typing provided in global.d.ts
     if (typeof window === 'undefined' || !window.Kakao) return
 
     if (!window.Kakao.isInitialized()) {

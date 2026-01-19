@@ -6,13 +6,6 @@ import { useRouter } from "next/navigation";
 import StepCard from "@/components/meeting/StepCard";
 import Button from "@/components/ui/Button";
 
-declare global {
-  interface Window {
-    Kakao: any;
-    kakao: any;
-  }
-}
-
 export default function HomePage() {
   const router = useRouter();
 
@@ -59,6 +52,7 @@ export default function HomePage() {
    * 카카오 지도 미리보기
    */
   useEffect(() => {
+    // eslint: window.kakao type comes from global.d.ts
     if (!window.kakao) return;
 
     window.kakao.maps.load(() => {

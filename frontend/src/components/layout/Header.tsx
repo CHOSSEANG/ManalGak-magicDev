@@ -34,6 +34,7 @@ export default function Header() {
               onClick={closeMenu}
               className="flex h-10 items-center"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element -- static logo svg */}
               <img
                 src="/images/logo.svg"
                 alt="로고"

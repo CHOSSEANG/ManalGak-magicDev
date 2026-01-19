@@ -15,6 +15,8 @@ interface PageProps {
 export default function MeetingCompletePage({ params }: PageProps) {
   // ✅ Next.js 15 방식
   const { meetingId } = use(params);
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- meetingId reserved for API wiring
+  void meetingId;
 
   // TODO: 추후 API 연동
   const meeting = {

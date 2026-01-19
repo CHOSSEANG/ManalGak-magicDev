@@ -3,11 +3,12 @@
 
 import { useEffect, useMemo, useRef } from 'react'
 
-declare global {
-  interface Window {
-    kakao: any
-  }
+type KakaoLatLng = unknown
+type KakaoMapInstance = {
+  relayout: () => void
+  setCenter: (center: KakaoLatLng) => void
 }
+type KakaoMarker = { setMap: (map: KakaoMapInstance | null) => void }
 
 type LatLng = { lat: number; lng: number }
 
@@ -29,8 +30,9 @@ export default function KakaoMap({
   minHeight?: number | string
 }) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<any>(null)
-  const markersRef = useRef<any[]>([])
+  // eslint: narrow map refs to avoid any
+  const mapInstanceRef = useRef<KakaoMapInstance | null>(null)
+  const markersRef = useRef<KakaoMarker[]>([])
 
   const initialCenter = useMemo(
     () => center ?? markers[0] ?? FALLBACK_CENTER,

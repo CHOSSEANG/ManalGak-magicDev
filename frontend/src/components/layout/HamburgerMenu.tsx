@@ -1,7 +1,6 @@
 // src/components/layout/HamburgerMenu.tsx
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -78,7 +77,12 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
           >
             <div className="h-12 w-12 rounded-full bg-[var(--wf-accent)] flex items-center justify-center overflow-hidden border">
               {user?.profileImage ? (
-                <img src={user.profileImage} className="h-full w-full object-cover" />
+                // eslint-disable-next-line @next/next/no-img-element -- profile image uses user-provided URL
+                <img
+                  src={user.profileImage}
+                  alt="프로필 이미지"
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <span className="text-sm font-semibold text-white">
                   {user?.name?.[0] ?? '?'}

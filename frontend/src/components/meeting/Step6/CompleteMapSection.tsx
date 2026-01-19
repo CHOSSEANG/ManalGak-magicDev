@@ -10,6 +10,9 @@ interface Props {
 
 
 export default function CompleteMapSection({ lat, lng }: Props) {
+  // eslint: lat/lng reserved for API wiring
+  void lat;
+  void lng;
   return (
     <div className="h-56 rounded-xl border border-[var(--wf-border)] overflow-hidden">
         <KakaoMap

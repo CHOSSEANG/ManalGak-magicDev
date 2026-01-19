@@ -8,6 +8,7 @@ import AddressSearch from "@/components/map/AddressSearch";
 import BookmarkAddressModal from "@/components/map/BookmarkAddressModal";
 
 type AddressType = "origin" | "return";
+type TransportMode = "walk" | "bus" | "car";
 
 export default function Step2Address() {
   /** 현재 주소 입력 대상 */
@@ -16,25 +17,19 @@ export default function Step2Address() {
 
   /** 주소 값 */
   const [originAddress, setOriginAddress] = useState("");
-  const [returnAddress, setReturnAddress] = useState("");
 
   /** 교통수단 */
-  const [transport, setTransport] = useState<"walk" | "bus" | "car" | null>(
-    null,
-  );
+  // eslint: narrow transport mode type to avoid any
+  const [transport, setTransport] = useState<TransportMode | null>(null);
 
   /** 모달 상태 */
   const [searchAddressOpen, setSearchAddressOpen] = useState(false);
   const [bookmarkOpen, setBookmarkOpen] = useState(false);
-  const [timeOpen, setTimeOpen] = useState(false);
 
   /** 주소 적용 */
   const applyAddress = (address: string) => {
     if (activeAddressType === "origin") {
       setOriginAddress(address);
-    }
-    if (activeAddressType === "return") {
-      setReturnAddress(address);
     }
 
     // 모달 정리
@@ -98,7 +93,7 @@ export default function Step2Address() {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setTransport(key as any)}
+                  onClick={() => setTransport(key as TransportMode)}
                   className={`flex items-center justify-center gap-2 rounded-2xl border py-3 text-normal transition
                   ${
                     transport === key

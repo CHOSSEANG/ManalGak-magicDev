@@ -99,6 +99,7 @@ export default function MyPage() {
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full overflow-hidden border bg-[var(--wf-muted)] flex items-center justify-center">
               {user?.profileImage ? (
+                // eslint-disable-next-line @next/next/no-img-element -- profile image uses stored URL
                 <img
                   src={user.profileImage}
                   alt="프로필 이미지"

@@ -22,7 +22,8 @@ export interface MeetingCreateRequest {
 export interface MeetingResponse {
   success: boolean;
   data: Meeting;
-  error: any;
+  // eslint: avoid any for API error payload
+  error: unknown;
   meta: {
     timestamp: string;
   };

@@ -1,7 +1,6 @@
 // src/app/meetings/[meetingId]/option-fee/page.tsx
 'use client'
 
-import Link from 'next/link'
 import { useState, useMemo } from 'react'
 import { MinusCircle, PlusCircle, Plus, Minus } from 'lucide-react'
 import StepCard from '@/components/meeting/StepCard'
@@ -28,13 +27,11 @@ export default function OptionPaymentPage() {
   const [receiptFees, setReceiptFees] = useState<number[]>([])
 
   // 예외비용
+  // eslint: remove unused state to satisfy lint
   const [extraFeeInputs, setExtraFeeInputs] = useState<string[]>([])
   const [extraFees, setExtraFees] = useState<number[]>([])
-  const [composingExtraIndex, setComposingExtraIndex] =
-    useState<number | null>(null)
 
   const [memberCount, setMemberCount] = useState(1)
-  const meetingId = 'meeting-001'
 
   // =====================
   // 계산
