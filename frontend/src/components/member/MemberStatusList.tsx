@@ -16,12 +16,12 @@ export default function MemberStatusList({
     <StepCard className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold">멤버 상태 변경</h2>
-        <button
+        {/* <button
           type="button"
           className="rounded-lg border border-[var(--wf-border)] bg-[var(--wf-surface)] px-3 py-1 text-xs"
         >
           멤버 추가
-        </button>
+        </button> */}
       </div>
 
       <div className="space-y-3">
