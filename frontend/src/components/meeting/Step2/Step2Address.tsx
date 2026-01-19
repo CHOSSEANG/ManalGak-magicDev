@@ -92,21 +92,21 @@ export default function Step2Address() {
             <div className="grid grid-cols-3 gap-3">
               {[
                 { key: "walk", label: "도보", icon: PersonStanding },
-                { key: "bus", label: "대중교통", icon: Bus },
                 { key: "car", label: "자동차", icon: Car },
+                { key: "bus", label: "대중교통", icon: Bus },
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => setTransport(key as any)}
-                  className={`flex flex-col items-center gap-1 rounded-2xl border py-3 text-xs transition
+                  className={`flex items-center justify-center gap-2 rounded-2xl border py-3 text-normal transition
                   ${
                     transport === key
-                      ? "bg-[var(--wf-accent)] border-[var(--wf-accent)]"
+                      ? "bg-[var(--wf-highlight)] border-[var(--wf-highlight)]"
                       : "bg-[var(--wf-muted)] border-[var(--wf-border)]"
                   }`}
                 >
-                  <Icon className="h-10 w-10" />
+                  <Icon className="h-6 w-6 text-[var(--wf-accent)]" />
                   {label}
                 </button>
               ))}

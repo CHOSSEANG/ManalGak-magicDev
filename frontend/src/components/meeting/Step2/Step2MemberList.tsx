@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import MemberSummaryGrid from "@/components/member/MemberSummaryGrid";
+// import MemberSummaryGrid from "@/components/member/MemberSummaryGrid";
 import MemberStatusList from "@/components/member/MemberStatusList";
 
 export type MemberStatus = "confirmed" | "pending" | "invited";
@@ -29,7 +29,7 @@ export default function MemberList() {
 
   return (
     <div className="space-y-2">
-      <MemberSummaryGrid members={members} />
+      {/* 미노출 <MemberSummaryGrid members={members} /> */}
       <MemberStatusList members={members} onStatusChange={handleStatusChange} />
     </div>
   );

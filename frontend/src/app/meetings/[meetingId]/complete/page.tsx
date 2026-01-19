@@ -47,20 +47,7 @@ export default function MeetingCompletePage({ params }: PageProps) {
       {/* 확정 정보 요약 카드 */}
       <CompleteSummaryCard meeting={meeting} />
 
-<<<<<<< HEAD
        <BottomTabNavigation />
-=======
-      {/* 옵션 이동 링크 */}
-      <CompleteOptionLinks meetingId={meetingId} />
-
-      {/* 스텝 네비 */}
-      <StepNavigation
-        prevHref="/meetings/new/step3-result"
-        prevLabel="중간지점/추천장소"
-        nextHref="/my"
-        nextLabel="내 모임 리스트"
-      />
->>>>>>> origin/frontend/9rii/step3_4
     </main>
   );
 }
