@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * @since 2026-01-09
  */
 @RestController
-@RequestMapping("/api/v1/admin/cache")
+@RequestMapping("/v1/admin/cache")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Cache Admin", description = "캐시 관리 API (Admin 전용)")

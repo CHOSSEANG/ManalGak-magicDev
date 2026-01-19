@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/meetings/{meetingUuid}/last-train")
+@RequestMapping("/v1/meetings/{meetingUuid}/last-train")
 @RequiredArgsConstructor
 @Tag(name = "Last Train", description = "막차 정보 조회 API")
 public class LastTrainController {
