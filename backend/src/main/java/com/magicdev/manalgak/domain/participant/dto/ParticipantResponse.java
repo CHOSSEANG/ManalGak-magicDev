@@ -17,6 +17,7 @@ public class ParticipantResponse {
     private Location destination;
     private Participant.TransportType transportType;
     private Long userId;
+    private boolean handicap;
 
 
     public static ParticipantResponse from(Participant participant){
@@ -30,6 +31,7 @@ public class ParticipantResponse {
                 .destination(participant.getDestination())
                 .transportType(participant.getType())
                 .userId(participant.getUser().getId())
+                .handicap(participant.isHandicap())
                 .build();
     }
 }
