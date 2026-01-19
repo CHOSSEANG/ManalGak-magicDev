@@ -37,7 +37,8 @@ public class SecurityConfig {
                             "/v3/api-docs/**",
                             "/swagger-resources/**",
                             "/webjars/**",
-                            "/auth/kakao/**"
+                            "/auth/kakao/**",
+                            "/api/auth/kakao/**"
                     ).permitAll();
                     // Health Check 허용
                     auth.requestMatchers("/health").permitAll();
