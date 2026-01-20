@@ -35,9 +35,7 @@ export default function RootLayout({
           <div className="h-screen  min-h-screen flex flex-col bg-[var(--wf-bg)] text-[var(--wf-text)]">
             <Header />
 
-            {/* ✅ main이 남은 높이를 차지 + (중요) min-h-0 */}
             <main className="flex-1 min-h-0 flex justify-center">
-              {/* ✅ app-container가 스크롤 담당: (중요) flex-1 + min-h-0 + overflow */}
               <div className="app-container w-full flex-1 min-h-0 overflow-y-auto py-6">
                 {children}
               </div>
