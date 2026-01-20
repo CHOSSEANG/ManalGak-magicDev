@@ -94,6 +94,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
     } finally {
       setUser(null)
       localStorage.removeItem('user')
+       localStorage.removeItem('accessToken')
       onClose()
       router.replace('/')
     }
