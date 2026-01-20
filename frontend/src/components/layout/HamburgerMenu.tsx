@@ -68,7 +68,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
 
         setUser(userData)
         localStorage.setItem('user', JSON.stringify(userData))
-      } catch (e) {
+      } catch  {
         setUser(null)
         localStorage.removeItem('user')
       }
