@@ -41,3 +41,37 @@ declare global {
     __kakaoMapLoaded?: boolean
   }
 }
+
+
+
+declare global {
+  interface Window {
+    Kakao: KakaoSDK;
+  }
+
+  interface KakaoShare {
+  sendDefault: (params: {
+    objectType: "feed" | "text" | "location" | "commerce";
+    content?: unknown;
+    text?: string;
+    link: {
+      mobileWebUrl: string;
+      webUrl: string;
+    };
+    buttons?: Array<{
+      title: string;
+      link: {
+        mobileWebUrl: string;
+        webUrl: string;
+      };
+    }>;
+  }) => void;
+
+  /** ✅ 커스텀 템플릿 전송 */
+  sendCustom: (params: {
+    templateId: number;
+    templateArgs?: Record<string, string>;
+  }) => void;
+}
+
+}

@@ -9,30 +9,29 @@ import { Send } from "lucide-react";
 const sendKakaoInvite = () => {
   if (typeof window === "undefined") return;
 
-  if (!window.Kakao) {
+  const { Kakao } = window;
+
+  if (!Kakao) {
     alert("카카오 SDK가 로드되지 않았어요.");
     return;
   }
 
-  if (!window.Kakao.isInitialized()) {
-    window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY);
+  if (!Kakao.isInitialized()) {
+    const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+    if (!kakaoKey) {
+      alert("카카오 JS KEY가 설정되지 않았어요.");
+      return;
+    }
+    Kakao.init(kakaoKey);
   }
 
-  const BASE_URL = process.env.NEXT_PUBLIC_APP_BASE_URL;
-  const inviteUrl = `${BASE_URL}/meetings/new/step2-meetingmembers`;
-
-  window.Kakao.Share.sendCustom({
+  // ✅ 카카오 개발자 센터에 등록된 템플릿 사용
+  Kakao.Share.sendCustom({
     templateId: 128179,
-    templateArgs: {
-      link: inviteUrl,
-      webUrl: inviteUrl,
-      mobileWebUrl: inviteUrl,
-    },
   });
 };
 
-
-export default function Step2Page() {
+export default function Step3Page() {
   return (
     <>
       <main className="space-y-6 pb-24">
