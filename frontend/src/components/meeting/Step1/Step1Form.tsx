@@ -1,20 +1,14 @@
+// 1/20 회의내용 반영
+
 "use client";
 
 import { useMemo, useState } from "react";
 import StepCard from "@/components/meeting/StepCard";
 
-// 아이콘 불러오기
-import {
-  FaBook,
-  FaMountain,
-  FaChessBoard,
-  FaCoffee,
-  FaDoorClosed,
-  FaBeer,
-  FaFilm,
-  FaShoppingBag,
-  FaMicrophone,
-} from "react-icons/fa";
+
+// 아이콘 불러오기 1/20: 율 루시드 아이콘으로 변경 
+import { Utensils, Coffee, Film, Landmark } from "lucide-react";
+
 
 // -------------------- 유틸리티 함수 (기존 로직 이식) --------------------
 function pad2(n: number) {
@@ -46,29 +40,15 @@ function minutesFromHHMM(t: string) {
 // -------------------- 상수 데이터 (모임 목적) --------------------
 const purposeGroups = [
   {
-    title: "공부 / 카페",
-    items: ["스터디카페", "카페", "룸카페"],
-  },
-  {
-    title: "문화 / 여가",
-    items: ["영화관", "쇼핑", "노래방"],
-  },
-  {
-    title: "활동 / 술자리",
-    items: ["술집", "클라이밍", "보드게임카페"],
+    items: ["음식점", "카페", "문화시설", "관광명소"],
   },
 ];
 
 const purposeIconMap: Record<string, JSX.Element> = {
-  스터디카페: <FaBook size={15} />,
-  카페: <FaCoffee size={18} />,
-  룸카페: <FaDoorClosed size={18} />,
-  영화관: <FaFilm size={18} />,
-  쇼핑: <FaShoppingBag size={18} />,
-  노래방: <FaMicrophone size={18} />,
-  술집: <FaBeer size={17} />,
-  클라이밍: <FaMountain size={18} />,
-  보드게임카페: <FaChessBoard size={15} />,
+  음식점: <Utensils size={18} />,
+  카페: <Coffee size={18} />,
+  문화시설: <Film size={18} />,
+  관광명소: <Landmark size={18} />,
 };
 
 export default function Step1Form() {
@@ -167,20 +147,17 @@ export default function Step1Form() {
             className="w-full rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-4 py-3 text-sm outline-none focus:border-black transition-colors placeholder:text-gray-400"
           />
         </div>
-      </StepCard>
+
 
       {/* 2. 모임 목적 (컴팩트 버전) */}
-      <StepCard className="space-y-2">
+
         <div className="space-y-2">
           <p className="text-sm font-semibold text-black">모임 목적</p>
           <div className="space-y-3 pt-1">
-            {purposeGroups.map((group) => (
-              <div key={group.title} className="space-y-1">
-                <h2 className="text-[10px] font-medium text-gray-400 pl-1">
-                  {group.title}
-                </h2>
+            {purposeGroups.map((group, idx) => (
+              <div key={idx} className="space-y-1">
                 {/* 직접 그리드 구현으로 높이/패딩 최소화 */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   {group.items.map((item) => {
                     const isSelected = selectedPurpose === item;
                     return (
@@ -188,10 +165,11 @@ export default function Step1Form() {
                         key={item}
                         type="button"
                         onClick={() => setSelectedPurpose(item)}
-                        className={`flex flex-col items-center justify-center gap-1 rounded-lg border px-1 py-2 transition-all ${
+                        className={`flex items-center justify-center gap-2 border py-3 rounded-full  transition-all ${
                           isSelected
-                            ? "border-[var(--wf-accent)] bg-[var(--wf-accent-subtle)] text-[var(--wf-accent)] ring-1 ring-[var(--wf-accent)]"
+                            ? "bg-[var(--wf-highlight)] text-black "
                             : "border-[var(--wf-border)] bg-white text-gray-600 hover:bg-gray-50"
+
                         }`}
                       >
                         <div
@@ -203,7 +181,7 @@ export default function Step1Form() {
                         >
                           {purposeIconMap[item]}
                         </div>
-                        <span className="text-[11px] font-medium leading-none">
+                        <span className="text-[16px] font-medium leading-none">
                           {item}
                         </span>
                       </button>
