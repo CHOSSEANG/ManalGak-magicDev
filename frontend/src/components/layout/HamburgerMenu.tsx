@@ -1,7 +1,6 @@
 // src/components/layout/HamburgerMenu.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Calendar,
@@ -13,10 +12,16 @@ import {
   LogOut,
   ChevronRight,
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 
 interface HamburgerMenuProps {
   isOpen: boolean
   onClose: () => void
+}
+
+interface User {
+  name: string
+  profileImage?: string
 }
 
 const MY_MENUS = [
@@ -37,45 +42,32 @@ const EXTRA_MENUS = [
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   const router = useRouter()
 
-  const [user, setUser] = useState<{
-    name: string
-    email?: string
-    profileImage?: string
-  } | null>(null)
-
-  /** 메뉴 열릴 때마다 로그인 상태 확인 */
-  useEffect(() => {
-    if (!isOpen) return
-
-    const fetchMe = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
-          {
-            method: 'GET',
-            credentials: 'include', // ⭐ 쿠키 JWT 필수
-          }
-        )
-
-        if (!res.ok) throw new Error('not logged in')
-
-        const json = await res.json()
-
-        const userData = {
-          name: json.data.nickname,
-          profileImage: json.data.profileImageUrl,
+  /** ✅ 사용자 정보 캐싱 (메뉴 열고 닫아도 재호출 ❌) */
+  const { data: user } = useQuery<User>({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
+        {
+          method: 'GET',
+          credentials: 'include',
         }
+      )
 
-        setUser(userData)
-        localStorage.setItem('user', JSON.stringify(userData))
-      } catch  {
-        setUser(null)
-        localStorage.removeItem('user')
+      if (!res.ok) {
+        throw new Error('Not authenticated')
       }
-    }
 
-    fetchMe()
-  }, [isOpen])
+      const json = await res.json()
+
+      return {
+        name: json.data.nickname,
+        profileImage: json.data.profileImageUrl,
+      }
+    },
+    staleTime: 1000 * 60 * 5, // ⭐ 5분 캐시
+    retry: false,
+  })
 
   const isLoggedIn = !!user
 
@@ -185,7 +177,6 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
           {isLoggedIn ? (
             <button
               onClick={() => {
-                localStorage.removeItem('user')
                 onClose()
                 router.replace('/')
               }}

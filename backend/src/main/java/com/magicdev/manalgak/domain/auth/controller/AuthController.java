@@ -1,12 +1,10 @@
 package com.magicdev.manalgak.domain.auth.controller;
 
 import com.magicdev.manalgak.common.dto.CommonResponse;
-import com.magicdev.manalgak.common.exception.BusinessException;
-import com.magicdev.manalgak.common.exception.ErrorCode;
 import com.magicdev.manalgak.domain.auth.service.KakaoLoginService;
 import com.magicdev.manalgak.domain.user.dto.UserResponse;
 import com.magicdev.manalgak.domain.user.entity.User;
-import com.magicdev.manalgak.domain.user.repository.UserRepository;
+import com.magicdev.manalgak.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,7 +34,7 @@ public class AuthController {
 
     private final KakaoLoginService kakaoLoginService;
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Operation(summary = "카카오 로그인 콜백", description = "카카오 로그인 후 redirect되는 콜백 URL입니다.")
     @GetMapping("/auth/kakao/callback")
@@ -64,7 +62,7 @@ public class AuthController {
             @AuthenticationPrincipal Long userId
     ) {
 
-        User user = userRepository.findById(userId).orElseThrow(()->new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = userService.getUserInfo(userId);
         return CommonResponse.success(
                 UserResponse.from(user)
         );
