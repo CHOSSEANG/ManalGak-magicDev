@@ -1,6 +1,6 @@
 package com.magicdev.manalgak.domain.user.repository;
 
-import com.magicdev.manalgak.domain.user.dto.User;
+import com.magicdev.manalgak.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

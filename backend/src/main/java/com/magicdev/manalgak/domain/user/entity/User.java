@@ -1,4 +1,4 @@
-package com.magicdev.manalgak.domain.user.dto;
+package com.magicdev.manalgak.domain.user.entity;
 
 import com.magicdev.manalgak.common.util.DateTimeUtil;
 import jakarta.persistence.*;

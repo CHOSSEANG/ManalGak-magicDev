@@ -3,7 +3,7 @@ package com.magicdev.manalgak.domain.auth.service;
 import com.magicdev.manalgak.common.jwt.JwtTokenProvider;
 import com.magicdev.manalgak.domain.auth.client.KakaoApiClient;
 import com.magicdev.manalgak.domain.auth.dto.KakaoUserResponse;
-import com.magicdev.manalgak.domain.user.dto.User;
+import com.magicdev.manalgak.domain.user.entity.User;
 import com.magicdev.manalgak.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

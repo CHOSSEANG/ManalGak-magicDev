@@ -1,6 +1,6 @@
 package com.magicdev.manalgak.domain.user_address.entity;
 
-import com.magicdev.manalgak.domain.user.dto.User;
+import com.magicdev.manalgak.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
