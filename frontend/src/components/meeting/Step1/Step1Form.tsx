@@ -157,7 +157,7 @@ export default function Step1Form() {
             {purposeGroups.map((group, idx) => (
               <div key={idx} className="space-y-1">
                 {/* 직접 그리드 구현으로 높이/패딩 최소화 */}
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid gap-2  grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
                   {group.items.map((item) => {
                     const isSelected = selectedPurpose === item;
                     return (

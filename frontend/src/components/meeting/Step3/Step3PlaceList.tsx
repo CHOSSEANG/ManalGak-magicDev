@@ -1,13 +1,80 @@
 // src/components/meeting/Step5PlaceList.tsx
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import StepCard from '@/components/meeting/StepCard'
-import { Hand, CheckCircle } from 'lucide-react'
+import WireframeModal from '@/components/ui/WireframeModal'
 import KakaoMap from '@/components/map/KakaoMap'
 import { useRouter } from 'next/navigation'
 
-const isLeader = true // 모임장 여부
+import {
+  Hand,
+  CheckCircle,
+  Coffee,
+  CupSoda,
+  IceCream,
+  CakeSlice,
+  Utensils,
+  UtensilsCrossed,
+  Soup,
+  Pizza,
+  Sandwich,
+  Fish,
+  Beef,
+  Theater,
+  Film,
+  Music,
+  BookOpen,
+  Palette,
+  Gamepad2,
+  Landmark,
+  Camera,
+  MapPin,
+  Mountain,
+  TreePalm,
+  Building2,
+  type LucideIcon,
+} from 'lucide-react'
+
+/* ================= 타입 ================= */
+
+export type PlaceCategory = 'cafe' | 'restaurant' | 'culture' | 'tour'
+
+interface RecommendedPlace {
+  id: string
+  name: string
+  category: PlaceCategory
+  stationName: string
+  walkingMinutes: number
+  icon: LucideIcon
+}
+
+/* ================= 아이콘 풀 ================= */
+
+const ICONS_BY_CATEGORY: Record<PlaceCategory, LucideIcon[]> = {
+  cafe: [Coffee, CupSoda, IceCream, CakeSlice],
+  restaurant: [
+    Utensils,
+    UtensilsCrossed,
+    Soup,
+    Pizza,
+    Sandwich,
+    Fish,
+    Beef,
+  ],
+  culture: [Theater, Film, Music, BookOpen, Palette, Gamepad2],
+  tour: [Landmark, Camera, MapPin, Mountain, TreePalm, Building2],
+}
+
+function pickRandomIcon(category: PlaceCategory): LucideIcon {
+  const icons = ICONS_BY_CATEGORY[category]
+  const index = Math.floor(Math.random() * icons.length)
+  return icons[index]
+}
+
+/* ================= 더미 데이터 ================= */
+
+const isLeader = true
 
 const members = [
   { id: 'u1', name: '이름각', handicap: true },
@@ -17,92 +84,132 @@ const members = [
   { id: 'u5', name: '이름각', handicap: false },
 ]
 
-const recommendedPlaces = [
-  { id: 'p1', name: '추천 카페', detail: '도보 5분 / 1,200원' },
-  { id: 'p2', name: '추천 식당 A', detail: '도보 7분 / 2,400원' },
-  { id: 'p3', name: '추천 식당 B', detail: '도보 10분 / 3,000원' },
-  { id: 'p4', name: '추천 식당 C', detail: '도보 12분 / 3,500원' },
-  { id: 'p5', name: '추천 식당 D', detail: '도보 15분 / 4,000원' },
+const rawPlaces = [
+  {
+    id: 'p1',
+    name: '추천 카페',
+    category: 'cafe' as const,
+    stationName: '을지로입구역',
+    walkingMinutes: 5,
+  },
+  {
+    id: 'p2',
+    name: '추천 식당 A',
+    category: 'restaurant' as const,
+    stationName: '종각역',
+    walkingMinutes: 7,
+  },
+  {
+    id: 'p3',
+    name: '추천 식당 B',
+    category: 'restaurant' as const,
+    stationName: '종로3가역',
+    walkingMinutes: 10,
+  },
+  {
+    id: 'p4',
+    name: '추천 전시관',
+    category: 'culture' as const,
+    stationName: '을지로3가역',
+    walkingMinutes: 12,
+  },
+  {
+    id: 'p5',
+    name: '추천 명소',
+    category: 'tour' as const,
+    stationName: '명동역',
+    walkingMinutes: 15,
+  },
 ]
 
-// 중간지점 자동 계산 결과 (임시)
 const middlePlaceMarkers = [{ lat: 37.563617, lng: 126.997628 }]
+
+/* ================= 컴포넌트 ================= */
 
 export default function Step5PlaceList() {
   const router = useRouter()
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null)
-  // build: define modal setter used by button
-  const [, setShowMiddleModal] = useState(false)
+  const [showVoteModal, setShowVoteModal] = useState(false)
+
+  // ✅ 아이콘은 최초 1회만 랜덤 고정
+  const recommendedPlaces: RecommendedPlace[] = useMemo(
+    () =>
+      rawPlaces.map((place) => ({
+        ...place,
+        icon: pickRandomIcon(place.category),
+      })),
+    []
+  )
 
   return (
     <div className="space-y-4">
-      {/* ================= 지도 + 멤버 ================= */}
-      <div className="h-56 rounded-xl border border-[var(--wf-border)] overflow-hidden">
-          <KakaoMap markers={middlePlaceMarkers} level={5} />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {members.map((m) => (
-            <div
-              key={m.id}
-              className="flex h-16 w-16 flex-col items-center justify-center"
-            >
-              <div className="relative">
-                {m.handicap && (
-                  <span className="absolute -top-1 -left-2 flex items-center gap-0.5 rounded-xl bg-[var(--wf-highlight)] px-1.5 py-0.5 text-[9px] font-semibold text-[var(--wf-text)]">
-                    <Hand className="h-3 w-3" />
-                    핸디캡
-                  </span>
-                )}
+      {/* ================= 지도 ================= */}
+      <div className="h-56 overflow-hidden rounded-xl border border-[var(--wf-border)]">
+        <KakaoMap markers={middlePlaceMarkers} level={5} />
+      </div>
 
-                {/* 프로필 이미지 (박스는 유지, 테두리/배경 없음) */}
-                <div className="h-12 w-12 rounded-xl bg-[var(--wf-muted)]" />
-              </div>
-
-              <span className="mt-1 text-[10px] text-[var(--wf-text)]">
-                {m.name}
-              </span>
+      {/* ================= 멤버 ================= */}
+      <div className="flex flex-wrap gap-2">
+        {members.map((m) => (
+          <div
+            key={m.id}
+            className="flex h-16 w-16 flex-col items-center justify-center"
+          >
+            <div className="relative">
+              {m.handicap && (
+                <span className="absolute -top-1 -left-2 flex items-center gap-0.5 rounded-xl bg-[var(--wf-highlight)] px-1.5 py-0.5 text-[9px] font-semibold">
+                  <Hand className="h-3 w-3" />
+                  핸디캡
+                </span>
+              )}
+              <div className="h-12 w-12 rounded-xl bg-[var(--wf-muted)]" />
             </div>
-          ))}
-        </div>
+            <span className="mt-1 text-[10px]">{m.name}</span>
+          </div>
+        ))}
+      </div>
 
-      {/* ================= 중간지점 ================= */}
-      <StepCard className="space-y-3 lg:col-span-2">
+      {/* ================= 추천 장소 ================= */}
+      <StepCard className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">추천장소 선택</h2>
           {isLeader && (
             <button
-              onClick={() => setShowMiddleModal(true)}
-              className="rounded-lg border px-3 py-1 text-xs bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)] text-[var(--wf-text)]"
+              onClick={() => setShowVoteModal(true)}
+              className="rounded-lg border px-3 py-1 text-xs bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]"
             >
               추천장소 투표하기
             </button>
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="grid gap-2 grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
           {recommendedPlaces.map((place) => {
             const selected = selectedPlace === place.id
+            const Icon = place.icon
 
             return (
               <button
                 key={place.id}
-                disabled={!isLeader}
                 onClick={() => setSelectedPlace(place.id)}
                 className={[
-                  'flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition',
+                  'flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition',
                   'border bg-[var(--wf-surface)]',
                   selected
-                    ? 'border-[var(--wf-accent)] bg-[var(--wf-highlight-soft)]'
-                    : 'border-[var(--wf-border)]',
-                  isLeader ? 'hover:bg-[var(--wf-muted)]' : 'opacity-70',
+                    ? 'border-[var(--wf-accent)] bg-[var(--wf-highlight-soft)] border-4'
+                    : 'border-[var(--wf-border)] border-4 ',
                 ].join(' ')}
               >
-                <div>
-                  <p className="text-sm font-semibold text-[var(--wf-text)]">
-                    {place.name}
-                  </p>
+                {/* 아이콘 */}
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--wf-muted)]">
+                  <Icon className="h-8 w-8 text-[var(--wf-accent)]" />
+                </div>
+
+                {/* 텍스트 */}
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">{place.name}</p>
                   <p className="text-xs text-[var(--wf-subtle)]">
-                    {place.detail}
+                    {place.stationName} 기준 도보 {place.walkingMinutes}분
                   </p>
                 </div>
 
@@ -115,13 +222,39 @@ export default function Step5PlaceList() {
         </div>
       </StepCard>
 
-      {/* ================= 확정 버튼 ================= */}
+      {/* ================= 투표 모달 ================= */}
+      <WireframeModal
+        open={showVoteModal}
+        title="추천장소 투표"
+        onClose={() => setShowVoteModal(false)}
+      >
+        <div className="space-y-3">
+          {recommendedPlaces.map((place) => {
+            const Icon = place.icon
+            return (
+              <button
+                key={`vote-${place.id}`}
+                className="flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left hover:bg-[var(--wf-muted)]"
+              >
+                <Icon className="h-5 w-5" />
+                <div>
+                  <p className="text-sm font-semibold">{place.name}</p>
+                  <p className="text-xs text-[var(--wf-subtle)]">
+                    {place.stationName} 도보 {place.walkingMinutes}분
+                  </p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </WireframeModal>
+
+      {/* ================= 확정 ================= */}
       {isLeader && (
         <button
           disabled={!selectedPlace}
           onClick={() => router.push('/meetings/meeting-001/complete')}
-          className="w-full rounded-2xl bg-[var(--wf-highlight)]  hover:bg-[var(--wf-accent)]
-          py-4 text-base font-semibold text-[var(--wf-text)] disabled:opacity-40"
+          className="w-full rounded-2xl bg-[var(--wf-highlight)] py-4 text-base font-semibold disabled:opacity-40"
         >
           추천 장소 확정
         </button>

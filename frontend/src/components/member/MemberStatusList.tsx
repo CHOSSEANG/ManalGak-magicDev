@@ -103,7 +103,7 @@ export default function MemberStatusList({
       <div className="border-t border-[var(--wf-border)]" />
 
       {/* 2️⃣ 참여 멤버 */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3  grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
         {otherMembers.map((member) => (
           <div
             key={member.id}
