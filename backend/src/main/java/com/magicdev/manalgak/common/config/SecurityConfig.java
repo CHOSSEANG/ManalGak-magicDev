@@ -28,6 +28,7 @@ public class SecurityConfig {
         boolean isLocalProfile = environment.acceptsProfiles(Profiles.of("local"));
 
         http
+                .cors(cors -> {})
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
                     // Swagger UI 및 API 문서 허용
@@ -38,7 +39,8 @@ public class SecurityConfig {
                             "/swagger-resources/**",
                             "/webjars/**",
                             "/auth/kakao/**",
-                            "/api/auth/kakao/**"
+                            "/api/auth/kakao/**",
+                            "/auth/me"
                     ).permitAll();
                     // Health Check 허용
                     auth.requestMatchers("/health").permitAll();

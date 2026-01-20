@@ -1,6 +1,5 @@
 // src/components/layout/HamburgerMenu.tsx
 'use client'
-
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -19,16 +18,17 @@ interface HamburgerMenuProps {
   onClose: () => void
 }
 
-const MY_MENUS = [
-  { label: '내 모임', href: '/meetings/new', icon: Calendar },
-]
+interface User {
+  name: string
+  profileImage?: string
+}
 
+const MY_MENUS = [{ label: '내 모임', href: '/meetings/new', icon: Calendar }]
 const MENUS = [
   { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: Users },
   { label: '추천 장소 선택', href: '/meetings/new/step3-result', icon: MapPin },
   { label: '모임 확정', href: '/meetings/meeting-001/complete', icon: CheckCircle },
 ]
-
 const EXTRA_MENUS = [
   { label: '실시간 위치 공유', href: '/meetings/meeting-001/option-location', icon: LocateFixed },
   { label: '회비 계산기', href: '/meetings/meeting-001/option-fee', icon: Calculator },
@@ -36,22 +36,45 @@ const EXTRA_MENUS = [
 
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const [user, setUser] = useState<{
-    name: string
-    email?: string
-    profileImage?: string
-  } | null>(null)
-
-  /** 메뉴 열릴 때마다 user 다시 읽기 */
+  // 메뉴 열릴 때 캐시 확인 후 즉시 UI 반영, 없으면 fetch
   useEffect(() => {
     if (!isOpen) return
 
-    const storedUser = localStorage.getItem('user')
-    setUser(storedUser ? JSON.parse(storedUser) : null)
-  }, [isOpen])
+    const cachedUser = localStorage.getItem('user')
+    if (cachedUser) {
+      setUser(JSON.parse(cachedUser)) // 즉시 UI 반영
+      return
+    }
 
-  if (!isOpen) return null
+    setIsLoading(true)
+    const fetchMe = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`, {
+          method: 'GET',
+          credentials: 'include',
+        })
+        if (!res.ok) throw new Error('not logged in')
+
+        const json = await res.json()
+        const userData = {
+          name: json.data.nickname,
+          profileImage: json.data.profileImageUrl,
+        }
+        setUser(userData)
+        localStorage.setItem('user', JSON.stringify(userData))
+      } catch{
+        setUser(null)
+        localStorage.removeItem('user')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchMe()
+  }, [isOpen])
 
   const isLoggedIn = !!user
 
@@ -59,6 +82,25 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
     router.push(href)
     onClose()
   }
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/logout`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+    } catch {
+      console.error('로그아웃 API 실패')
+    } finally {
+      setUser(null)
+      localStorage.removeItem('user')
+       localStorage.removeItem('accessToken')
+      onClose()
+      router.replace('/')
+    }
+  }
+
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose}>
@@ -69,15 +111,13 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
         {/* Profile */}
         <nav className="space-y-1">
           <div
-            onClick={() => {
-              if (isLoggedIn) handleNavigate('/my')
-              else handleNavigate('/')
-            }}
+            onClick={() => handleNavigate(isLoggedIn ? '/my' : '/')}
             className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)]"
           >
             <div className="h-12 w-12 rounded-full bg-[var(--wf-accent)] flex items-center justify-center overflow-hidden border">
-              {user?.profileImage ? (
-                // eslint-disable-next-line @next/next/no-img-element -- profile image uses user-provided URL
+              {isLoading ? (
+                <div className="h-full w-full bg-gray-300 animate-pulse rounded-full" />
+              ) : user?.profileImage ? (
                 <img
                   src={user.profileImage}
                   alt="프로필 이미지"
@@ -92,18 +132,14 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
 
             <div className="flex flex-col">
               <p className="text-base font-semibold">
-                {user?.name ?? '로그인 필요'}
+                {isLoading ? '...' : user?.name ?? '로그인 필요'}
               </p>
-              {user?.email && (
-                <p className="text-xs text-[var(--wf-subtle)]">
-                  {user.email}
-                </p>
-              )}
             </div>
           </div>
 
-          {/* 로그인 후에만 MY_MENUS */}
-          {isLoggedIn &&
+          {/* 로그인 후 MY_MENUS */}
+          {!isLoading &&
+            isLoggedIn &&
             MY_MENUS.map(({ label, href, icon: Icon }) => (
               <button
                 key={href}
@@ -161,14 +197,9 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
 
         {/* Bottom Button */}
         <div className="mt-auto pt-6">
-          {isLoggedIn ? (
+          {!isLoading && isLoggedIn ? (
             <button
-              onClick={() => {
-                localStorage.removeItem('accessToken')
-                localStorage.removeItem('user')
-                onClose()
-                router.replace('/')
-              }}
+              onClick={handleLogout}
               className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]"
             >
               <LogOut className="h-5 w-5" />

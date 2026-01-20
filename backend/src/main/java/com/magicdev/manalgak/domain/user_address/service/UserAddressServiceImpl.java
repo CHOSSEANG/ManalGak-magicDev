@@ -2,7 +2,7 @@ package com.magicdev.manalgak.domain.user_address.service;
 
 import com.magicdev.manalgak.common.exception.BusinessException;
 import com.magicdev.manalgak.common.exception.ErrorCode;
-import com.magicdev.manalgak.domain.user.dto.User;
+import com.magicdev.manalgak.domain.user.entity.User;
 import com.magicdev.manalgak.domain.user.repository.UserRepository;
 import com.magicdev.manalgak.domain.user_address.dto.UserAddressResponse;
 import com.magicdev.manalgak.domain.user_address.entity.UserAddress;
