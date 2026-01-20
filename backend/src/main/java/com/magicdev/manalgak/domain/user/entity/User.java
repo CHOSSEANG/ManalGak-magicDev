@@ -15,20 +15,20 @@ import java.time.LocalDateTime;
 @Builder
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(name = "kakao_id", nullable = false, unique = true)
-    private Long kakaoId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	@Column(name = "kakao_id", nullable = false, unique = true)
+	private Long kakaoId;
 
-    private String nickname;
-    @Column(name = "profile_image_url")
-    private String profileImageUrl;
+	private String nickname;
+	@Column(name = "profile_image_url")
+	private String profileImageUrl;
 
-    private LocalDateTime createdAt;
+	private LocalDateTime createdAt;
 
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = DateTimeUtil.now();
-    }
+	@PrePersist
+	public void prePersist() {
+		this.createdAt = DateTimeUtil.now();
+	}
 }

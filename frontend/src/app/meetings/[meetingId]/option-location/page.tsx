@@ -17,9 +17,9 @@ export default function OptionRealtimePage() {
   return (
     <main className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">옵션 1. 실시간 위치 공유</h1>
+        <h1 className="text-2xl font-semibold">지도 서비스</h1>
         <p className="text-sm text-[var(--wf-subtle)]">
-          토글 UI만 제공 (추적 기능 없음)
+          지도 서비스 추가 예정(확정된 추천장소 까지의 방향 지도)
         </p>
       </div>
 

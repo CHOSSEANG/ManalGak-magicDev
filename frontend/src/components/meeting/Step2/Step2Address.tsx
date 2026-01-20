@@ -45,7 +45,7 @@ export default function Step2Address() {
         <StepCard className="space-y-2">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">출발지 입력</p>
+              <p className="text-sm font-semibold">나의 출발지 입력</p>
               <button
                 type="button"
                 onClick={() => {
@@ -82,7 +82,7 @@ export default function Step2Address() {
 
           {/* 교통수단 */}
           <div className="space-y-2">
-            <p className="text-sm font-semibold">교통수단 선택</p>
+            <p className="text-sm font-semibold">나의 교통수단 선택</p>
 
             <div className="grid grid-cols-3 gap-3">
               {[
@@ -94,11 +94,11 @@ export default function Step2Address() {
                   key={key}
                   type="button"
                   onClick={() => setTransport(key as TransportMode)}
-                  className={`flex items-center justify-center gap-2 rounded-2xl border py-3 text-normal transition
+                  className={`flex items-center justify-center gap-2 rounded-full border py-3 text-normal transition
                   ${
                     transport === key
                       ? "bg-[var(--wf-highlight)] border-[var(--wf-highlight)]"
-                      : "bg-[var(--wf-muted)] border-[var(--wf-border)]"
+                      : "border-[var(--wf-border)] "
                   }`}
                 >
                   <Icon className="h-6 w-6 text-[var(--wf-accent)]" />

@@ -5,7 +5,7 @@ import { MemberStatus } from "../meeting/Step2/Step2MemberList";
 const statusOptions: { value: MemberStatus; label: string }[] = [
   { value: "confirmed", label: "확정" },
   { value: "pending", label: "대기" },
-  { value: "invited", label: "초대" },
+  { value: "invited", label: "미참여" },
 ];
 
 interface Props {
