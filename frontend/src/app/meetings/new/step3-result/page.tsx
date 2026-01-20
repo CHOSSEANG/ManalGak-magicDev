@@ -10,10 +10,10 @@ export default function Step3Page() {
       <main className="space-y-6 pb-24">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold">
-            Step 3. 중간지점 & 추천장소
+            추천장소 확정
           </h1>
           <p className="text-sm text-[var(--wf-subtle)]">
-            참여 멤버들의 중간지점 및 추천 장소를 보여드립니다.
+            참여 멤버들의 중간지점 및 추천 장소를 보여드립니다. 필요시 투표도 가능합니다
           </p>
         </div>
 

@@ -74,7 +74,7 @@ export default function Step5PlaceList() {
               onClick={() => setShowMiddleModal(true)}
               className="rounded-lg border px-3 py-1 text-xs"
             >
-              중간지점 선택
+              추천장소 투표하기
             </button>
           )}
         </div>
