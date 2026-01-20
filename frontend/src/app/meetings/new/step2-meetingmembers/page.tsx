@@ -2,15 +2,25 @@
 "use client";
 
 import StepNavigation from "@/components/layout/StepNavigation";
-import MemberList from "@/components/meeting/Step2/Step2MemberList";
 import Address from "@/components/meeting/Step2/Step2Address";
+import MemberList from "@/components/meeting/Step2/Step2MemberList";
 import { Send } from "lucide-react";
+
+/**
+ * Kakao 공식 문서에 명시된 sendCustom 타입
+ * (SDK 타입 정의에 누락되어 있어 보강)
+ */
+type KakaoShareWithCustom = {
+  sendCustom: (params: {
+    templateId: number;
+    templateArgs?: Record<string, string>;
+  }) => void;
+};
 
 const sendKakaoInvite = () => {
   if (typeof window === "undefined") return;
 
-  const { Kakao } = window;
-
+  const Kakao = window.Kakao;
   if (!Kakao) {
     alert("카카오 SDK가 로드되지 않았어요.");
     return;
@@ -19,14 +29,21 @@ const sendKakaoInvite = () => {
   if (!Kakao.isInitialized()) {
     const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
     if (!kakaoKey) {
-      alert("카카오 JS KEY가 설정되지 않았어요.");
+      alert("카카오 JavaScript 키가 설정되지 않았어요.");
       return;
     }
     Kakao.init(kakaoKey);
   }
 
-  // ✅ 카카오 개발자 센터에 등록된 템플릿 사용
-  Kakao.Share.sendCustom({
+  /**
+   * ✅ 핵심 해결 지점
+   * - any ❌
+   * - unknown → 명시적 타입 단언
+   * - ESLint / TS 모두 통과
+   */
+  const share = Kakao.Share as unknown as KakaoShareWithCustom;
+
+  share.sendCustom({
     templateId: 128179,
   });
 };
@@ -43,6 +60,7 @@ export default function Step3Page() {
         </div>
 
         <button
+          type="button"
           onClick={sendKakaoInvite}
           className="flex w-full items-center justify-center gap-2 rounded-2xl
           bg-[var(--wf-highlight)] py-4 text-base font-semibold text-[var(--wf-text)]

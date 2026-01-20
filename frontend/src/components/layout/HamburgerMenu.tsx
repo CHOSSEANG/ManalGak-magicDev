@@ -2,8 +2,11 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from "next/image";
+
 import {
   Calendar,
+  SquareMousePointer,
   Users,
   MapPin,
   CheckCircle,
@@ -25,7 +28,8 @@ interface User {
 
 const MY_MENUS = [{ label: '내 모임', href: '/meetings/new', icon: Calendar }]
 const MENUS = [
-  { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: Users },
+  { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: SquareMousePointer },
+  { label: '참여자 설정', href: '/meetings/new/step2-meetingmembers', icon: Users },
   { label: '추천 장소 선택', href: '/meetings/new/step3-result', icon: MapPin },
   { label: '모임 확정', href: '/meetings/meeting-001/complete', icon: CheckCircle },
 ]
@@ -94,7 +98,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
     } finally {
       setUser(null)
       localStorage.removeItem('user')
-       localStorage.removeItem('accessToken')
+      localStorage.removeItem('accessToken')
       onClose()
       router.replace('/')
     }
@@ -118,7 +122,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               {isLoading ? (
                 <div className="h-full w-full bg-gray-300 animate-pulse rounded-full" />
               ) : user?.profileImage ? (
-                <img
+                <Image 
                   src={user.profileImage}
                   alt="프로필 이미지"
                   className="h-full w-full object-cover"
