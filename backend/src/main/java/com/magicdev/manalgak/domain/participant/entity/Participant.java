@@ -3,7 +3,7 @@ package com.magicdev.manalgak.domain.participant.entity;
 
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantUpdateRequest;
-import com.magicdev.manalgak.domain.user.dto.User;
+import com.magicdev.manalgak.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -1,7 +1,6 @@
 // src/components/layout/HamburgerMenu.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Calendar,
@@ -13,10 +12,16 @@ import {
   LogOut,
   ChevronRight,
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 
 interface HamburgerMenuProps {
   isOpen: boolean
   onClose: () => void
+}
+
+interface User {
+  name: string
+  profileImage?: string
 }
 
 const MY_MENUS = [
@@ -37,21 +42,32 @@ const EXTRA_MENUS = [
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   const router = useRouter()
 
-  const [user, setUser] = useState<{
-    name: string
-    email?: string
-    profileImage?: string
-  } | null>(null)
+  /** ✅ 사용자 정보 캐싱 (메뉴 열고 닫아도 재호출 ❌) */
+  const { data: user } = useQuery<User>({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
+        {
+          method: 'GET',
+          credentials: 'include',
+        }
+      )
 
-  /** 메뉴 열릴 때마다 user 다시 읽기 */
-  useEffect(() => {
-    if (!isOpen) return
+      if (!res.ok) {
+        throw new Error('Not authenticated')
+      }
 
-    const storedUser = localStorage.getItem('user')
-    setUser(storedUser ? JSON.parse(storedUser) : null)
-  }, [isOpen])
+      const json = await res.json()
 
-  if (!isOpen) return null
+      return {
+        name: json.data.nickname,
+        profileImage: json.data.profileImageUrl,
+      }
+    },
+    staleTime: 1000 * 60 * 5, // ⭐ 5분 캐시
+    retry: false,
+  })
 
   const isLoggedIn = !!user
 
@@ -59,6 +75,8 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
     router.push(href)
     onClose()
   }
+
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose}>
@@ -94,11 +112,6 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               <p className="text-base font-semibold">
                 {user?.name ?? '로그인 필요'}
               </p>
-              {user?.email && (
-                <p className="text-xs text-[var(--wf-subtle)]">
-                  {user.email}
-                </p>
-              )}
             </div>
           </div>
 
@@ -164,8 +177,6 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
           {isLoggedIn ? (
             <button
               onClick={() => {
-                localStorage.removeItem('accessToken')
-                localStorage.removeItem('user')
                 onClose()
                 router.replace('/')
               }}

@@ -2,7 +2,7 @@ package com.magicdev.manalgak.domain.participant.repository;
 
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
-import com.magicdev.manalgak.domain.user.dto.User;
+import com.magicdev.manalgak.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
