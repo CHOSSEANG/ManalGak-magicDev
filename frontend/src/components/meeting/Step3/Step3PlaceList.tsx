@@ -66,10 +66,19 @@ const ICONS_BY_CATEGORY: Record<PlaceCategory, LucideIcon[]> = {
   tour: [Landmark, Camera, MapPin, Mountain, TreePalm, Building2],
 }
 
-function pickRandomIcon(category: PlaceCategory): LucideIcon {
+/**
+ * ❗ Hydration-safe 아이콘 선택 함수
+ * place.id 기반으로 항상 동일한 아이콘을 선택
+ */
+function pickIconById(
+  category: PlaceCategory,
+  id: string
+): LucideIcon {
   const icons = ICONS_BY_CATEGORY[category]
-  const index = Math.floor(Math.random() * icons.length)
-  return icons[index]
+  const hash = id
+    .split('')
+    .reduce((sum, c) => sum + c.charCodeAt(0), 0)
+  return icons[hash % icons.length]
 }
 
 /* ================= 더미 데이터 ================= */
@@ -131,12 +140,12 @@ export default function Step5PlaceList() {
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null)
   const [showVoteModal, setShowVoteModal] = useState(false)
 
-  // ✅ 아이콘은 최초 1회만 랜덤 고정
+  // ✅ 서버/클라이언트 동일 아이콘 보장
   const recommendedPlaces: RecommendedPlace[] = useMemo(
     () =>
       rawPlaces.map((place) => ({
         ...place,
-        icon: pickRandomIcon(place.category),
+        icon: pickIconById(place.category, place.id),
       })),
     []
   )
@@ -200,12 +209,10 @@ export default function Step5PlaceList() {
                     : 'border-[var(--wf-border)] border-4 ',
                 ].join(' ')}
               >
-                {/* 아이콘 */}
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--wf-muted)]">
                   <Icon className="h-8 w-8 text-[var(--wf-accent)]" />
                 </div>
 
-                {/* 텍스트 */}
                 <div className="flex-1">
                   <p className="text-sm font-semibold">{place.name}</p>
                   <p className="text-xs text-[var(--wf-subtle)]">
@@ -231,18 +238,34 @@ export default function Step5PlaceList() {
         <div className="space-y-3">
           {recommendedPlaces.map((place) => {
             const Icon = place.icon
+            const selected = selectedPlace === place.id
+
             return (
               <button
                 key={`vote-${place.id}`}
-                className="flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left hover:bg-[var(--wf-muted)]"
+                onClick={() => {
+                  setSelectedPlace(place.id)
+                  setShowVoteModal(false)
+                }}
+                className={[
+                  'flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition',
+                  'border',
+                  selected
+                    ? 'border-[var(--wf-accent)] bg-[var(--wf-highlight-soft)]'
+                    : 'border-[var(--wf-border)] hover:bg-[var(--wf-muted)]',
+                ].join(' ')}
               >
-                <Icon className="h-5 w-5" />
-                <div>
+                <Icon className="h-5 w-5 text-[var(--wf-accent)]" />
+                <div className="flex-1">
                   <p className="text-sm font-semibold">{place.name}</p>
                   <p className="text-xs text-[var(--wf-subtle)]">
                     {place.stationName} 도보 {place.walkingMinutes}분
                   </p>
                 </div>
+
+                {selected && (
+                  <CheckCircle className="h-4 w-4 text-[var(--wf-accent)]" />
+                )}
               </button>
             )
           })}
