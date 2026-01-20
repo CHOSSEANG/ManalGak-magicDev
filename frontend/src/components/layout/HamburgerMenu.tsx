@@ -34,7 +34,7 @@ const MENUS = [
   { label: '모임 확정', href: '/meetings/meeting-001/complete', icon: CheckCircle },
 ]
 const EXTRA_MENUS = [
-  { label: '실시간 위치 공유', href: '/meetings/meeting-001/option-location', icon: LocateFixed },
+  { label: '지도 서비스', href: '/meetings/meeting-001/option-location', icon: LocateFixed },
   { label: '회비 계산기', href: '/meetings/meeting-001/option-fee', icon: Calculator },
 ]
 

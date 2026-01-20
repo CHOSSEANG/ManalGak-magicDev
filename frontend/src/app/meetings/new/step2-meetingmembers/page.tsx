@@ -35,12 +35,6 @@ const sendKakaoInvite = () => {
     Kakao.init(kakaoKey);
   }
 
-  /**
-   * ✅ 핵심 해결 지점
-   * - any ❌
-   * - unknown → 명시적 타입 단언
-   * - ESLint / TS 모두 통과
-   */
   const share = Kakao.Share as unknown as KakaoShareWithCustom;
 
   share.sendCustom({

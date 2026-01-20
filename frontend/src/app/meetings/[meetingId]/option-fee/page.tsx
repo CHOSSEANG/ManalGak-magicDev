@@ -77,9 +77,9 @@ export default function OptionPaymentPage() {
     <main className="space-y-6">
       {/* 헤더 */}
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">옵션 2. 회비 관리</h1>
+        <h1 className="text-2xl font-semibold">회비 관리</h1>
         <p className="text-sm text-[var(--wf-subtle)]">
-          회비 금액 입력 및 카카오페이 링크
+           1인당 비용을 계산할 수 있는 계산기 기능입니다.
         </p>
       </div>
 
