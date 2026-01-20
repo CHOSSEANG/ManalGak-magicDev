@@ -61,6 +61,7 @@ public class AuthController {
     public CommonResponse<UserResponse> me(
             @AuthenticationPrincipal Long userId
     ) {
+        if(userId == null) return null; // 로그인 안 된 경우 바로 null 리턴
 
         User user = userService.getUserInfo(userId);
         return CommonResponse.success(
