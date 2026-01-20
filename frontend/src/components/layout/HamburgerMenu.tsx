@@ -43,15 +43,39 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
     profileImage?: string
   } | null>(null)
 
-  /** 메뉴 열릴 때마다 user 다시 읽기 */
+  /** 메뉴 열릴 때마다 로그인 상태 확인 */
   useEffect(() => {
     if (!isOpen) return
 
-    const storedUser = localStorage.getItem('user')
-    setUser(storedUser ? JSON.parse(storedUser) : null)
-  }, [isOpen])
+    const fetchMe = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
+          {
+            method: 'GET',
+            credentials: 'include', // ⭐ 쿠키 JWT 필수
+          }
+        )
 
-  if (!isOpen) return null
+        if (!res.ok) throw new Error('not logged in')
+
+        const json = await res.json()
+
+        const userData = {
+          name: json.data.nickname,
+          profileImage: json.data.profileImageUrl,
+        }
+
+        setUser(userData)
+        localStorage.setItem('user', JSON.stringify(userData))
+      } catch (e) {
+        setUser(null)
+        localStorage.removeItem('user')
+      }
+    }
+
+    fetchMe()
+  }, [isOpen])
 
   const isLoggedIn = !!user
 
@@ -59,6 +83,8 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
     router.push(href)
     onClose()
   }
+
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose}>
@@ -94,11 +120,6 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               <p className="text-base font-semibold">
                 {user?.name ?? '로그인 필요'}
               </p>
-              {user?.email && (
-                <p className="text-xs text-[var(--wf-subtle)]">
-                  {user.email}
-                </p>
-              )}
             </div>
           </div>
 
@@ -164,7 +185,6 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
           {isLoggedIn ? (
             <button
               onClick={() => {
-                localStorage.removeItem('accessToken')
                 localStorage.removeItem('user')
                 onClose()
                 router.replace('/')
