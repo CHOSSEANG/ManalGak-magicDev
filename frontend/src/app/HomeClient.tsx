@@ -98,7 +98,6 @@ export default function HomePage() {
               src="/images/img0.png"
               alt="intro"
               fill
-              priority
               sizes="100vw"
               className="object-contain"
             />
