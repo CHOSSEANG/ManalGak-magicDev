@@ -63,15 +63,10 @@ public class Meeting {
     }
 
     public enum MeetingPurpose {
-        STUDY_CAFE,
+        DINING,
         CAFE,
-        ROOM_CAFE,
-        MOVIE,
-        SHOPPING,
-        KARAOKE,
-        RESTAURANT,
-        BRUNCH,
-        DRINK
+        CULTURE,
+        TOUR
     }
 
     public void update(UpdateMeetingCommand command) {

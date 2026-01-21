@@ -3,12 +3,15 @@ package com.magicdev.manalgak.domain.participant.service;
 import com.magicdev.manalgak.common.exception.BusinessException;
 import com.magicdev.manalgak.common.exception.ErrorCode;
 import com.magicdev.manalgak.common.util.DateTimeUtil;
+import com.magicdev.manalgak.domain.geocoding.dto.GeoPoint;
+import com.magicdev.manalgak.domain.geocoding.service.GeocodingService;
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
-import com.magicdev.manalgak.domain.participant.dto.ParticipantUpdateRequest;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantResponse;
+import com.magicdev.manalgak.domain.participant.entity.Location;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
 import com.magicdev.manalgak.domain.participant.repository.ParticipantRepository;
+import com.magicdev.manalgak.domain.participant.service.command.UpdateParticipantCommand;
 import com.magicdev.manalgak.domain.user.entity.User;
 import com.magicdev.manalgak.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +31,9 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final ParticipantRepository participantRepository;
     private final MeetingRepository meetingRepository;
     private final UserRepository userRepository;
+    private final GeocodingService geoCodingService;
     private final SimpMessagingTemplate messagingTemplate;
+
     private static final int MAX_COUNT = 10;
 
     @Override
@@ -64,12 +69,16 @@ public class ParticipantServiceImpl implements ParticipantService {
         return ParticipantResponse.from(participant);
     }
 
-
     @Override
-    @Transactional
-    public ParticipantResponse updateParticipant(String meetingUuid, Long participantId, Long userId, ParticipantUpdateRequest request) {
+    public ParticipantResponse updateParticipant(
+            String meetingUuid,
+            Long participantId,
+            Long userId,
+            UpdateParticipantCommand command
+    ) {
 
-        Participant participant = participantRepository.findById(participantId).orElseThrow(() -> new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND));
+        Participant participant = participantRepository.findById(participantId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
         if (!participant.getMeeting().getMeetingUuid().equals(meetingUuid)) {
             throw new BusinessException(ErrorCode.MEETING_NOT_FOUND);
@@ -78,33 +87,45 @@ public class ParticipantServiceImpl implements ParticipantService {
         boolean isSelf = participant.getUser().getId().equals(userId);
         boolean isOrganizer = participant.getMeeting().getOrganizerId().equals(userId);
 
-        if (request.getNickName() != null
-                || request.getOrigin() != null
-                || request.getDestination() != null
-                || request.getType() != null
-                || request.getHandicap() != null
-        ) {
-            if (!isSelf) {
-                throw new BusinessException(ErrorCode.NO_AUTHORITY);
-            }
-            if (request.getNickName() != null &&
-                    !request.getNickName().equals(participant.getNickName()) &&
-                    participantRepository.existsByMeetingIdAndNickName(participant.getMeeting().getId(), request.getNickName())) {
-                throw new BusinessException(ErrorCode.DUPLICATE_PARTICIPANT_NAME);
-            }
-            participant.update(request);
+        if (!isSelf && !isOrganizer) {
+            throw new BusinessException(ErrorCode.NO_AUTHORITY);
         }
 
-        if (request.getStatus() != null) {
-            if (!isSelf && !isOrganizer) {
-                throw new BusinessException(ErrorCode.NO_AUTHORITY);
+        if (command.getOriginAddress() != null) {
+            GeoPoint geoPoint = geoCodingService.geocode(command.getOriginAddress());
+            if (geoPoint == null) {
+                throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
             }
-            participant.changeStatus(request.getStatus());
+            participant.updateOrigin(
+                    new Location(
+                            geoPoint.getLatitude(),
+                            geoPoint.getLongitude(),
+                            command.getOriginAddress()
+                    )
+            );
+        }
+
+        if (command.getDestinationAddress() != null) {
+            GeoPoint geoPoint = geoCodingService.geocode(command.getDestinationAddress());
+            if (geoPoint == null) {
+                throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
+            }
+            participant.updateDestination(
+                    new Location(
+                            geoPoint.getLatitude(),
+                            geoPoint.getLongitude(),
+                            command.getDestinationAddress()
+                    )
+            );
+        }
+
+        participant.update(command);
+        if (command.getStatus() != null) {
+            participant.changeStatus(command.getStatus());
         }
 
         ParticipantResponse response = ParticipantResponse.from(participant);
 
-        // WebSocket 알림 전송
         messagingTemplate.convertAndSend(
                 "/topic/meeting/" + participant.getMeeting().getMeetingUuid() + "/participants",
                 response
@@ -112,6 +133,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         return response;
     }
+
 
     @Override
     public List<ParticipantResponse> copyParticipant(Meeting oldMeeting, Meeting newMeeting) {

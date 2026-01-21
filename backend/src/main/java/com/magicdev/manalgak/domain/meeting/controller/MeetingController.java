@@ -92,7 +92,7 @@ public class MeetingController {
                                                                  @PathVariable Long participantId,
                                                                  @RequestBody ParticipantUpdateRequest request,
                                                                  @AuthenticationPrincipal Long userId){
-        return CommonResponse.success(participantService.updateParticipant(meetingUuid, participantId, userId, request));
+        return CommonResponse.success(participantService.updateParticipant(meetingUuid, participantId, userId, request.toCommand()));
     }
 
     @Operation(summary = "모임 복사", description = "기존 모임 정보를 복사하여 새로운 모임을 생성합니다.")

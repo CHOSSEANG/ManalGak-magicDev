@@ -2,7 +2,7 @@ package com.magicdev.manalgak.domain.participant.entity;
 
 
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
-import com.magicdev.manalgak.domain.participant.dto.ParticipantUpdateRequest;
+import com.magicdev.manalgak.domain.participant.service.command.UpdateParticipantCommand;
 import com.magicdev.manalgak.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -91,27 +91,29 @@ public class Participant {
         return p;
     }
 
-    public void update(ParticipantUpdateRequest request){
-        if(request.getNickName() != null){
-            this.nickName = request.getNickName();
+    public void update(UpdateParticipantCommand command){
+        if(command.getNickName() != null){
+            this.nickName = command.getNickName();
         }
-        if(request.getType() != null){
-            this.type = request.getType();
+        if(command.getType() != null){
+            this.type = command.getType();
         }
-        if(request.getHandicap() != null){
-            this.handicap = request.getHandicap();
+        if(command.getHandicap() != null){
+            this.handicap = command.getHandicap();
         }
-        if(request.getOrigin() != null){
-            this.origin = request.getOrigin();
-        }
-        if(request.getDestination() != null){
-            this.destination = request.getDestination();
-        }
+
     }
 
     public void changeStatus(ParticipationStatus status){
         this.status = status;
     }
 
+    public void updateOrigin(Location origin) {
+        this.origin = origin;
+    }
+
+    public void updateDestination(Location destination) {
+        this.destination = destination;
+    }
 
 }

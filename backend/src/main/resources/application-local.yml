@@ -41,6 +41,7 @@ api:
     maps-url: https://apis-navi.kakaomobility.com
     client-secret: ${KAKAO_CLIENT_SECRET}
     redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:3000/oauth/kakao/callback}
+    address-url: https://dapi.kakao.com/v2/local/search/address.json
 
   odsay:
     key: ${ODSAY_API_KEY}
