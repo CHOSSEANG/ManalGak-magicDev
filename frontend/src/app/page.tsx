@@ -1,24 +1,41 @@
 // src/app/page.tsx
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import StepCard from "@/components/meeting/StepCard";
+import { useEffect, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
+import Image from "next/image";
 
+/**
+ * 홈 = 로그인 + 서비스 인트로 페이지
+ */
 export default function HomePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   /**
-   * ✅ 이미 로그인된 상태면
-   * 홈(/) 접근 시 서비스 페이지로 이동
+   * 로그인 상태 판별
+   * - 쿠키 기반 인증이므로 단순 플래그 용도
+   * - 실제 인증 여부는 API 호출 시 서버에서 판단
    */
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      router.replace("/meetings/new");
-    }
-  }, [router]);
+    const loggedIn = !!localStorage.getItem("isLoggedIn");
+    setIsLoggedIn(loggedIn);
+  }, []);
+
+  /**
+   * 로그인 성공 후 이동 경로 결정
+   * - 초대 링크 유입: redirect 파라미터 우선
+   * - 일반 로그인: 모임 리스트
+   */
+  const getPostLoginRedirectPath = useCallback(() => {
+    const redirect = searchParams.get("redirect");
+    if (redirect) return redirect;
+
+    return "/meetings";
+  }, [searchParams]);
 
   /**
    * 카카오 로그인 시작
@@ -27,7 +44,6 @@ export default function HomePage() {
     const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
     const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
 
-    // 🔴 필수 방어: REST API KEY 또는 REDIRECT URI 없으면 진행 금지
     if (!REST_API_KEY || !REDIRECT_URI) {
       alert(
         "카카오 로그인 설정이 완료되지 않았습니다.\n관리자에게 문의해주세요."
@@ -35,7 +51,7 @@ export default function HomePage() {
       return;
     }
 
-    const state = "/meetings/new";
+    const state = getPostLoginRedirectPath();
 
     const kakaoAuthUrl =
       "https://kauth.kakao.com/oauth/authorize" +
@@ -48,57 +64,61 @@ export default function HomePage() {
   };
 
   /**
-   * 카카오 지도 미리보기
+   * 로그아웃
+   * - 쿠키는 서버에서 제거
+   * - 프론트는 상태만 초기화
    */
-  useEffect(() => {
-    const maps = window.kakao?.maps;
-    if (!maps?.load) return;
-
-    maps.load(() => {
-      const container = document.getElementById("map");
-      if (!container) return;
-
-      const options = {
-        center: new maps.LatLng(37.5636, 126.9976),
-        level: 5,
-      };
-
-      new maps.Map(container, options);
-    });
-  }, []);
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    setIsLoggedIn(false);
+    router.replace("/");
+  };
 
   return (
-    <main className="flex min-h-[80vh] flex-col justify-between gap-8">
-      {/* 상단 소개 */}
-      <div className="space-y-6">
+    <main className="flex flex-col justify-between gap-10">
+      {/* ===== 서비스 인트로 영역 ===== */}
+      <section className="flex flex-col items-center gap-6 text-center">
         <div className="space-y-2">
-          <p className="text-sm text-[var(--wf-subtle)]">
-            우리 중간에서 만날각?
-          </p>
-          <h1 className="text-3xl font-semibold">만날각</h1>
-          <p className="text-sm text-[var(--wf-subtle)]">
-            모임 목적별 중간지점 추천 서비스
-          </p>
+          <h2 className="text-2xl font-semibold">
+            모두에게 부담 없는
+            <br />
+            중간 만남 장소 확정!
+          </h2>
         </div>
 
-        {/* 지도 미리보기 */}
-        <StepCard className="space-y-3">
+          {/* 바깥 박스 사이즈 바뀌면 이미지도 같이 맞춰짐 */}
           <div
-            id="map"
-            className="h-64 w-full rounded-xl border border-[var(--wf-border)]"
-          />
-          <p className="text-sm text-[var(--wf-subtle)]">
-            카카오 지도 미리보기
-          </p>
-        </StepCard>
-      </div>
+            className="
+              relative w-full overflow-hidden rounded-xl bg-[var(--wf-bg-soft)]
+              h-[40vh] min-h-[260px]
+              md:h-[50vh] md:min-h-[360px]
+              lg:h-[520px] 
+            "
+          >
+            <Image
+              src="/images/img0.png"
+              alt="intro"
+              fill
+              priority
+              sizes="100vw"
+              className="object-contain"
+            />
+          </div>
 
-      {/* 로그인 영역 */}
-      <div className="flex flex-col gap-3">
-        <Button type="button" onClick={handleKakaoLogin}>
-          카카오 로그인
-        </Button>
-      </div>
+        {!isLoggedIn ? (
+          <Button type="button" onClick={handleKakaoLogin}>
+            로그인
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            onClick={handleLogout}
+            className="bg-[var(--wf-accent)] text-white hover:opacity-90"
+          >
+            로그아웃
+          </Button>
+        )}
+      </section>
     </main>
   );
 }
