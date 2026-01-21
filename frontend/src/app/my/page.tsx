@@ -6,6 +6,7 @@ import AddressSearch from "@/components/map/AddressSearch";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import Image from "next/image";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
@@ -175,9 +176,11 @@ export default function MyPage() {
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full overflow-hidden border bg-[var(--wf-muted)] flex items-center justify-center">
               {user?.profileImage ? (
-                <img
+              <Image 
                   src={user.profileImage}
-                  alt="프로필 이미지"
+                    alt="프로필 이미지"
+                    width={48}
+                    height={48}
                   className="h-full w-full object-cover"
                 />
               ) : (
