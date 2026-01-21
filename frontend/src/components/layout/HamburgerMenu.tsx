@@ -40,7 +40,7 @@ const EXTRA_MENUS = [
 ]
 
 const ABOUT_MENUS = [
-  { label: '모일각 소개', href: '/about', icon: BookA },
+  { label: '만날각 소개', href: '/about', icon: BookA },
 ]
 
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
