@@ -6,8 +6,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
 @Entity
 @Table(name = "user_address")
 @Getter
@@ -22,11 +20,11 @@ public class UserAddress {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(precision = 10, scale = 8)
-    private BigDecimal latitude;
+    @Column
+    private Double latitude;
 
-    @Column(precision = 11,scale = 8)
-    private BigDecimal longitude;
+    @Column
+    private Double longitude;
 
     @Column(length = 255)
     private String address;
@@ -34,20 +32,27 @@ public class UserAddress {
     @Column(length = 50)
     private String category;
 
-    public UserAddress(User user, String address, BigDecimal latitude, BigDecimal longitude, String category) {
+    public UserAddress(
+            User user,
+            String address,
+            Double latitude,
+            Double longitude,
+            String category
+    ) {
         this.user = user;
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.category =category;
+        this.category = category;
     }
 
-    public void update(String address, BigDecimal latitude, BigDecimal longitude, String category) {
-        if(address != null) this.address = address;
-        if(latitude != null) this.latitude = latitude;
-        if(longitude != null) this.longitude = longitude;
-        if(category != null) this.category = category;
+    /**
+     * 주소 정보 수정
+     */
+    public void update(String address, String category,Double latitude, Double longitude) {
+        if (address != null) this.address = address;
+        if (category != null) this.category = category;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
-
-
 }

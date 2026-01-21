@@ -1,4 +1,3 @@
-// src/app/my/page.tsx
 "use client";
 
 import StepCard from "@/components/meeting/StepCard";
@@ -6,6 +5,10 @@ import WireframeModal from "@/components/ui/WireframeModal";
 import AddressSearch from "@/components/map/AddressSearch";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 
 /** ===== 타입 ===== */
 interface User {
@@ -14,10 +17,28 @@ interface User {
 }
 
 interface Bookmark {
-  id: number;
-  label: string;
+  id: number; // userAddressId (신규는 0)
+  label: string; // category
   address: string;
+  latitude?: number;
+  longitude?: number;
   isEditing: boolean;
+}
+
+interface MeetingItem {
+  meeting: {
+    meetingName: string;
+    meetingTime: string;
+  };
+}
+
+/** 🔥 주소 API 응답 타입 (any 제거) */
+interface UserAddressResponse {
+  id: number;
+  category: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export default function MyPage() {
@@ -26,12 +47,18 @@ export default function MyPage() {
   /** ===== 로그인 사용자 ===== */
   const [user, setUser] = useState<User | null>(null);
 
-  /** ===== 북마크 ===== */
+  /** ===== 주소 북마크 ===== */
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
 
-  /** ✅ 주소 검색 대상 북마크 index */
+  /** ===== 주소 검색 ===== */
   const [activeBookmarkIndex, setActiveBookmarkIndex] =
     useState<number | null>(null);
+  const [searchAddressOpen, setSearchAddressOpen] = useState(false);
+
+  /** ===== 모임 ===== */
+  const [meetings, setMeetings] = useState<MeetingItem[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
   /** ===== 초기 로드 ===== */
   useEffect(() => {
@@ -40,48 +67,97 @@ export default function MyPage() {
       setUser(JSON.parse(storedUser));
     }
 
-    const storedBookmarks = localStorage.getItem("bookmarks");
-    if (storedBookmarks) {
-      setBookmarks(JSON.parse(storedBookmarks));
-    } else {
-      setBookmarks(
-        Array.from({ length: 3 }).map((_, i) => ({
-          id: i,
-          label: "",
-          address: "",
-          isEditing: true,
-        }))
-      );
-    }
+    fetchAddresses();
+    fetchMeetings(0);
   }, []);
 
-  /** ===== 북마크 헬퍼 ===== */
-  const updateBookmark = (index: number, data: Partial<Bookmark>) => {
-    setBookmarks((prev) =>
-      prev.map((b, i) => (i === index ? { ...b, ...data } : b))
-    );
+  /** ===== 주소 조회 (항상 3개 유지) ===== */
+  const fetchAddresses = async () => {
+    const res = await axios.get(`${API_BASE_URL}/v1/addresses/user`, {
+      withCredentials: true,
+    });
+
+    const data: UserAddressResponse[] = res.data.data || [];
+
+    const mapped: Bookmark[] = data.map((item) => ({
+      id: item.id,
+      label: item.category,
+      address: item.address,
+      latitude: item.latitude,
+      longitude: item.longitude,
+      isEditing: false,
+    }));
+
+    // 🔥 항상 3칸 유지
+    const filled: Bookmark[] = [
+      ...mapped,
+      ...Array.from({ length: 3 - mapped.length }).map(() => ({
+        id: 0,
+        label: "",
+        address: "",
+        isEditing: true,
+      })),
+    ].slice(0, 3);
+
+    setBookmarks(filled);
   };
 
-  const saveBookmark = (index: number) => {
-    setBookmarks((prev) => {
-      const next = prev.map((b, i) =>
-        i === index ? { ...b, isEditing: false } : b
+  /** ===== 주소 저장 / 수정 ===== */
+  const saveBookmark = async (index: number) => {
+    const target = bookmarks[index];
+
+    const payload = {
+      address: target.address,
+      category: target.label,
+    };
+
+    if (target.id !== 0) {
+      await axios.patch(
+        `${API_BASE_URL}/v1/addresses/${target.id}`,
+        payload,
+        { withCredentials: true }
       );
-      localStorage.setItem("bookmarks", JSON.stringify(next));
-      return next;
+    } else {
+      await axios.post(`${API_BASE_URL}/v1/addresses`, payload, {
+        withCredentials: true,
+      });
+    }
+
+    fetchAddresses();
+  };
+
+  /** ===== 주소 삭제 ===== */
+  const deleteBookmark = async (id: number) => {
+    await axios.delete(`${API_BASE_URL}/v1/addresses/${id}`, {
+      withCredentials: true,
     });
+    fetchAddresses();
+  };
+
+  /** ===== 모임 조회 (페이징) ===== */
+  const fetchMeetings = async (pageNum: number) => {
+    const res = await axios.get(
+      `${API_BASE_URL}/v1/meetings/user?page=${pageNum}`,
+      { withCredentials: true }
+    );
+
+    const data = res.data.data;
+
+    setMeetings((prev) => [...prev, ...data.content]);
+    setHasMore(!data.last);
+    setPage(pageNum);
   };
 
   /** ===== 로그아웃 ===== */
-  const handleAuthButton = () => {
+  const handleAuthButton = async () => {
     if (user) {
-      localStorage.removeItem("accessToken");
+      await axios.get(`${API_BASE_URL}/auth/logout`, {
+        withCredentials: true,
+      });
       localStorage.removeItem("user");
     }
     router.replace("/");
   };
-
-  const [searchAddressOpen, setSearchAddressOpen] = useState(false);
 
   return (
     <>
@@ -99,7 +175,6 @@ export default function MyPage() {
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full overflow-hidden border bg-[var(--wf-muted)] flex items-center justify-center">
               {user?.profileImage ? (
-                // eslint-disable-next-line @next/next/no-img-element -- profile image uses stored URL
                 <img
                   src={user.profileImage}
                   alt="프로필 이미지"
@@ -117,39 +192,40 @@ export default function MyPage() {
           </div>
         </StepCard>
 
-        {/* ===== Bookmark Origins ===== */}
+        {/* ===== Bookmark ===== */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">출발지 북마크</h2>
 
           <StepCard className="space-y-3">
             {bookmarks.map((item, index) => (
-              <div key={item.id} className="flex items-center gap-2">
-                {/* 라벨 */}
+              <div key={index} className="flex items-center gap-2">
                 <input
                   type="text"
                   placeholder="라벨"
                   value={item.label}
                   disabled={!item.isEditing}
                   onChange={(e) =>
-                    updateBookmark(index, { label: e.target.value })
+                    setBookmarks((prev) =>
+                      prev.map((b, i) =>
+                        i === index ? { ...b, label: e.target.value } : b
+                      )
+                    )
                   }
                   className="w-24 rounded-md border px-2 py-2 text-sm disabled:bg-[var(--wf-muted)]"
                 />
 
-                {/* 주소 검색 */}
-               <button
-  type="button"
-  disabled={!item.isEditing}
-  onClick={() => {
-    setActiveBookmarkIndex(index);
-    setSearchAddressOpen(true);
-  }}
-  className="flex-1 rounded-md border px-3 py-2 text-left text-sm disabled:bg-[var(--wf-muted)]"
->
-  {item.address || "주소 검색"}
-</button>
+                <button
+                  type="button"
+                  disabled={!item.isEditing}
+                  onClick={() => {
+                    setActiveBookmarkIndex(index);
+                    setSearchAddressOpen(true);
+                  }}
+                  className={`flex-1 rounded-md border px-3 py-2 text-left text-sm disabled:bg-[var(--wf-muted)]`}
+                >
+                  {item.address || "주소 검색"}
+                </button>
 
-                {/* 저장 / 수정 */}
                 {item.isEditing ? (
                   <button
                     type="button"
@@ -160,15 +236,30 @@ export default function MyPage() {
                     저장
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateBookmark(index, { isEditing: true })
-                    }
-                    className="rounded-md border px-3 py-2 text-sm"
-                  >
-                    수정
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setBookmarks((prev) =>
+                          prev.map((b, i) =>
+                            i === index ? { ...b, isEditing: true } : b
+                          )
+                        )
+                      }
+                      className="rounded-md border px-3 py-2 text-sm"
+                    >
+                      수정
+                    </button>
+                    {item.id !== 0 && (
+                      <button
+                        type="button"
+                        onClick={() => deleteBookmark(item.id)}
+                        className="rounded-md border px-3 py-2 text-sm text-red-500"
+                      >
+                        삭제
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             ))}
@@ -180,18 +271,29 @@ export default function MyPage() {
           <h2 className="text-lg font-semibold">최근 내 모임 리스트</h2>
 
           <StepCard className="space-y-3">
-            {[1, 2, 3].map((i) => (
+            {meetings.map((item, i) => (
               <div key={i} className="border-b pb-3 last:border-b-0">
-                <p className="text-sm font-semibold">친구들끼리 친목모임</p>
+                <p className="text-sm font-semibold">
+                  {item.meeting.meetingName}
+                </p>
                 <p className="text-xs text-[var(--wf-subtle)]">
-                  2026.01.23 12:00 · 서울 어딘가
+                  {new Date(item.meeting.meetingTime).toLocaleString()}
                 </p>
               </div>
             ))}
+
+            {hasMore && (
+              <button
+                type="button"
+                onClick={() => fetchMeetings(page + 1)}
+                className="w-full rounded-xl border py-2 text-sm"
+              >
+                더보기
+              </button>
+            )}
           </StepCard>
         </section>
 
-        {/* ===== Login / Logout ===== */}
         <button
           type="button"
           onClick={handleAuthButton}
@@ -201,8 +303,6 @@ export default function MyPage() {
         </button>
       </main>
 
-      {/* ===== 주소 검색 모달 ===== */}
-      {/* 주소 검색 모달 (단일 인스턴스) */}
       <WireframeModal
         open={searchAddressOpen}
         title="주소 검색"
@@ -214,7 +314,11 @@ export default function MyPage() {
         {activeBookmarkIndex !== null && (
           <AddressSearch
             onSelect={(address: string) => {
-              updateBookmark(activeBookmarkIndex, { address });
+              setBookmarks((prev) =>
+                prev.map((b, i) =>
+                  i === activeBookmarkIndex ? { ...b, address } : b
+                )
+              );
               setSearchAddressOpen(false);
               setActiveBookmarkIndex(null);
             }}
