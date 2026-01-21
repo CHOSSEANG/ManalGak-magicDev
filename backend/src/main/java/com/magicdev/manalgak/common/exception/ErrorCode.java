@@ -62,6 +62,7 @@ public enum ErrorCode {
      * ===================== */
     ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "주소를 찾을 수 없음"),
     ADDRESS_LIMIT(HttpStatus.BAD_REQUEST, "최대 주소 초과"),
+    ADDRESS_NO_ORIGIN(HttpStatus.BAD_REQUEST,"출발지가 없음"),
 
 
     /* =====================

@@ -5,12 +5,55 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.magicdev.manalgak.common.exception.BusinessException;
+import com.magicdev.manalgak.common.exception.ErrorCode;
 import com.magicdev.manalgak.domain.algorithm.Model.Coordinate;
 import com.magicdev.manalgak.domain.algorithm.Model.DistanceInfo;
 import com.magicdev.manalgak.domain.algorithm.Model.WeightedCoordinate;
+import com.magicdev.manalgak.domain.participant.dto.ParticipantResponse;
+import com.magicdev.manalgak.domain.participant.service.ParticipantService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class MidpointCalculationService {
+
+	private final ParticipantService participantService;
+
+	/**
+	 * 미팅 UUID로 참여자들의 중간지점 계산
+	 * @param meetingUuid 미팅 UUID
+	 * @return 중간지점 좌표
+	 */
+	public Coordinate returnMidPointByMeetingID(String meetingUuid) {
+		// 1. 참여자 목록 조회
+		List<ParticipantResponse> participants = participantService.getAllParticipants(meetingUuid);
+
+		// 2. 출발지(origin)가 설정된 참여자만 필터링
+		List<ParticipantResponse> participantsWithOrigin = participants.stream()
+			.filter(participant -> participant.getOrigin() != null)
+			.filter(participant -> participant.getOrigin().getLatitude() != null)
+			.filter(participant -> participant.getOrigin().getLongitude() != null)
+			.toList();
+
+		// 3. 유효한 참여자가 없으면 기본 좌표 반환 (서울시청)
+		if (participantsWithOrigin.isEmpty()) {
+			throw new BusinessException(ErrorCode.ADDRESS_NO_ORIGIN);
+		}
+
+		// 4. Location을 Coordinate로 변환
+		List<Coordinate> coordinates = participantsWithOrigin.stream()
+			.map(participant -> new Coordinate(
+				participant.getOrigin().getLatitude(),
+				participant.getOrigin().getLongitude()
+			))
+			.collect(Collectors.toList());
+
+		// 5. 기하학적 중심점 계산
+		return calculateGeometricCenter(coordinates);
+	}
+
 	/**
 	 * 순수 좌표 데이터만으로 중간지점 계산
 	 * @param coordinates 위도, 경도 리스트
