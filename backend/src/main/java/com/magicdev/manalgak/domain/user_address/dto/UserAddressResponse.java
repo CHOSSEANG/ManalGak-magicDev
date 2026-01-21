@@ -12,8 +12,8 @@ public class UserAddressResponse {
 
     private Long id;
     private Long userId;
-    private BigDecimal latitude;
-    private BigDecimal longitude;
+    private Double latitude;
+    private Double longitude;
     private String address;
     private String category;
     public static UserAddressResponse from(UserAddress userAddress){
