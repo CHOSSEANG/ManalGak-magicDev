@@ -15,7 +15,7 @@ export default function AboutPage() {
       <div className="mb-6 flex gap-4 border-b pb-2 text-sm">
         <TabButton
           icon={<Info size={16} />}
-          label="모일각 소개"
+          label="만날각 소개"
           active={activeTab === 'intro'}
           onClick={() => setActiveTab('intro')}
         />
@@ -73,10 +73,10 @@ function TabButton({
 function IntroSection() {
   return (
     <section className="space-y-6 text-sm leading-relaxed">
-      <h1 className="text-xl font-semibold">모일각</h1>
+      <h1 className="text-xl font-semibold">만날각</h1>
 
       <p>
-        <strong>모일각</strong>은 여러 사람이 모이는 약속에서
+        <strong>만날각</strong>은 여러 사람이 모이는 약속에서
         “누가 더 멀리 가는지”, “누가 더 불편한지”를 감으로 정하지 않고,
         데이터 기반으로 가장 공정한 중간지점을 찾기 위해 만들어진 서비스입니다.
       </p>
@@ -85,11 +85,11 @@ function IntroSection() {
         친구 모임, 회사 모임, 가족 약속처럼
         각자의 출발지가 다르고 이동 수단도 다른 상황에서
         항상 한 사람이 손해를 보는 구조는 자연스럽게 반복되어 왔습니다.
-        모일각은 이 불편함에서 출발했습니다.
+        만날각은 이 불편함에서 출발했습니다.
       </p>
 
       <h2 className="pt-4 text-base font-semibold">
-        왜 모일각이 필요했을까요?
+        왜 만날각이 필요했을까요?
       </h2>
 
       <p>
@@ -109,13 +109,13 @@ function IntroSection() {
       </p>
 
       <p>
-        모일각은 출발지, 교통수단, 이동 시간을 함께 고려하여
+        만날각은 출발지, 교통수단, 이동 시간을 함께 고려하여
         모두에게 가장 합리적인 중간지점을 계산하고
         그 결과를 바탕으로 장소를 추천합니다.
       </p>
 
       <h2 className="pt-4 text-base font-semibold">
-        모일각은 이렇게 사용됩니다
+        만날각은 이렇게 사용됩니다
       </h2>
 
       <ul className="list-disc pl-5">
@@ -137,7 +137,7 @@ function IntroSection() {
       </h2>
 
       <p>
-        모일각은 단순히 장소를 추천하는 서비스가 아니라,
+        만날각은 단순히 장소를 추천하는 서비스가 아니라,
         모임 준비 과정에서의 스트레스를 줄이고
         모두가 납득할 수 있는 약속 경험을 만드는 것을 목표로 합니다.
       </p>
@@ -145,7 +145,7 @@ function IntroSection() {
       <p>
         누군가의 희생이 아니라,
         모두가 합의한 선택으로 약속을 시작할 수 있도록.
-        모일각은 그렇게 만들어지고 있습니다.
+        만날각은 그렇게 만들어지고 있습니다.
       </p>
     </section>
   )
