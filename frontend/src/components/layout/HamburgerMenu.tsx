@@ -14,6 +14,7 @@ import {
   Calculator,
   LogOut,
   ChevronRight,
+  BookA,
 } from 'lucide-react'
 
 interface HamburgerMenuProps {
@@ -36,6 +37,10 @@ const MENUS = [
 const EXTRA_MENUS = [
   { label: '지도 서비스', href: '/meetings/meeting-001/option-location', icon: LocateFixed },
   { label: '회비 계산기', href: '/meetings/meeting-001/option-fee', icon: Calculator },
+]
+
+const ABOUT_MENUS = [
+  { label: '모일각 소개', href: '/about', icon: BookA },
 ]
 
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
@@ -187,6 +192,26 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
         <nav className="space-y-1">
           <p className="text-xs font-semibold">PERSONAL</p>
           {EXTRA_MENUS.map(({ label, href, icon: Icon }) => (
+            <button
+              key={href}
+              onClick={() => handleNavigate(href)}
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-highlight-soft)]"
+            >
+              <div className="flex items-center gap-4">
+                <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
+                <span>{label}</span>
+              </div>
+              <ChevronRight className="h-4 w-4 opacity-40" />
+            </button>
+          ))}
+        </nav>
+
+        <div className="my-4 border-t" />
+
+        {/* About */}
+        <nav className="space-y-1">
+          <p className="text-xs font-semibold">ABOUT</p>
+          {ABOUT_MENUS.map(({ label, href, icon: Icon }) => (
             <button
               key={href}
               onClick={() => handleNavigate(href)}
