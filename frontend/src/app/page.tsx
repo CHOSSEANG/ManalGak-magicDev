@@ -98,10 +98,6 @@ export default function HomePage() {
         <Button type="button" onClick={handleKakaoLogin}>
           카카오 로그인
         </Button>
-
-        <p className="text-xs text-[var(--wf-subtle)]">
-          카카오 계정으로 로그인
-        </p>
       </div>
     </main>
   );
