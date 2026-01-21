@@ -8,16 +8,20 @@ public class UserResponse {
 
     private String nickname;
     private String profileImageUrl;
+    private Long userId;
 
-    private UserResponse(String nickname, String profileImageUrl) {
+    public UserResponse(String nickname, String profileImageUrl, Long userId) {
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
+        this.userId = userId;
     }
+
 
     public static UserResponse from(User user) {
         return new UserResponse(
                 user.getNickname(),
-                user.getProfileImageUrl()
+                user.getProfileImageUrl(),
+                user.getId()
         );
     }
 }
