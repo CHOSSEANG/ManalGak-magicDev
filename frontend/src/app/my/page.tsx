@@ -107,8 +107,6 @@ export default function MyPage() {
     const target = bookmarks[index];
 
     const payload = {
-      latitude: target.latitude ?? 0,
-      longitude: target.longitude ?? 0,
       address: target.address,
       category: target.label,
     };

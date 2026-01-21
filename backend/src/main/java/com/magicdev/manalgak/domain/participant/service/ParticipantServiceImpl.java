@@ -93,7 +93,9 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         if (command.getOriginAddress() != null) {
             GeoPoint geoPoint = geoCodingService.geocode(command.getOriginAddress());
-
+            if (geoPoint == null) {
+                throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
+            }
             participant.updateOrigin(
                     new Location(
                             geoPoint.getLatitude(),
@@ -105,7 +107,9 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         if (command.getDestinationAddress() != null) {
             GeoPoint geoPoint = geoCodingService.geocode(command.getDestinationAddress());
-
+            if (geoPoint == null) {
+                throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
+            }
             participant.updateDestination(
                     new Location(
                             geoPoint.getLatitude(),
@@ -114,7 +118,11 @@ public class ParticipantServiceImpl implements ParticipantService {
                     )
             );
         }
+
         participant.update(command);
+        if (command.getStatus() != null) {
+            participant.changeStatus(command.getStatus());
+        }
 
         ParticipantResponse response = ParticipantResponse.from(participant);
 

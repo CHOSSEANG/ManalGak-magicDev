@@ -37,7 +37,6 @@ public class UserAddressServiceImpl implements UserAddressService {
             UserAddressCommand command,
             Long userId
     ) {
-        log.info("UserAddressResponse address?{}",command);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -47,6 +46,9 @@ public class UserAddressServiceImpl implements UserAddressService {
         }
 
         GeoPoint geoPoint = geocodingService.geocode(command.getAddress());
+        if (geoPoint == null) {
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
+        }
 
         UserAddress userAddress = new UserAddress(
                 user,
@@ -76,6 +78,9 @@ public class UserAddressServiceImpl implements UserAddressService {
         }
 
         GeoPoint geoPoint = geocodingService.geocode(command.getAddress());
+        if (geoPoint == null) {
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
+        }
 
         userAddress.update(
                 command.getAddress(),

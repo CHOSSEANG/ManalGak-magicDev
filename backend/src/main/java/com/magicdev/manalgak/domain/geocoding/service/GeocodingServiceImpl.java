@@ -21,20 +21,20 @@ public class GeocodingServiceImpl implements GeocodingService {
 
     private final String kakaoApiKey;
     private final String kakaoAddressUrl;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     public GeocodingServiceImpl(
             @Value("${api.kakao.key}") String kakaoApiKey,
-            @Value("${api.kakao.address-url}") String kakaoAddressUrl
+            @Value("${api.kakao.address-url}") String kakaoAddressUrl, RestTemplate restTemplate
 
     ) {
         this.kakaoApiKey = kakaoApiKey;
         this.kakaoAddressUrl = kakaoAddressUrl;
+        this.restTemplate = restTemplate;
     }
 
     @Override
     public GeoPoint geocode(String address) {
-        log.info("Geocoding111 요청: {}", address);
 
         URI url = UriComponentsBuilder
                 .fromHttpUrl(kakaoAddressUrl)
@@ -43,7 +43,6 @@ public class GeocodingServiceImpl implements GeocodingService {
                 .encode()  // 한번만 인코딩
                 .toUri();
 
-        log.debug("요청 URL: {}", url);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "KakaoAK " + kakaoApiKey);
