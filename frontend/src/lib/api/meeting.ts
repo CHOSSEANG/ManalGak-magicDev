@@ -1,11 +1,21 @@
 // src/lib/api/meeting.ts
 
-import apiClient from './client'
+import apiClient from "./client";
 
-export const getMeetings = () => apiClient.get('/meetings')
-export const createMeeting = (payload: unknown) =>
-  apiClient.post('/meetings', payload)
+export interface CreateMeetingResponse {
+  meetingId: string;
+}
+
+export const getMeetings = () => apiClient.get("/meetings");
+
+export const createMeeting = (
+  payload: unknown,
+): Promise<CreateMeetingResponse> => {
+  return apiClient.post("/meetings", payload);
+};
+
 export const getMeeting = (meetingUuid: string) =>
-  apiClient.get(`/meetings/${meetingUuid}`)
+  apiClient.get(`/meetings/${meetingUuid}`);
+
 export const getMeetingDetail = (meetingUuid: string) =>
-  apiClient.get(`/v1/meetings/${meetingUuid}`)
+  apiClient.get(`/meetings/${meetingUuid}`);
