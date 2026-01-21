@@ -109,7 +109,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   return (
     <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose}>
       <aside
-        className="fixed left-0 top-0 h-full w-[85%] max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
+        className="fixed left-0 top-0 h-full w-[50%] max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Profile */}
