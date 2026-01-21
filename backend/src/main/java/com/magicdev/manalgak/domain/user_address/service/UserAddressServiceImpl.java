@@ -45,16 +45,23 @@ public class UserAddressServiceImpl implements UserAddressService {
             throw new BusinessException(ErrorCode.ADDRESS_LIMIT);
         }
 
-        GeoPoint geoPoint = geocodingService.geocode(command.getAddress());
-        if (geoPoint == null) {
-            throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
+        Double latitude = null;
+        Double longitude = null;
+
+        if (command.getAddress() != null) {
+            GeoPoint geoPoint = geocodingService.geocode(command.getAddress());
+            if (geoPoint == null) {
+                throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
+            }
+            latitude = geoPoint.getLatitude();
+            longitude = geoPoint.getLongitude();
         }
 
         UserAddress userAddress = new UserAddress(
                 user,
                 command.getAddress(),
-                geoPoint.getLatitude(),
-                geoPoint.getLongitude(),
+                latitude,
+                longitude,
                 command.getCategory()
         );
 
@@ -77,17 +84,23 @@ public class UserAddressServiceImpl implements UserAddressService {
             throw new BusinessException(ErrorCode.NO_AUTHORITY);
         }
 
-        GeoPoint geoPoint = geocodingService.geocode(command.getAddress());
-        if (geoPoint == null) {
-            throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
+        Double latitude = null;
+        Double longitude = null;
+
+        if (command.getAddress() != null) {
+            GeoPoint geoPoint = geocodingService.geocode(command.getAddress());
+            if (geoPoint == null) {
+                throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
+            }
+            latitude = geoPoint.getLatitude();
+            longitude = geoPoint.getLongitude();
         }
 
         userAddress.update(
                 command.getAddress(),
                 command.getCategory(),
-                geoPoint.getLatitude(),
-                geoPoint.getLongitude()
-
+                latitude,
+                longitude
         );
 
         return UserAddressResponse.from(userAddress);
