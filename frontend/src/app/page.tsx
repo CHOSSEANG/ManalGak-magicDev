@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Image from "next/image";
+import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
 
 /**
  * 홈 = 로그인 + 서비스 인트로 페이지
@@ -119,6 +120,8 @@ export default function HomePage() {
           </Button>
         )}
       </section>
+
+            <BottomTabNavigation />
     </main>
   );
 }

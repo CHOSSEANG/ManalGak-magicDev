@@ -7,20 +7,16 @@ import {
   PlusCircle,
   MapPin,
   CheckCircle,
-  User,
+  Users,
 } from 'lucide-react'
 import clsx from 'clsx'
 
 const TABS = [
   { label: '메인', href: '/', icon: Home },
   { label: '모임생성', href: '/meetings/new', icon: PlusCircle },
-  { label: '추천장소', href: '/meetings/new/step5-place', icon: MapPin },
-  {
-    label: '확정내용',
-    href: '/meetings/meeting-001/complete',
-    icon: CheckCircle,
-  },
-  { label: '내정보', href: '/my', icon: User },
+  { label: '참여자설정', href: '/meetings/new/step2-meetingmembers', icon: Users },
+  { label: '추천장소', href: '/meetings/new/step3-result', icon: MapPin },
+  { label: '확정내용', href: '/meetings/meeting-001/complete', icon: CheckCircle,},
 ]
 
 export default function BottomTabNavigation() {
