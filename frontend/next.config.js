@@ -12,6 +12,10 @@ const nextConfig = {
     domains: ["localhost"], // 기존 유지
     remotePatterns: [
       {
+        protocol: "http",
+        hostname: "k.kakaocdn.net",
+      },
+      {
         protocol: "https",
         hostname: "k.kakaocdn.net", // 카카오 프로필 이미지
       },

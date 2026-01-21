@@ -124,7 +124,9 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               ) : user?.profileImage ? (
                 <Image 
                   src={user.profileImage}
-                  alt="프로필 이미지"
+                    alt="프로필 이미지"
+                    width={48}
+                    height={48}
                   className="h-full w-full object-cover"
                 />
               ) : (
