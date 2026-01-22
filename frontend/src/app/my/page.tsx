@@ -43,7 +43,7 @@ export default function MyPage() {
   const router = useRouter();
 
   /** ===== 로그인 사용자 ===== */
-  const { user } = useUser(); // 🔥 Context에서 가져오기
+  const { user , setUser} = useUser(); // 🔥 Context에서 가져오기
 
   /** ===== 주소 북마크 ===== */
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -141,6 +141,7 @@ export default function MyPage() {
   const handleAuthButton = async () => {
     if (user) {
       await axios.get(`${API_BASE_URL}/auth/logout`, { withCredentials: true });
+      setUser(null); // Context 상태 업데이트
     }
     router.replace("/");
   };
