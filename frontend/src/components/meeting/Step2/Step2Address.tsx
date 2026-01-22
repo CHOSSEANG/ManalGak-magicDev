@@ -8,19 +8,24 @@ import AddressSearch from "@/components/map/AddressSearch";
 import BookmarkAddressModal from "@/components/map/BookmarkAddressModal";
 
 type AddressType = "origin" | "return";
-type TransportMode = "walk" | "bus" | "car";
+export type TransportMode = "WALK" | "PUBLIC" | "CAR";
 
-export default function Step2Address() {
+interface Step2AddressProps {
+  originAddress: string;
+  setOriginAddress: (address: string) => void;
+  transport: TransportMode | null;
+  setTransport: (mode: TransportMode) => void;
+}
+
+export default function Step2Address({
+  originAddress,
+  setOriginAddress,
+  transport,
+  setTransport,
+}: Step2AddressProps) {
   /** 현재 주소 입력 대상 */
   const [activeAddressType, setActiveAddressType] =
     useState<AddressType | null>(null);
-
-  /** 주소 값 */
-  const [originAddress, setOriginAddress] = useState("");
-
-  /** 교통수단 */
-  // eslint: narrow transport mode type to avoid any
-  const [transport, setTransport] = useState<TransportMode | null>(null);
 
   /** 모달 상태 */
   const [searchAddressOpen, setSearchAddressOpen] = useState(false);
@@ -84,17 +89,17 @@ export default function Step2Address() {
           <div className="space-y-2">
             <p className="text-sm font-semibold">나의 교통수단 선택</p>
 
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { key: "walk", label: "도보", icon: PersonStanding },
-                { key: "car", label: "자동차", icon: Car },
-                { key: "bus", label: "대중교통", icon: Bus },
-              ].map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setTransport(key as TransportMode)}
-                  className={`flex items-center justify-center gap-2 rounded-full border py-3 text-normal transition
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { key: "WALK", label: "도보", icon: PersonStanding },
+              { key: "CAR", label: "자동차", icon: Car },
+              { key: "PUBLIC", label: "대중교통", icon: Bus },
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTransport(key as TransportMode)}
+                className={`flex items-center justify-center gap-2 rounded-full border py-3 text-normal transition
                   ${
                     transport === key
                       ? "bg-[var(--wf-highlight)] border-[var(--wf-highlight)]"

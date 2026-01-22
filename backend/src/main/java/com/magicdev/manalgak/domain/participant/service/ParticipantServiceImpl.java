@@ -15,6 +15,7 @@ import com.magicdev.manalgak.domain.participant.service.command.UpdateParticipan
 import com.magicdev.manalgak.domain.user.entity.User;
 import com.magicdev.manalgak.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,34 +38,38 @@ public class ParticipantServiceImpl implements ParticipantService {
     private static final int MAX_COUNT = 10;
 
     @Override
+    @Transactional
     public ParticipantResponse joinMeeting(String meetingUuid, Long userId) {
 
         Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        long count = participantRepository.countByMeetingId(meeting.getId());
+        Participant existing = participantRepository
+                .findByMeeting_IdAndUser_Id(meeting.getId(), userId)
+                .orElse(null);
 
-        if (count > MAX_COUNT) {
+        if (existing != null) {
+            return ParticipantResponse.from(existing);
+        }
+
+        if (participantRepository.countByMeetingId(meeting.getId()) >= MAX_COUNT) {
             throw new BusinessException(ErrorCode.MAX_PARTICIPANTS_EXCEEDED);
         }
-
-        if (participantRepository.existsByMeetingIdAndUser(meeting.getId(), user)) {
-            throw new BusinessException(ErrorCode.ALREADY_PARTICIPANT);
-        }
-
 
         if (meeting.getExpiresAt().isBefore(DateTimeUtil.now())) {
             throw new BusinessException(ErrorCode.MEETING_EXPIRED);
         }
 
         Participant participant = Participant.create(meeting, user, user.getNickname());
-
         participantRepository.save(participant);
 
-        messagingTemplate.convertAndSend("/topic/meeting/"+meeting.getMeetingUuid()+"/participants",
-                ParticipantResponse.from(participant));
+        messagingTemplate.convertAndSend(
+                "/topic/meeting/" + meeting.getMeetingUuid() + "/participants",
+                ParticipantResponse.from(participant)
+        );
 
         return ParticipantResponse.from(participant);
     }

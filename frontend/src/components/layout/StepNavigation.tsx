@@ -3,6 +3,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import BottomCTA from '@/components/layout/BottomCTA'
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
@@ -12,6 +13,7 @@ interface StepNavigationProps {
   prevLabel?: string
   nextLabel?: string
   split?: boolean
+  onNext?: () => Promise<void> | void   // ⭐ 추가
 }
 
 export default function StepNavigation({
@@ -20,10 +22,27 @@ export default function StepNavigation({
   prevLabel = '이전',
   nextLabel = '다음',
   split = true,
+  onNext,
 }: StepNavigationProps) {
   const router = useRouter()
+  const [loading, setLoading] = useState(false)
 
-  // 와이어프레임 단계: 스텝 네비게이션
+  const handleNext = async () => {
+    if (!nextHref || loading) return
+
+    try {
+      setLoading(true)
+      if (onNext) {
+        await onNext()   // ⭐ 여기서 API 실행
+      }
+      router.push(nextHref)
+    } catch (e) {
+      console.error('StepNavigation next error:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <BottomCTA>
       <div
@@ -46,13 +65,15 @@ export default function StepNavigation({
         {nextHref ? (
           <button
             type="button"
-            onClick={() => router.push(nextHref)}
+            onClick={handleNext}   // ⭐ 변경
+            disabled={loading}
             className={`${
               split && prevHref ? 'w-1/2' : ''
             } relative flex items-center justify-center
               rounded-2xl border border-[var(--wf-border)]
               bg-[var(--wf-highlight)] px-6 py-3
-              text-sm font-semibold hover:bg-[var(--wf-accent)]`}
+              text-sm font-semibold hover:bg-[var(--wf-accent)]
+              disabled:opacity-50`}
           >
             {nextLabel}<ArrowRight  className="absolute right-3 h-6 w-6"/>
           </button>
