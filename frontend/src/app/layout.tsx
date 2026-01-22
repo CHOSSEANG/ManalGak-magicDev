@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "@/styles/globals.css";
+import { UserProvider } from "@/context/UserContext" // 추가
 
 export const metadata: Metadata = {
   title: "만날각 - 중간 만남 장소 추천",
@@ -30,6 +31,7 @@ export default function RootLayout({
       </head>
 
       <body>
+       <UserProvider>
         <TooltipProvider delayDuration={200}>
           {/* 전체 앱: 세로 플렉스 */}
           <div className="h-screen  min-h-screen flex flex-col bg-[var(--wf-bg)] text-[var(--wf-text)]">
@@ -44,6 +46,7 @@ export default function RootLayout({
             <Footer />
           </div>
         </TooltipProvider>
+         </UserProvider>
       </body>
     </html>
   );
