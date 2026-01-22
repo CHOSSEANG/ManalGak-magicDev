@@ -1,11 +1,16 @@
 // src/components/meeting/Step5PlaceList.tsx
 'use client'
-
-import { useMemo, useState } from 'react'
+// 진행 필요  1/22 율 메모 
+// 장소 확정 API (POST)
+//투표 결과 API
+//중간지점 + 추천장소 통합 결과 API
+import { useEffect, useMemo, useState } from 'react'
 import StepCard from '@/components/meeting/StepCard'
 import WireframeModal from '@/components/ui/WireframeModal'
 import KakaoMap from '@/components/map/KakaoMap'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import ProfileIdentity from '@/components/common/ProfileIdentity'
+import axios from 'axios'
 
 import {
   Hand,
@@ -38,6 +43,21 @@ import {
 
 /* ================= 타입 ================= */
 
+interface MeUser {
+  userId?: number
+  name?: string
+  nickname?: string
+  profileImage?: string
+}
+
+interface Participant {
+  userId: number
+  name: string
+  nickname?: string
+  profileImage?: string
+  handicap: boolean
+}
+
 export type PlaceCategory = 'cafe' | 'restaurant' | 'culture' | 'tour'
 
 interface RecommendedPlace {
@@ -47,6 +67,24 @@ interface RecommendedPlace {
   stationName: string
   walkingMinutes: number
   icon: LucideIcon
+}
+
+interface MiddlePoint {
+  lat: number
+  lng: number
+  stationName?: string
+}
+
+/* ================= API BASE ================= */
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api'
+
+/* ================= 유틸 ================= */
+
+function displayName(name?: string) {
+  if (!name) return ''
+  return name.length > 6 ? `${name.slice(0, 6)}…` : name
 }
 
 /* ================= 아이콘 풀 ================= */
@@ -66,114 +104,178 @@ const ICONS_BY_CATEGORY: Record<PlaceCategory, LucideIcon[]> = {
   tour: [Landmark, Camera, MapPin, Mountain, TreePalm, Building2],
 }
 
-/**
- * ❗ Hydration-safe 아이콘 선택 함수
- * place.id 기반으로 항상 동일한 아이콘을 선택
- */
-function pickIconById(
-  category: PlaceCategory,
-  id: string
-): LucideIcon {
+function pickIconById(category: PlaceCategory, id: string): LucideIcon {
   const icons = ICONS_BY_CATEGORY[category]
-  const hash = id
-    .split('')
-    .reduce((sum, c) => sum + c.charCodeAt(0), 0)
+  const hash = id.split('').reduce((sum, c) => sum + c.charCodeAt(0), 0)
   return icons[hash % icons.length]
 }
 
-/* ================= 더미 데이터 ================= */
-
-const isLeader = true
-
-const members = [
-  { id: 'u1', name: '이름각', handicap: true },
-  { id: 'u2', name: '이름각', handicap: false },
-  { id: 'u3', name: '이름각', handicap: false },
-  { id: 'u4', name: '이름각', handicap: true },
-  { id: 'u5', name: '이름각', handicap: false },
+/* ================= FE 더미 추천장소 (fallback) ================= */
+/**
+ * 🟡 추천장소 API 실패/미연결 시 사용
+ * - 항상 5개 유지
+ * - 아이콘 랜덤 로직 유지
+ */
+const rawPlaces: Omit<RecommendedPlace, 'icon'>[] = [
+  { id: 'p1', name: '추천 카페', category: 'cafe', stationName: '을지로입구역', walkingMinutes: 5 },
+  { id: 'p2', name: '추천 식당 A', category: 'restaurant', stationName: '종각역', walkingMinutes: 7 },
+  { id: 'p3', name: '추천 식당 B', category: 'restaurant', stationName: '종로3가역', walkingMinutes: 10 },
+  { id: 'p4', name: '추천 전시관', category: 'culture', stationName: '을지로3가역', walkingMinutes: 12 },
+  { id: 'p5', name: '추천 명소', category: 'tour', stationName: '명동역', walkingMinutes: 15 },
 ]
-
-const rawPlaces = [
-  {
-    id: 'p1',
-    name: '추천 카페',
-    category: 'cafe' as const,
-    stationName: '을지로입구역',
-    walkingMinutes: 5,
-  },
-  {
-    id: 'p2',
-    name: '추천 식당 A',
-    category: 'restaurant' as const,
-    stationName: '종각역',
-    walkingMinutes: 7,
-  },
-  {
-    id: 'p3',
-    name: '추천 식당 B',
-    category: 'restaurant' as const,
-    stationName: '종로3가역',
-    walkingMinutes: 10,
-  },
-  {
-    id: 'p4',
-    name: '추천 전시관',
-    category: 'culture' as const,
-    stationName: '을지로3가역',
-    walkingMinutes: 12,
-  },
-  {
-    id: 'p5',
-    name: '추천 명소',
-    category: 'tour' as const,
-    stationName: '명동역',
-    walkingMinutes: 15,
-  },
-]
-
-const middlePlaceMarkers = [{ lat: 37.563617, lng: 126.997628 }]
 
 /* ================= 컴포넌트 ================= */
 
 export default function Step5PlaceList() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const meetingUuid = searchParams.get('meetingUuid')
+
+  const [me, setMe] = useState<MeUser | null>(null)
+  const [participants, setParticipants] = useState<Participant[]>([])
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null)
   const [showVoteModal, setShowVoteModal] = useState(false)
 
-  // ✅ 서버/클라이언트 동일 아이콘 보장
+  const [middlePoint, setMiddlePoint] = useState<MiddlePoint | null>(null)
+  const [placeSource, setPlaceSource] =
+    useState<Omit<RecommendedPlace, 'icon'>[]>(rawPlaces)
+
+  /* ================= 내 정보 ================= */
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const stored = window.localStorage.getItem('user')
+      setMe(stored ? JSON.parse(stored) : null)
+    } catch {
+      setMe(null)
+    }
+  }, [])
+
+  /* ================= 참여자 API ================= */
+
+  useEffect(() => {
+    if (!meetingUuid) return
+
+    axios
+      .get(`${API_BASE_URL}/v1/meetings/${meetingUuid}/participants`, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        const list: Participant[] = res.data?.data ?? []
+        const filtered =
+          me?.userId != null ? list.filter((p) => p.userId !== me.userId) : list
+        setParticipants(filtered)
+      })
+      .catch(() => setParticipants([]))
+  }, [meetingUuid, me?.userId])
+
+  /* ================= 중간지점 API ================= */
+  /**
+   * 1순위 API
+   * - middle-point → result 순으로 fallback
+   */
+  useEffect(() => {
+    if (!meetingUuid) return
+
+    const fetchMiddlePoint = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/v1/meetings/${meetingUuid}/middle-point`,
+          { withCredentials: true }
+        )
+        if (res.data?.lat && res.data?.lng) {
+          setMiddlePoint(res.data)
+          return
+        }
+      } catch {}
+
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/v1/meetings/${meetingUuid}/result`,
+          { withCredentials: true }
+        )
+        if (res.data?.lat && res.data?.lng) {
+          setMiddlePoint(res.data)
+        }
+      } catch {}
+    }
+
+    fetchMiddlePoint()
+  }, [meetingUuid])
+
+  /* ================= 추천장소 API (읽기 전용) ================= */
+  /**
+   * 2순위 API
+   * - 5개 이상일 때만 교체
+   * - 실패 시 FE 더미 유지
+   */
+  useEffect(() => {
+    if (!meetingUuid) return
+
+    axios
+      .get(`${API_BASE_URL}/v1/meetings/${meetingUuid}/places`, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        const list = res.data?.data ?? []
+        if (list.length >= 5) {
+          setPlaceSource(list.slice(0, 5))
+        }
+      })
+      .catch(() => {})
+  }, [meetingUuid])
+
+  /* ================= 추천 장소 (아이콘 주입) ================= */
+
   const recommendedPlaces: RecommendedPlace[] = useMemo(
     () =>
-      rawPlaces.map((place) => ({
+      placeSource.map((place) => ({
         ...place,
         icon: pickIconById(place.category, place.id),
       })),
-    []
+    [placeSource]
   )
+
+  const mapMarkers = middlePoint
+    ? [{ lat: middlePoint.lat, lng: middlePoint.lng }]
+    : [{ lat: 37.563617, lng: 126.997628 }]
 
   return (
     <div className="space-y-4">
       {/* ================= 지도 ================= */}
       <div className="h-56 overflow-hidden rounded-xl border border-[var(--wf-border)]">
-        <KakaoMap markers={middlePlaceMarkers} level={5} />
+        <KakaoMap markers={mapMarkers} level={5} />
       </div>
 
       {/* ================= 멤버 ================= */}
       <div className="flex flex-wrap gap-2">
-        {members.map((m) => (
+        {me && (
+          <div className="flex h-16 w-16 flex-col items-center justify-center">
+            <ProfileIdentity src={me.profileImage} size={48} shape="square" />
+            <span className="mt-1 text-[10px]">
+              {displayName(me.nickname ?? me.name) || '내 프로필'}
+            </span>
+          </div>
+        )}
+
+        {participants.map((p) => (
           <div
-            key={m.id}
+            key={p.userId}
             className="flex h-16 w-16 flex-col items-center justify-center"
           >
             <div className="relative">
-              {m.handicap && (
+              {p.handicap && (
                 <span className="absolute -top-1 -left-2 flex items-center gap-0.5 rounded-xl bg-[var(--wf-highlight)] px-1.5 py-0.5 text-[9px] font-semibold">
                   <Hand className="h-3 w-3" />
                   핸디캡
                 </span>
               )}
-              <div className="h-12 w-12 rounded-xl bg-[var(--wf-muted)]" />
+              <ProfileIdentity src={p.profileImage} size={48} shape="square" />
             </div>
-            <span className="mt-1 text-[10px]">{m.name}</span>
+            <span className="mt-1 text-[10px]">
+              {displayName(p.nickname ?? p.name)}
+            </span>
           </div>
         ))}
       </div>
@@ -182,47 +284,40 @@ export default function Step5PlaceList() {
       <StepCard className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">추천장소 선택</h2>
-          {isLeader && (
-            <button
-              onClick={() => setShowVoteModal(true)}
-              className="rounded-lg border px-3 py-1 text-xs bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]"
-            >
-              추천장소 투표하기
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setShowVoteModal(true)}
+            className="rounded-lg border px-3 py-1 text-xs bg-[var(--wf-highlight)]"
+          >
+            추천장소 투표하기
+          </button>
         </div>
 
-        <div className="grid gap-2 grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
+        <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
           {recommendedPlaces.map((place) => {
-            const selected = selectedPlace === place.id
             const Icon = place.icon
+            const selected = selectedPlace === place.id
 
             return (
               <button
                 key={place.id}
                 onClick={() => setSelectedPlace(place.id)}
-                className={[
-                  'flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition',
-                  'border bg-[var(--wf-surface)]',
+                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 border-4 ${
                   selected
-                    ? 'border-[var(--wf-accent)] bg-[var(--wf-highlight-soft)] border-4'
-                    : 'border-[var(--wf-border)] border-4 ',
-                ].join(' ')}
+                    ? 'border-[var(--wf-accent)] bg-[var(--wf-highlight-soft)]'
+                    : 'border-[var(--wf-border)] bg-[var(--wf-surface)]'
+                }`}
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--wf-muted)]">
                   <Icon className="h-8 w-8 text-[var(--wf-accent)]" />
                 </div>
-
-                <div className="flex-1">
+                <div className="flex-1 text-left">
                   <p className="text-sm font-semibold">{place.name}</p>
                   <p className="text-xs text-[var(--wf-subtle)]">
-                    {place.stationName} 기준 도보 {place.walkingMinutes}분
+                    {place.stationName} 도보 {place.walkingMinutes}분
                   </p>
                 </div>
-
-                {selected && (
-                  <CheckCircle className="h-5 w-5 text-[var(--wf-accent)]" />
-                )}
+                {selected && <CheckCircle className="h-5 w-5 text-[var(--wf-accent)]" />}
               </button>
             )
           })}
@@ -247,24 +342,23 @@ export default function Step5PlaceList() {
                   setSelectedPlace(place.id)
                   setShowVoteModal(false)
                 }}
-                className={[
-                  'flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition',
-                  'border',
+                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 border-4 ${
                   selected
                     ? 'border-[var(--wf-accent)] bg-[var(--wf-highlight-soft)]'
-                    : 'border-[var(--wf-border)] hover:bg-[var(--wf-muted)]',
-                ].join(' ')}
+                    : 'border-[var(--wf-border)] bg-[var(--wf-surface)]'
+                }`}
               >
-                <Icon className="h-5 w-5 text-[var(--wf-accent)]" />
-                <div className="flex-1">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--wf-muted)]">
+                  <Icon className="h-8 w-8 text-[var(--wf-accent)]" />
+                </div>
+                <div className="flex-1 text-left">
                   <p className="text-sm font-semibold">{place.name}</p>
                   <p className="text-xs text-[var(--wf-subtle)]">
                     {place.stationName} 도보 {place.walkingMinutes}분
                   </p>
                 </div>
-
                 {selected && (
-                  <CheckCircle className="h-4 w-4 text-[var(--wf-accent)]" />
+                  <CheckCircle className="h-5 w-5 text-[var(--wf-accent)]" />
                 )}
               </button>
             )
@@ -273,15 +367,13 @@ export default function Step5PlaceList() {
       </WireframeModal>
 
       {/* ================= 확정 ================= */}
-      {isLeader && (
-        <button
-          disabled={!selectedPlace}
-          onClick={() => router.push('/meetings/meeting-001/complete')}
-          className="w-full rounded-2xl bg-[var(--wf-highlight)] py-4 text-base font-semibold disabled:opacity-40"
-        >
-          추천 장소 확정
-        </button>
-      )}
+      <button
+        disabled={!selectedPlace}
+        onClick={() => router.push('/meetings/meeting-001/complete')}
+        className="w-full rounded-2xl bg-[var(--wf-highlight)] py-4 text-base font-semibold disabled:opacity-40"
+      >
+        추천 장소 확정
+      </button>
     </div>
   )
 }
