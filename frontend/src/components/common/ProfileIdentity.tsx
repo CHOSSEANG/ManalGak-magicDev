@@ -34,7 +34,6 @@ export default function ProfileIdentity({
     >
       <ProfileAvatar
         src={src}
-        name={name}
         isLoading={isLoading}
         size={size}
         shape={shape}
