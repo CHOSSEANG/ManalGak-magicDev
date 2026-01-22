@@ -1,8 +1,8 @@
 // src/components/layout/HamburgerMenu.tsx
 'use client'
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import ProfileIdentity from '@/components/common/ProfileIdentity'
+import Image from "next/image";
+import { useUser } from "@/context/UserContext"
 
 import {
   Calendar,
@@ -22,11 +22,6 @@ interface HamburgerMenuProps {
   onClose: () => void
 }
 
-interface User {
-  name: string
-  profileImage?: string
-}
-
 const MY_MENUS = [{ label: '내 모임', href: '/meetings/new', icon: Calendar }]
 const MENUS = [
   { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: SquareMousePointer },
@@ -38,54 +33,13 @@ const EXTRA_MENUS = [
   { label: '지도 서비스', href: '/meetings/meeting-001/option-location', icon: LocateFixed },
   { label: '회비 계산기', href: '/meetings/meeting-001/option-fee', icon: Calculator },
 ]
-
-const ABOUT_MENUS = [
-  { label: '만날각 소개', href: '/about', icon: BookA },
-]
+const ABOUT_MENUS = [{ label: '만날각 소개', href: '/about', icon: BookA }]
 
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-
-  // 메뉴 열릴 때 캐시 확인 후 즉시 UI 반영, 없으면 fetch
-  useEffect(() => {
-    if (!isOpen) return
-
-    const cachedUser = localStorage.getItem('user')
-    if (cachedUser) {
-      setUser(JSON.parse(cachedUser)) // 즉시 UI 반영
-      return
-    }
-
-    setIsLoading(true)
-    const fetchMe = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`, {
-          method: 'GET',
-          credentials: 'include',
-        })
-        if (!res.ok) throw new Error('not logged in')
-
-        const json = await res.json()
-        const userData = {
-          name: json.data.nickname,
-          profileImage: json.data.profileImageUrl,
-        }
-        setUser(userData)
-        localStorage.setItem('user', JSON.stringify(userData))
-      } catch{
-        setUser(null)
-        localStorage.removeItem('user')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchMe()
-  }, [isOpen])
-
+  const { user, setUser } = useUser()
   const isLoggedIn = !!user
+  const isLoading = user === null // Context가 아직 로딩 중이면 true
 
   const handleNavigate = (href: string) => {
     router.push(href)
@@ -98,12 +52,10 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
         method: 'GET',
         credentials: 'include',
       })
-    } catch {
-      console.error('로그아웃 API 실패')
+    } catch (err: unknown) {
+      console.error('로그아웃 API 실패', err)
     } finally {
-      setUser(null)
-      localStorage.removeItem('user')
-      localStorage.removeItem('accessToken')
+      setUser(null) // 이제 안전하게 null 가능
       onClose()
       router.replace('/')
     }
@@ -114,43 +66,54 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   return (
     <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose}>
       <aside
-        className="fixed left-0 top-0 h-full w-[50%] min-w-sm max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
+        className="fixed left-0 top-0 h-full w-[50%] max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Profile */}
         <nav className="space-y-1">
           <div
             onClick={() => handleNavigate(isLoggedIn ? '/my' : '/')}
-            className="flex cursor-pointer items-center rounded-xl p-2 transition hover:bg-[var(--wf-accent)]"
+            className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)]"
           >
-            <ProfileIdentity
-              src={user?.profileImage}
-              name={user?.name}
-              isLoading={isLoading}
-              layout="row"      // 이름 옆
-              size={48}
-              shape="square"
-            />
+            <div className="h-12 w-12 rounded-full bg-[var(--wf-accent)] flex items-center justify-center overflow-hidden border">
+              {isLoading ? (
+                <div className="h-full w-full bg-gray-300 animate-pulse rounded-full" />
+              ) : user?.profileImage ? (
+                <Image 
+                  src={user.profileImage}
+                    alt="프로필 이미지"
+                    width={48}
+                    height={48}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-sm font-semibold text-white">
+                  {user?.name?.[0] ?? '?'}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col">
+              <p className="text-base font-semibold">
+                {isLoading ? '...' : user?.name ?? '로그인 필요'}
+              </p>
+            </div>
           </div>
 
-          {/* 로그인 후 MY_MENUS */}
-          {!isLoading &&
-            isLoggedIn &&
-            MY_MENUS.map(({ label, href, icon: Icon }) => (
-              <button
-                key={href}
-                onClick={() => handleNavigate(href)}
-                className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-highlight-soft)]"
-              >
-                <div className="flex items-center gap-4">
-                  <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
-                  <span>{label}</span>
-                </div>
-                <ChevronRight className="h-4 w-4 opacity-40" />
-              </button>
-            ))}
+          {isLoggedIn && MY_MENUS.map(({ label, href, icon: Icon }) => (
+            <button
+              key={href}
+              onClick={() => handleNavigate(href)}
+              className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-highlight-soft)]"
+            >
+              <div className="flex items-center gap-4">
+                <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
+                <span>{label}</span>
+              </div>
+              <ChevronRight className="h-4 w-4 opacity-40" />
+            </button>
+          ))}
         </nav>
-
 
         <div className="my-4 border-t" />
 
@@ -214,7 +177,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
 
         {/* Bottom Button */}
         <div className="mt-auto pt-6">
-          {!isLoading && isLoggedIn ? (
+          {isLoggedIn ? (
             <button
               onClick={handleLogout}
               className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]"
