@@ -7,16 +7,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Image from "next/image";
+import { useUser } from "@/context/UserContext"; // 🔥 추가
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 
 /** ===== 타입 ===== */
-interface User {
-  name: string;
-  profileImage?: string;
-}
-
 interface Bookmark {
   id: number; // userAddressId (신규는 0)
   label: string; // category
@@ -33,7 +29,7 @@ interface MeetingItem {
   };
 }
 
-/** 🔥 주소 API 응답 타입 (any 제거) */
+/** 🔥 주소 API 응답 타입 */
 interface UserAddressResponse {
   id: number;
   category: string;
@@ -46,14 +42,13 @@ export default function MyPage() {
   const router = useRouter();
 
   /** ===== 로그인 사용자 ===== */
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useUser(); // 🔥 Context에서 가져오기
 
   /** ===== 주소 북마크 ===== */
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
 
   /** ===== 주소 검색 ===== */
-  const [activeBookmarkIndex, setActiveBookmarkIndex] =
-    useState<number | null>(null);
+  const [activeBookmarkIndex, setActiveBookmarkIndex] = useState<number | null>(null);
   const [searchAddressOpen, setSearchAddressOpen] = useState(false);
 
   /** ===== 모임 ===== */
@@ -63,11 +58,6 @@ export default function MyPage() {
 
   /** ===== 초기 로드 ===== */
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-
     fetchAddresses();
     fetchMeetings(0);
   }, []);
@@ -113,11 +103,9 @@ export default function MyPage() {
     };
 
     if (target.id !== 0) {
-      await axios.patch(
-        `${API_BASE_URL}/v1/addresses/${target.id}`,
-        payload,
-        { withCredentials: true }
-      );
+      await axios.patch(`${API_BASE_URL}/v1/addresses/${target.id}`, payload, {
+        withCredentials: true,
+      });
     } else {
       await axios.post(`${API_BASE_URL}/v1/addresses`, payload, {
         withCredentials: true,
@@ -137,10 +125,9 @@ export default function MyPage() {
 
   /** ===== 모임 조회 (페이징) ===== */
   const fetchMeetings = async (pageNum: number) => {
-    const res = await axios.get(
-      `${API_BASE_URL}/v1/meetings/user?page=${pageNum}`,
-      { withCredentials: true }
-    );
+    const res = await axios.get(`${API_BASE_URL}/v1/meetings/user?page=${pageNum}`, {
+      withCredentials: true,
+    });
 
     const data = res.data.data;
 
@@ -152,10 +139,7 @@ export default function MyPage() {
   /** ===== 로그아웃 ===== */
   const handleAuthButton = async () => {
     if (user) {
-      await axios.get(`${API_BASE_URL}/auth/logout`, {
-        withCredentials: true,
-      });
-      localStorage.removeItem("user");
+      await axios.get(`${API_BASE_URL}/auth/logout`, { withCredentials: true });
     }
     router.replace("/");
   };
