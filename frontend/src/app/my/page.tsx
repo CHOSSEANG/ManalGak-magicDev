@@ -1,12 +1,14 @@
+// src/pages/my/page.tsx
 "use client";
 
 import StepCard from "@/components/meeting/StepCard";
 import WireframeModal from "@/components/ui/WireframeModal";
 import AddressSearch from "@/components/map/AddressSearch";
+import ProfileIdentity from "@/components/common/ProfileIdentity";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import Image from "next/image";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
@@ -18,8 +20,8 @@ interface User {
 }
 
 interface Bookmark {
-  id: number; // userAddressId (신규는 0)
-  label: string; // category
+  id: number;
+  label: string;
   address: string;
   latitude?: number;
   longitude?: number;
@@ -33,7 +35,6 @@ interface MeetingItem {
   };
 }
 
-/** 🔥 주소 API 응답 타입 (any 제거) */
 interface UserAddressResponse {
   id: number;
   category: string;
@@ -72,7 +73,7 @@ export default function MyPage() {
     fetchMeetings(0);
   }, []);
 
-  /** ===== 주소 조회 (항상 3개 유지) ===== */
+  /** ===== 주소 조회 ===== */
   const fetchAddresses = async () => {
     const res = await axios.get(`${API_BASE_URL}/v1/addresses/user`, {
       withCredentials: true,
@@ -89,7 +90,6 @@ export default function MyPage() {
       isEditing: false,
     }));
 
-    // 🔥 항상 3칸 유지
     const filled: Bookmark[] = [
       ...mapped,
       ...Array.from({ length: 3 - mapped.length }).map(() => ({
@@ -135,7 +135,7 @@ export default function MyPage() {
     fetchAddresses();
   };
 
-  /** ===== 모임 조회 (페이징) ===== */
+  /** ===== 모임 조회 ===== */
   const fetchMeetings = async (pageNum: number) => {
     const res = await axios.get(
       `${API_BASE_URL}/v1/meetings/user?page=${pageNum}`,
@@ -173,26 +173,20 @@ export default function MyPage() {
 
         {/* ===== Profile ===== */}
         <StepCard>
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full overflow-hidden border bg-[var(--wf-muted)] flex items-center justify-center">
-              {user?.profileImage ? (
-              <Image 
-                  src={user.profileImage}
-                    alt="프로필 이미지"
-                    width={48}
-                    height={48}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-lg font-semibold">
-                  {user?.name?.[0] ?? "?"}
-                </span>
-              )}
-            </div>
-            <p className="text-base font-semibold">
-              {user?.name ?? "로그인이 필요합니다"}
-            </p>
-          </div>
+          <ProfileIdentity
+            src={user?.profileImage}
+            name={user?.name}
+            layout="row"
+            size={64}
+            shape="square"
+          />
+          <button
+          type="button"
+          onClick={handleAuthButton}
+          className="rounded-2xl bg-[var(--wf-highlight)] px-6 py-4 text-sm font-semibold"
+        >
+          {user ? "로그아웃" : "로그인"}
+        </button>
         </StepCard>
 
         {/* ===== Bookmark ===== */}
@@ -224,7 +218,7 @@ export default function MyPage() {
                     setActiveBookmarkIndex(index);
                     setSearchAddressOpen(true);
                   }}
-                  className={`flex-1 rounded-md border px-3 py-2 text-left text-sm disabled:bg-[var(--wf-muted)]`}
+                  className="flex-1 rounded-md border px-3 py-2 text-left text-sm disabled:bg-[var(--wf-muted)]"
                 >
                   {item.address || "주소 검색"}
                 </button>
@@ -297,13 +291,7 @@ export default function MyPage() {
           </StepCard>
         </section>
 
-        <button
-          type="button"
-          onClick={handleAuthButton}
-          className="w-full rounded-2xl bg-[var(--wf-highlight)] px-6 py-4 text-sm font-semibold"
-        >
-          {user ? "로그아웃" : "로그인"}
-        </button>
+        
       </main>
 
       <WireframeModal
