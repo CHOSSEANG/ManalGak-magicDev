@@ -22,7 +22,7 @@ export default function MemberSummaryGrid({ members }: Props) {
             key={member.id}
             className={`flex h-16 w-16 flex-col items-center justify-center rounded-xl border border-[var(--wf-border)]
               ${
-                member.status === "confirmed"
+                member.status === "CONFIRMED"
                   ? "bg-[var(--wf-accent)]"
                   : "bg-[var(--wf-surface)]"
               }`}
