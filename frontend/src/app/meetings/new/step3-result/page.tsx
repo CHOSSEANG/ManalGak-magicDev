@@ -1,8 +1,7 @@
-// src/app/meetings/new/step5-place/page.tsx
-"use client";
-
+// src/app/meetings/new/step3-result/page.tsx
+import { Suspense } from "react";
 import StepNavigation from "@/components/layout/StepNavigation";
-import Step5PlaceList from "@/components/meeting/Step3/Step3PlaceList";
+import Step3PlaceList from "@/components/meeting/Step3/Step3PlaceList";
 
 export default function Step3Page() {
   return (
@@ -17,7 +16,10 @@ export default function Step3Page() {
           </p>
         </div>
 
-        <Step5PlaceList />
+        {/* ✅ 여기 */}
+        <Suspense fallback={null}>
+          <Step3PlaceList />
+        </Suspense>
       </main>
 
       <StepNavigation

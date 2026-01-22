@@ -1,4 +1,4 @@
-// src/components/meeting/Step5PlaceList.tsx
+// src/components/meeting/Step3PlaceList.tsx
 'use client'
 // 진행 필요  1/22 율 메모 
 // 장소 확정 API (POST)
