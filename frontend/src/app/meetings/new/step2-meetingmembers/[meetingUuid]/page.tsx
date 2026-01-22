@@ -94,7 +94,7 @@ export default function Step3MembersPage(): JSX.Element {
   const { user } = useUser();
 
     // 배열 처리 + undefined 처리
-    const meetingUuidSafe = Array.isArray(meetingUuidParam)
+    const meetingUuid = Array.isArray(meetingUuidParam)
       ? meetingUuidParam[0]
       : meetingUuidParam;
 
@@ -102,14 +102,14 @@ export default function Step3MembersPage(): JSX.Element {
 
   /** 모임 조회 + 없으면 participant 생성 */
   useEffect(() => {
-    if (!user || joinedRef.current) return;
+    if (!user || !meetingUuid|| joinedRef.current) return;
     joinedRef.current = true;
 
     const fetchMeeting = async (): Promise<void> => {
       try {
         setIsLoading(true);
         const res = await axios.get<ApiResponse>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuidSafe}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}`,
           { withCredentials: true }
         );
 
@@ -127,13 +127,13 @@ export default function Step3MembersPage(): JSX.Element {
         } else {
           try {
             await axios.post(
-              `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuidSafe}/participants`,
+              `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants`,
               null,
               { withCredentials: true }
             );
 
             const resAfter = await axios.get<ApiResponse>(
-              `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuidSafe}`,
+              `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}`,
               { withCredentials: true }
             );
 
@@ -154,9 +154,9 @@ export default function Step3MembersPage(): JSX.Element {
     };
 
     void fetchMeeting();
-  }, [meetingUuidSafe, user]);
+  }, [meetingUuid, user]);
  // meetingUuid 없으면 바로 return (Hook 호출 전)
-    if (!meetingUuidSafe) {
+    if (!meetingUuid) {
       return <p>모임 정보를 불러오는 중입니다...</p>;
     }
   if (!user) return <p>로그인 정보를 불러오는 중...</p>;
@@ -198,7 +198,7 @@ export default function Step3MembersPage(): JSX.Element {
         )}
 
         <MemberList
-          meetingUuid={meetingUuidSafe}
+          meetingUuid={meetingUuid}
           userId={user.id}
           onMyParticipantResolved={(id) => {
             if (!myParticipantId) setMyParticipantId(id);
@@ -207,8 +207,8 @@ export default function Step3MembersPage(): JSX.Element {
       </main>
 
       <StepNavigation
-        prevHref={`/meetings/new/step1-basic/${meetingUuidSafe}`}
-        nextHref={`/meetings/new/step3-result/${meetingUuidSafe}`}
+        prevHref={`/meetings/new/step1-basic/${meetingUuid}`}
+        nextHref={`/meetings/new/step3-result/${meetingUuid}`}
         onNext={async () => {
           if (!myParticipantId) {
             alert("참여자 정보가 아직 준비되지 않았어요.");
@@ -221,7 +221,7 @@ export default function Step3MembersPage(): JSX.Element {
           }
 
           await axios.patch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuidSafe}/participants/${myParticipantId}`,
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants/${myParticipantId}`,
             {
               type: transport,
               originAddress,
