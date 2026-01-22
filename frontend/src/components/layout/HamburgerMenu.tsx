@@ -2,7 +2,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from "next/image";
+import ProfileIdentity from '@/components/common/ProfileIdentity'
 
 import {
   Calendar,
@@ -114,38 +114,23 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   return (
     <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose}>
       <aside
-        className="fixed left-0 top-0 h-full w-[50%] max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
+        className="fixed left-0 top-0 h-full w-[50%] min-w-sm max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Profile */}
         <nav className="space-y-1">
           <div
             onClick={() => handleNavigate(isLoggedIn ? '/my' : '/')}
-            className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)]"
+            className="flex cursor-pointer items-center rounded-xl p-2 transition hover:bg-[var(--wf-accent)]"
           >
-            <div className="h-12 w-12 rounded-full bg-[var(--wf-accent)] flex items-center justify-center overflow-hidden border">
-              {isLoading ? (
-                <div className="h-full w-full bg-gray-300 animate-pulse rounded-full" />
-              ) : user?.profileImage ? (
-                <Image 
-                  src={user.profileImage}
-                    alt="프로필 이미지"
-                    width={48}
-                    height={48}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-sm font-semibold text-white">
-                  {user?.name?.[0] ?? '?'}
-                </span>
-              )}
-            </div>
-
-            <div className="flex flex-col">
-              <p className="text-base font-semibold">
-                {isLoading ? '...' : user?.name ?? '로그인 필요'}
-              </p>
-            </div>
+            <ProfileIdentity
+              src={user?.profileImage}
+              name={user?.name}
+              isLoading={isLoading}
+              layout="row"      // 이름 옆
+              size={48}
+              shape="square"
+            />
           </div>
 
           {/* 로그인 후 MY_MENUS */}
@@ -165,6 +150,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               </button>
             ))}
         </nav>
+
 
         <div className="my-4 border-t" />
 
