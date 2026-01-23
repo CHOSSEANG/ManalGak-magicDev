@@ -5,8 +5,8 @@ import axios from "axios"
 import { useRouter } from "next/navigation"
 import StepNavigation from "@/components/layout/StepNavigation"
 import StepCard from "@/components/meeting/StepCard"
-import { useMeetingStore } from "@/stores/meetingDraft.store"   // 추가
-import { Meeting } from "@/stores/meetingDraft.store"
+import { useUser } from "@/context/UserContext"
+
 interface PageInfo {
   totalElements: number
   totalPages: number
@@ -16,6 +16,20 @@ interface PageInfo {
   last: boolean
   empty: boolean
 }
+
+interface Meeting {
+  meetingUuid?: string
+  meetingName: string
+  meetingTime: string
+  organizerId: number
+  totalParticipants: number
+  participants: Array<{
+    destination?: {
+      address?: string
+    }
+  }>
+}
+
 interface MeetingItem {
   meeting: Meeting
 }
@@ -24,29 +38,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8
 
 export default function CreateEntryPage() {
   const router = useRouter()
+  const { user } = useUser() // UserContext에서 사용자 정보 가져오기
   const [existingMeetings, setExistingMeetings] = useState<MeetingItem[]>([])
   const [pageInfo, setPageInfo] = useState<PageInfo | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null)
-  const setMeetingData = useMeetingStore((state) => state.setMeetingData) // 추가
-
-  // 현재 사용자 정보 가져오기
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
-        credentials: 'include',
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setCurrentUserId(data.userId || data.data?.userId || data.id)
-      }
-    } catch (err) {
-      console.error("사용자 정보 불러오기 실패", err)
-    }
-  }
 
   const fetchMeetings = async (page: number, append: boolean = false) => {
     try {
@@ -84,7 +82,6 @@ export default function CreateEntryPage() {
   }
 
   useEffect(() => {
-    fetchCurrentUser()
     fetchMeetings(0)
   }, [])
 
@@ -94,30 +91,15 @@ export default function CreateEntryPage() {
     fetchMeetings(nextPage, true)
   }
 
-  const handleEdit = async (meetingUuid: string, organizerId: number) => {
-    if (currentUserId !== organizerId) {
+  // ✅ URL 방식으로 단순화
+  const handleEdit = (meetingUuid: string, organizerId: number) => {
+    if (user?.id !== organizerId) {
       alert("모임장이 아닙니다.")
       return
     }
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/v1/meetings/${meetingUuid}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setMeetingData(data.data) // ✅ 글로벌 상태에 저장
-        router.push(`/meetings/new/step1-basic`) // 데이터 스토어로 스텝1 이동
-      } else {
-        alert("모임 정보를 불러오는데 실패했습니다.")
-      }
-    } catch (err) {
-      console.error("모임 정보 불러오기 실패", err)
-      alert("모임 정보를 불러오는데 실패했습니다.")
-    }
+    // meetingUuid만 전달 (Step1에서 조회)
+    router.push(`/meetings/new/step1-basic?meetingUuid=${meetingUuid}`)
   }
 
   const handleCopy = async (meetingUuid: string) => {
@@ -129,7 +111,15 @@ export default function CreateEntryPage() {
       })
 
       if (response.ok) {
-        router.push('/meetings/new/step1-basic')
+        const data = await response.json()
+        const copiedMeetingUuid =  data.data?.meeting?.meetingUuid;
+
+        if (copiedMeetingUuid) {
+          // 복사된 모임의 UUID로 이동
+          router.push(`/meetings/new/step1-basic?meetingUuid=${copiedMeetingUuid}`)
+        } else {
+          router.push('/meetings/new/step1-basic')
+        }
       } else {
         alert("모임 복사에 실패했습니다.")
       }
@@ -149,7 +139,9 @@ const formatDateTime = (dateString: string) => {
   return `${y}.${m}.${d} ${hh}:${mm}`
 }
 
-
+  const uniqueMeetings = Array.from(
+    new Map(existingMeetings.map(item => [item.meeting.meetingUuid, item])).values()
+  );
   return (
     <>
       <main className="space-y-6 pb-28">
@@ -171,19 +163,19 @@ const formatDateTime = (dateString: string) => {
               <div className="text-center py-8 text-sm text-[var(--wf-subtle)]">불러오는 중...</div>
             ) : error ? (
               <div className="text-center py-8 text-sm text-red-500">{error}</div>
-            ) : existingMeetings.length === 0 ? (
+            ) : uniqueMeetings.length === 0 ? (
               <div className="text-center py-8 text-sm text-[var(--wf-subtle)]">아직 생성된 모임이 없습니다.</div>
             ) : (
               <>
                 <div className="space-y-3">
-                  {existingMeetings.map((item, index) => {
+                  {uniqueMeetings.map((item, index) => {
                     const { meeting } = item
                     const place = meeting.participants[0]?.destination?.address || "장소 미정"
-                    const isOrganizer = currentUserId === meeting.organizerId
+                    const isOrganizer = user?.id === meeting.organizerId
 
                     return (
                       <div
-                        key={meeting.meetingUuid || `meeting-${meeting.organizerId}-${index}`}
+                        key={meeting.meetingUuid ?? `meeting-${meeting.organizerId}-${meeting.meetingTime}-${index}`}
                         className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-4 space-y-2"
                       >
                         <div className="flex justify-between gap-4">
@@ -195,14 +187,19 @@ const formatDateTime = (dateString: string) => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(meeting.meetingUuid!, meeting.organizerId)}
+                              disabled={!isOrganizer}
                               className={`rounded-lg px-3 py-1 text-xs font-medium text-white transition-opacity ${
                                 isOrganizer ? 'bg-[var(--wf-accent)] hover:opacity-90' : 'bg-gray-400 cursor-not-allowed'
                               }`}
-                            >수정</button>
+                            >
+                              수정
+                            </button>
                             <button
                               onClick={() => handleCopy(meeting.meetingUuid!)}
                               className="rounded-lg bg-[var(--wf-accent)] px-3 py-1 text-xs font-medium text-white hover:opacity-90 transition-opacity"
-                            >복사</button>
+                            >
+                              복사
+                            </button>
                           </div>
                         </div>
                         <p className="text-xs text-[var(--wf-subtle)]">{place}</p>
@@ -220,7 +217,7 @@ const formatDateTime = (dateString: string) => {
                     >
                       {isLoadingMore ? "불러오는 중..." : "더보기"}
                     </button>
-                    <p className="text-center text-xs text-[var(--wf-subtle)] mt-2">{existingMeetings.length} / {pageInfo.totalElements}개</p>
+                    <p className="text-center text-xs text-[var(--wf-subtle)] mt-2">{uniqueMeetings.length} / {pageInfo.totalElements}개</p>
                   </div>
                 )}
               </>
@@ -229,7 +226,10 @@ const formatDateTime = (dateString: string) => {
         </section>
       </main>
 
-      <StepNavigation prevHref="/auth/kakao/callback" nextHref="/meetings/new/step1-basic" />
+      <StepNavigation
+        prevHref="/auth/kakao/callback"
+        nextHref="/meetings/new/step1-basic"
+      />
     </>
   )
 }
