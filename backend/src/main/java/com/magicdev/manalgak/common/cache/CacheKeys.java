@@ -29,6 +29,20 @@ public class CacheKeys {
     }
 
     /**
+     * 중간지점 기반 장소 목록 캐시 키 생성
+     * 형식: places:meeting:{meetingUuid}:midpoint:{purpose}:{limit}
+     *
+     * @param meetingUuid 모임 UUID
+     * @param purpose     모임 목적 (DINING, CAFE, CULTURE, TOUR)
+     * @param limit       반환할 장소 수
+     * @return 캐시 키 (예: places:meeting:abc-123:midpoint:DINING:10)
+     */
+    public static String placesKeyByMidpoint(String meetingUuid, String purpose, int limit) {
+        return String.format("places:meeting:%s:midpoint:%s:%d",
+                meetingUuid, purpose, limit);
+    }
+
+    /**
      * 특정 후보지의 모든 장소 캐시 패턴
      * 형식: *:candidate:{candidateId}:*
      *
