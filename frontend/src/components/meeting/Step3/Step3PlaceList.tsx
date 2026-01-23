@@ -67,6 +67,17 @@ interface RecommendedPlace {
   stationName: string
   walkingMinutes: number
   icon: LucideIcon
+  // 백엔드 추가 필드
+  placeId?: string
+  categoryGroupCode?: string
+  categoryGroupName?: string
+  address?: string
+  roadAddress?: string
+  latitude?: number
+  longitude?: number
+  distance?: number
+  phone?: string
+  placeUrl?: string
 }
 
 interface MiddlePoint {
@@ -122,6 +133,7 @@ const rawPlaces: Omit<RecommendedPlace, 'icon'>[] = [
   { id: 'p3', name: '추천 식당 B', category: 'restaurant', stationName: '종로3가역', walkingMinutes: 10 },
   { id: 'p4', name: '추천 전시관', category: 'culture', stationName: '을지로3가역', walkingMinutes: 12 },
   { id: 'p5', name: '추천 명소', category: 'tour', stationName: '명동역', walkingMinutes: 15 },
+  { id: 'p6', name: '추천 카페 B', category: 'cafe', stationName: '시청역', walkingMinutes: 8 },
 ]
 
 /* ================= 컴포넌트 ================= */
@@ -139,6 +151,7 @@ export default function Step5PlaceList() {
   const [middlePoint, setMiddlePoint] = useState<MiddlePoint | null>(null)
   const [placeSource, setPlaceSource] =
     useState<Omit<RecommendedPlace, 'icon'>[]>(rawPlaces)
+  const [isConfirming, setIsConfirming] = useState(false)
 
   /* ================= 내 정보 ================= */
 
@@ -170,60 +183,70 @@ export default function Step5PlaceList() {
       .catch(() => setParticipants([]))
   }, [meetingUuid, me?.userId])
 
-  /* ================= 중간지점 API ================= */
+  /* ================= 추천장소 + 중간지점 통합 API ================= */
   /**
-   * 1순위 API
-   * - middle-point → result 순으로 fallback
+   * /places API 응답에서 추천장소 + 중간지점 모두 추출
+   * - 실패 시 FE 더미 유지 + 기존 middle-point API 폴백
    */
   useEffect(() => {
     if (!meetingUuid) return
 
-    const fetchMiddlePoint = async () => {
+    const fetchPlacesAndMidpoint = async () => {
       try {
         const res = await axios.get(
-          `${API_BASE_URL}/v1/meetings/${meetingUuid}/middle-point`,
+          `${API_BASE_URL}/v1/meetings/${meetingUuid}/places`,
           { withCredentials: true }
         )
-        if (res.data?.lat && res.data?.lng) {
-          setMiddlePoint(res.data)
-          return
-        }
-      } catch {}
 
-      try {
-        const res = await axios.get(
-          `${API_BASE_URL}/v1/meetings/${meetingUuid}/result`,
-          { withCredentials: true }
-        )
-        if (res.data?.lat && res.data?.lng) {
-          setMiddlePoint(res.data)
+        const data = res.data?.data
+        const apiPlaces = data?.places ?? []
+        const apiMidpoint = data?.midpoint
+
+        // 중간지점 설정
+        if (apiMidpoint?.latitude && apiMidpoint?.longitude) {
+          setMiddlePoint({
+            lat: apiMidpoint.latitude,
+            lng: apiMidpoint.longitude,
+            stationName: apiMidpoint.stationName,
+          })
         }
-      } catch {}
+
+        // 추천장소 설정 (6개 이상일 때만 교체)
+        if (apiPlaces.length >= 6) {
+          setPlaceSource(apiPlaces.slice(0, 6).map((p: Record<string, unknown>) => ({
+            id: p.placeId as string,
+            name: p.placeName as string,
+            category: (p.category as PlaceCategory) || 'restaurant',
+            stationName: (p.stationName as string) || '중간지점',
+            walkingMinutes: (p.walkingMinutes as number) || 0,
+            // 장소 확정 API에 필요한 추가 필드
+            placeId: p.placeId as string,
+            categoryGroupCode: p.categoryGroupCode as string,
+            categoryGroupName: p.categoryGroupName as string,
+            address: p.address as string,
+            roadAddress: p.roadAddress as string,
+            latitude: p.latitude as number,
+            longitude: p.longitude as number,
+            distance: p.distance as number,
+            phone: p.phone as string,
+            placeUrl: p.placeUrl as string,
+          })))
+        }
+      } catch {
+        // places API 실패 시 기존 middle-point API 폴백
+        try {
+          const res = await axios.get(
+            `${API_BASE_URL}/v1/meetings/${meetingUuid}/middle-point`,
+            { withCredentials: true }
+          )
+          if (res.data?.lat && res.data?.lng) {
+            setMiddlePoint(res.data)
+          }
+        } catch {}
+      }
     }
 
-    fetchMiddlePoint()
-  }, [meetingUuid])
-
-  /* ================= 추천장소 API (읽기 전용) ================= */
-  /**
-   * 2순위 API
-   * - 5개 이상일 때만 교체
-   * - 실패 시 FE 더미 유지
-   */
-  useEffect(() => {
-    if (!meetingUuid) return
-
-    axios
-      .get(`${API_BASE_URL}/v1/meetings/${meetingUuid}/places`, {
-        withCredentials: true,
-      })
-      .then((res) => {
-        const list = res.data?.data ?? []
-        if (list.length >= 5) {
-          setPlaceSource(list.slice(0, 5))
-        }
-      })
-      .catch(() => {})
+    fetchPlacesAndMidpoint()
   }, [meetingUuid])
 
   /* ================= 추천 장소 (아이콘 주입) ================= */
@@ -240,6 +263,43 @@ export default function Step5PlaceList() {
   const mapMarkers = middlePoint
     ? [{ lat: middlePoint.lat, lng: middlePoint.lng }]
     : [{ lat: 37.563617, lng: 126.997628 }]
+
+  /* ================= 장소 확정 핸들러 ================= */
+  const handleConfirmPlace = async () => {
+    if (!selectedPlace || !meetingUuid) return
+
+    const selected = recommendedPlaces.find((p) => p.id === selectedPlace)
+    if (!selected) return
+
+    setIsConfirming(true)
+    try {
+      await axios.post(
+        `${API_BASE_URL}/v1/meetings/${meetingUuid}/place/select`,
+        {
+          placeId: selected.placeId || selected.id,
+          placeName: selected.name,
+          category: selected.category,
+          categoryGroupCode: selected.categoryGroupCode,
+          categoryGroupName: selected.categoryGroupName,
+          address: selected.address,
+          roadAddress: selected.roadAddress,
+          latitude: selected.latitude,
+          longitude: selected.longitude,
+          distance: selected.distance,
+          walkingMinutes: selected.walkingMinutes,
+          phone: selected.phone,
+          placeUrl: selected.placeUrl,
+        },
+        { withCredentials: true }
+      )
+      router.push(`/meetings/${meetingUuid}/complete`)
+    } catch (err) {
+      console.error('장소 확정 실패:', err)
+      alert('장소 확정에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setIsConfirming(false)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -368,11 +428,11 @@ export default function Step5PlaceList() {
 
       {/* ================= 확정 ================= */}
       <button
-        disabled={!selectedPlace}
-        onClick={() => router.push('/meetings/meeting-001/complete')}
+        disabled={!selectedPlace || isConfirming}
+        onClick={handleConfirmPlace}
         className="w-full rounded-2xl bg-[var(--wf-highlight)] py-4 text-base font-semibold disabled:opacity-40"
       >
-        추천 장소 확정
+        {isConfirming ? '확정 중...' : '추천 장소 확정'}
       </button>
     </div>
   )
