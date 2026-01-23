@@ -253,7 +253,7 @@ export default function Step5PlaceList() {
         )
 
         const data = res.data?.data
-        const apiPlaces = data?.places ?? []
+        const apiPlaces: unknown[] = Array.isArray(data?.places) ? data.places : []
         const apiMidpoint = data?.midpoint
 
         // 중간지점 설정
