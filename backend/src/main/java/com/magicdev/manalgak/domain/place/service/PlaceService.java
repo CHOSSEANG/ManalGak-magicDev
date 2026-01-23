@@ -92,10 +92,11 @@ public class PlaceService {
                 limit
         );
 
-        // 5. 응답 변환
+        // 5. 응답 변환 (좌표가 null인 장소는 제외)
         List<PlaceResponse.Place> places = kakaoResponse.getDocuments()
                 .stream()
                 .map(doc -> convertToPlace(doc, frontCategory))
+                .filter(place -> place.getLatitude() != null && place.getLongitude() != null)
                 .collect(Collectors.toList());
 
         return PlaceResponse.builder()
@@ -142,10 +143,15 @@ public class PlaceService {
     }
 
     private Double parseDouble(String value) {
+        if (value == null || value.isBlank()) {
+            log.error("좌표 값이 비어있습니다: '{}'", value);
+            return null;
+        }
         try {
             return Double.parseDouble(value);
         } catch (NumberFormatException e) {
-            return 0.0;
+            log.error("좌표 파싱 실패 - 유효하지 않은 값: '{}'", value);
+            return null;
         }
     }
 
