@@ -1,16 +1,11 @@
-// 1/20 회의내용 반영
-
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useImperativeHandle, forwardRef, useEffect } from "react";
 import StepCard from "@/components/meeting/StepCard";
-
-
-// 아이콘 불러오기 1/20: 율 루시드 아이콘으로 변경 
 import { Utensils, Coffee, Film, Landmark } from "lucide-react";
+import axios from "axios";
 
-
-// -------------------- 유틸리티 함수 (기존 로직 이식) --------------------
+// -------------------- 유틸리티 함수 --------------------
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -37,7 +32,7 @@ function minutesFromHHMM(t: string) {
   return hh * 60 + mm;
 }
 
-// -------------------- 상수 데이터 (모임 목적) --------------------
+// -------------------- 상수 데이터 --------------------
 const purposeGroups = [
   {
     items: ["음식점", "카페", "문화시설", "관광명소"],
@@ -51,30 +46,104 @@ const purposeIconMap: Record<string, JSX.Element> = {
   관광명소: <Landmark size={18} />,
 };
 
-export default function Step1Form() {
+// purpose를 API 형식으로 변환 (저장용)
+const purposeToApiMap: Record<string, string> = {
+  음식점: "DINING",
+  카페: "CAFE",
+  문화시설: "CULTURE",
+  관광명소: "TOUR",
+};
+
+// API 형식을 화면 표시용으로 변환 (조회용)
+const apiToPurposeMap: Record<string, string> = {
+  DINING: "음식점",
+  CAFE: "카페",
+  CULTURE: "문화시설",
+  TOUR: "관광명소",
+};
+
+export interface Step1FormRef {
+  createOrUpdateMeeting: () => Promise<string | null>;
+  isValid: () => boolean;
+}
+
+interface Step1FormProps {
+  meetingUuid?: string; // optional: 있으면 수정 모드, 없으면 생성 모드
+}
+
+const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid }, ref) => {
   // --- 상태 관리 ---
-  // 1. 모임 정보
   const [meetingName, setMeetingName] = useState("");
-
-  // 2. 모임 목적
   const [selectedPurpose, setSelectedPurpose] = useState<string | null>(null);
-
-  // 3. 날짜
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [dateDraft, setDateDraft] = useState<string>(() => {
+  const [dateDraft, setDateDraft] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
   });
-
-  // 4. 시간
-  const [startTime, setStartTime] = useState<string | null>(null); // 필수
-  const [endTime, setEndTime] = useState<string | null>(null); // 선택
+  const [startTime, setStartTime] = useState<string | null>(null);
+  const [endTime, setEndTime] = useState<string | null>(null);
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const [startDraft, setStartDraft] = useState<string>("11:30");
   const [endDraft, setEndDraft] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // --- 메모이제이션 (표시 텍스트 계산) ---
+  // --- meetingUuid로 모임 정보 조회 (수정 모드) ---
+  useEffect(() => {
+    if (!meetingUuid) return;
+
+    const fetchMeetingData = async () => {
+      setIsLoading(true);
+      try {
+        console.log("📥 모임 정보 조회 중... meetingUuid:", meetingUuid);
+
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}`,
+          { withCredentials: true }
+        );
+
+        const data = response.data.data;
+        console.log("✅ 조회된 모임 정보:", data);
+
+        // 모임명
+        setMeetingName(data.meetingName || "");
+
+        // 모임 목적 (API 형식 → 화면 표시 형식)
+        if (data.purpose && apiToPurposeMap[data.purpose]) {
+          setSelectedPurpose(apiToPurposeMap[data.purpose]);
+        }
+
+        // 날짜 및 시간
+        if (data.meetingTime) {
+          const meetingDate = new Date(data.meetingTime);
+
+          // 날짜 설정
+          const dateOnly = new Date(meetingDate);
+          dateOnly.setHours(0, 0, 0, 0);
+          setSelectedDate(dateOnly);
+
+          // 시작 시간 설정
+          const hours = pad2(meetingDate.getHours());
+          const minutes = pad2(meetingDate.getMinutes());
+          setStartTime(`${hours}:${minutes}`);
+        }
+
+      } catch (err) {
+        console.error("❌ 모임 정보 조회 실패:", err);
+        if (axios.isAxiosError(err)) {
+          alert(`모임 정보를 불러오는데 실패했습니다.\n${err.response?.data?.error?.message || err.message}`);
+        } else {
+          alert("모임 정보를 불러오는데 실패했습니다.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMeetingData();
+  }, [meetingUuid]);
+
+  // --- 메모이제이션 ---
   const dateLabel = useMemo(() => {
     if (!selectedDate) return "날짜 선택";
     return formatSimpleDate(selectedDate);
@@ -98,21 +167,15 @@ export default function Step1Form() {
   // --- 핸들러 함수 ---
   const openCalendar = () => {
     const d = selectedDate ?? new Date();
-    setDateDraft(
-      `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
-    );
+    setDateDraft(`${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`);
     setIsCalendarOpen(true);
   };
 
   const confirmCalendar = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     const [yy, mm, dd] = dateDraft.split("-").map((v) => parseInt(v, 10));
     const picked = new Date(yy, mm - 1, dd);
     picked.setHours(0, 0, 0, 0);
 
-    // if (picked < today) return; // (옵션) 과거 날짜 방지 필요 시 주석 해제
     setSelectedDate(picked);
     setIsCalendarOpen(false);
   };
@@ -133,9 +196,110 @@ export default function Step1Form() {
     setIsTimeModalOpen(false);
   };
 
+  // --- 폼 유효성 검사 ---
+  const isValid = () => {
+    return !!(meetingName && selectedDate && startTime && selectedPurpose);
+  };
+
+  // --- 모임 생성 OR 수정 API ---
+  const createOrUpdateMeeting = async (): Promise<string | null> => {
+    if (!isValid()) {
+      alert("모든 필수 정보를 입력해주세요.");
+      return null;
+    }
+
+    try {
+      const [hh, mm] = startTime!.split(":");
+      const meetingDate = new Date(selectedDate!);
+      meetingDate.setHours(parseInt(hh, 10));
+      meetingDate.setMinutes(parseInt(mm, 10));
+      meetingDate.setSeconds(0);
+      meetingDate.setMilliseconds(0);
+
+      const payload = {
+        meetingName,
+        meetingTime: meetingDate.toISOString(),
+        purpose: purposeToApiMap[selectedPurpose!],
+      };
+
+      let resultMeetingUuid: string;
+
+      // meetingUuid가 있으면 수정(PATCH), 없으면 생성(POST)
+      if (meetingUuid) {
+        // 수정 모드
+        console.log("📝 모임 수정 중... meetingUuid:", meetingUuid);
+        console.log("📤 수정 payload:", JSON.stringify(payload, null, 2));
+
+        const response = await axios.patch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}`,
+          payload,
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          }
+        );
+
+        console.log("✅ 수정 성공:", response.data);
+        resultMeetingUuid = meetingUuid; // 수정 시에는 기존 meetingUuid 사용
+
+      } else {
+        // 생성 모드
+        console.log("✨ 모임 생성 중...");
+        console.log("📤 생성 payload:", JSON.stringify(payload, null, 2));
+
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings`,
+          payload,
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          }
+        );
+
+        console.log("✅ 생성 성공:", response.data);
+        resultMeetingUuid = response.data.data.meetingUuid;
+      }
+
+      return resultMeetingUuid;
+
+    } catch (err) {
+      const action = meetingUuid ? "수정" : "생성";
+      console.error(`❌ 모임 ${action} 실패:`, err);
+
+      if (axios.isAxiosError(err)) {
+        console.error("❌ 에러 응답:", err.response?.data);
+        console.error("❌ 에러 상태:", err.response?.status);
+        alert(`모임 ${action}에 실패했습니다.\n${err.response?.data?.error?.message || err.message}`);
+      } else {
+        console.error("❌ 예상치 못한 에러:", err);
+        alert(`모임 ${action}에 실패했습니다.`);
+      }
+      return null;
+    }
+  };
+
+  // ref를 통해 부모 컴포넌트에서 호출 가능하도록 노출
+  useImperativeHandle(ref, () => ({
+    createOrUpdateMeeting,
+    isValid,
+  }));
+
+  // 로딩 중일 때
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-gray-500">모임 정보를 불러오는 중...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
-      {/* 1. 모임 정보 (모임명 입력) */}
+      {/* 1. 모임 정보 */}
       <StepCard className="space-y-2">
         <div className="space-y-2">
           <p className="text-sm font-semibold text-black">모임 정보</p>
@@ -148,16 +312,13 @@ export default function Step1Form() {
           />
         </div>
 
-
-      {/* 2. 모임 목적 (컴팩트 버전) */}
-
+        {/* 2. 모임 목적 */}
         <div className="space-y-2">
           <p className="text-sm font-semibold text-black">모임 목적</p>
           <div className="space-y-3 pt-1">
             {purposeGroups.map((group, idx) => (
               <div key={idx} className="space-y-1">
-                {/* 직접 그리드 구현으로 높이/패딩 최소화 */}
-                <div className="grid gap-2  grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
+                <div className="grid gap-2 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
                   {group.items.map((item) => {
                     const isSelected = selectedPurpose === item;
                     return (
@@ -165,25 +326,16 @@ export default function Step1Form() {
                         key={item}
                         type="button"
                         onClick={() => setSelectedPurpose(item)}
-                        className={`flex items-center justify-center gap-2 border py-3 rounded-full  transition-all ${
+                        className={`flex items-center justify-center gap-2 border py-3 rounded-full transition-all ${
                           isSelected
                             ? "bg-[var(--wf-highlight)] text-black "
                             : "border-[var(--wf-border)] bg-white text-gray-600 hover:bg-gray-50"
-
                         }`}
                       >
-                        <div
-                          className={
-                            isSelected
-                              ? "text-[var(--wf-accent)]"
-                              : "text-gray-400"
-                          }
-                        >
+                        <div className={isSelected ? "text-[var(--wf-accent)]" : "text-gray-400"}>
                           {purposeIconMap[item]}
                         </div>
-                        <span className="text-[16px] font-medium leading-none">
-                          {item}
-                        </span>
+                        <span className="text-[16px] font-medium leading-none">{item}</span>
                       </button>
                     );
                   })}
@@ -194,12 +346,10 @@ export default function Step1Form() {
         </div>
       </StepCard>
 
-      {/* 3. 날짜 및 시간 (가로 배치 & 로직 연결) */}
+      {/* 3. 날짜 및 시간 */}
       <StepCard className="space-y-2">
         <p className="text-sm font-semibold text-black">날짜 및 시간</p>
-
         <div className="flex gap-2">
-          {/* 날짜 버튼 */}
           <div className="flex-1 flex flex-col gap-2">
             <button
               type="button"
@@ -207,15 +357,10 @@ export default function Step1Form() {
               className="flex w-full flex-col items-start gap-1 rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-4 py-3 text-left hover:bg-gray-50 transition-colors"
             >
               <span className="text-xs text-gray-500">날짜</span>
-              <span
-                className={`text-sm font-medium ${!selectedDate ? "text-gray-400" : ""}`}
-              >
-                {dateLabel}
-              </span>
+              <span className={`text-sm font-medium ${!selectedDate ? "text-gray-400" : ""}`}>{dateLabel}</span>
             </button>
           </div>
 
-          {/* 시간 버튼 */}
           <div className="flex-1 flex flex-col gap-2">
             <button
               type="button"
@@ -223,11 +368,7 @@ export default function Step1Form() {
               className="flex w-full flex-col items-start gap-1 rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-4 py-3 text-left hover:bg-gray-50 transition-colors"
             >
               <span className="text-xs text-gray-500">시간</span>
-              <span
-                className={`text-sm font-medium ${!startTime ? "text-gray-400" : ""}`}
-              >
-                {timeLabel}
-              </span>
+              <span className={`text-sm font-medium ${!startTime ? "text-gray-400" : ""}`}>{timeLabel}</span>
             </button>
           </div>
         </div>
@@ -242,7 +383,6 @@ export default function Step1Form() {
               날짜와 시작 시간을 선택하면 날씨를 보여드려요
             </div>
           ) : (
-            // 날씨 정보가 있을 때 (더미 표시)
             <div className="text-center">
               <p className="text-sm font-medium">
                 {formatKoreanDate(selectedDate!)} · {startTime}
@@ -253,15 +393,12 @@ export default function Step1Form() {
         </div>
       </StepCard>
 
-      {/* --- 모달 구현부 (직접 구현하여 WireframeModal 의존성 제거 및 커스텀 로직 적용) --- */}
-
-      {/* 1. 달력 모달 */}
+      {/* 모달: 달력 */}
       {isCalendarOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md animate-in rounded-2xl bg-white p-5 shadow-lg sm:zoom-in-95">
             <h3 className="text-base font-semibold">날짜 선택</h3>
             <p className="mt-1 text-xs text-black">만날 날짜를 선택해주세요.</p>
-
             <div className="mt-4">
               <input
                 type="date"
@@ -270,7 +407,6 @@ export default function Step1Form() {
                 className="w-full rounded-xl border border-[var(--wf-border)] px-4 py-3 text-sm outline-none focus:border-black"
               />
             </div>
-
             <div className="mt-5 flex gap-2">
               <button
                 type="button"
@@ -291,31 +427,22 @@ export default function Step1Form() {
         </div>
       )}
 
-      {/* 2. 시간 모달 */}
+      {/* 모달: 시간 */}
       {isTimeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md animate-in rounded-2xl bg-white p-5 shadow-lg sm:zoom-in-95">
             <h3 className="text-base font-semibold">시간 선택</h3>
-            <p className="mt-1 text-xs text-black">
-              시작 시간은 필수, 종료 시간은 선택입니다.
-            </p>
-
+            <p className="mt-1 text-xs text-black">시작 시간은 필수, 종료 시간은 선택입니다.</p>
             <div className="mt-4 space-y-4">
-              {/* 시작 시간 */}
               <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-500">
-                  시작 시간
-                </label>
+                <label className="text-xs font-medium text-gray-500">시작 시간</label>
                 <input
                   type="time"
                   value={startDraft}
                   onChange={(e) => {
                     const next = e.target.value;
                     setStartDraft(next);
-                    if (
-                      endDraft &&
-                      minutesFromHHMM(endDraft) <= minutesFromHHMM(next)
-                    ) {
+                    if (endDraft && minutesFromHHMM(endDraft) <= minutesFromHHMM(next)) {
                       setEndDraft("");
                     }
                   }}
@@ -324,12 +451,9 @@ export default function Step1Form() {
                 />
               </div>
 
-              {/* 종료 시간 */}
               <div className="space-y-1">
                 <div className="flex justify-between">
-                  <label className="text-xs font-medium text-gray-500">
-                    종료 시간
-                  </label>
+                  <label className="text-xs font-medium text-gray-500">종료 시간</label>
                   <button
                     type="button"
                     onClick={() => setEndDraft("")}
@@ -346,9 +470,7 @@ export default function Step1Form() {
                   className="w-full rounded-xl border border-[var(--wf-border)] px-4 py-3 text-sm outline-none focus:border-black disabled:bg-gray-100"
                   disabled={!startDraft}
                 />
-                {endTimeError && (
-                  <p className="text-xs text-red-500">{endTimeError}</p>
-                )}
+                {endTimeError && <p className="text-xs text-red-500">{endTimeError}</p>}
               </div>
             </div>
 
@@ -374,4 +496,8 @@ export default function Step1Form() {
       )}
     </div>
   );
-}
+});
+
+Step1Form.displayName = "Step1Form";
+
+export default Step1Form;

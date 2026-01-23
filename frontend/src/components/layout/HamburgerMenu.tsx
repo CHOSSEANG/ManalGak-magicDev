@@ -95,7 +95,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
 
             <div className="flex flex-col">
               <p className="text-base font-semibold">
-                {isLoading ? '...' : user?.name ?? '로그인 필요'}
+                {user?.name ?? '로그인 필요'}
               </p>
             </div>
           </div>

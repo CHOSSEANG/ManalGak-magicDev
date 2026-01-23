@@ -13,7 +13,7 @@ interface StepNavigationProps {
   prevLabel?: string
   nextLabel?: string
   split?: boolean
-  onNext?: () => Promise<void> | void   // ⭐ 추가
+  onNext?: () => Promise<string | void> | string | void
 }
 
 export default function StepNavigation({
@@ -28,16 +28,29 @@ export default function StepNavigation({
   const [loading, setLoading] = useState(false)
 
   const handleNext = async () => {
-    if (!nextHref || loading) return
+    if (loading) return
 
     try {
       setLoading(true)
+
       if (onNext) {
-        await onNext()   // ⭐ 여기서 API 실행
+        // onNext가 있으면 실행
+        const result = await onNext()
+
+        // 반환값이 문자열이면 그 URL로 이동
+        if (typeof result === 'string') {
+          router.push(result)
+          return  // ⭐ 여기서 종료
+        }
       }
-      router.push(nextHref)
-    } catch (e) {
-      console.error('StepNavigation next error:', e)
+
+      // onNext가 없거나 반환값이 없으면 nextHref로 이동
+      if (nextHref && nextHref !== '#') {
+        router.push(nextHref)
+      }
+    } catch  {
+    console.warn("필수 정보가 없습니다.");
+      // 에러 발생 시 페이지 이동하지 않음
     } finally {
       setLoading(false)
     }
@@ -54,18 +67,20 @@ export default function StepNavigation({
           <button
             type="button"
             onClick={() => router.push(prevHref)}
+            disabled={loading}
             className={`${
               split && nextHref ? 'w-1/2' : ''
             } relative flex items-center justify-center rounded-2xl border border-[var(--wf-border)]
-              bg-[var(--wf-muted)] px-6 py-3 text-sm hover:bg-[var(--wf-surface)]`}
+              bg-[var(--wf-muted)] px-6 py-3 text-sm hover:bg-[var(--wf-surface)]
+              disabled:opacity-50`}
           >
-            <ArrowLeft  className="absolute left-3 h-6 w-6" /> {prevLabel}
+            <ArrowLeft className="absolute left-3 h-6 w-6" /> {prevLabel}
           </button>
         ) : null}
-        {nextHref ? (
+        {nextHref || onNext ? (
           <button
             type="button"
-            onClick={handleNext}   // ⭐ 변경
+            onClick={handleNext}
             disabled={loading}
             className={`${
               split && prevHref ? 'w-1/2' : ''
@@ -75,7 +90,7 @@ export default function StepNavigation({
               text-sm font-semibold hover:bg-[var(--wf-accent)]
               disabled:opacity-50`}
           >
-            {nextLabel}<ArrowRight  className="absolute right-3 h-6 w-6"/>
+            {loading ? '처리중...' : nextLabel}<ArrowRight className="absolute right-3 h-6 w-6"/>
           </button>
         ) : null}
       </div>
