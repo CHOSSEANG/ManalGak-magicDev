@@ -98,6 +98,60 @@ function displayName(name?: string) {
   return name.length > 6 ? `${name.slice(0, 6)}…` : name
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function toString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined
+}
+
+function toNonEmptyString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return trimmed ? trimmed : undefined
+}
+
+function toNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : undefined
+  }
+  return undefined
+}
+
+function isPlaceCategory(value: unknown): value is PlaceCategory {
+  return value === 'cafe' || value === 'restaurant' || value === 'culture' || value === 'tour'
+}
+
+function parseApiPlace(place: unknown): Omit<RecommendedPlace, 'icon'> | null {
+  if (!isRecord(place)) return null
+
+  const placeId = toNonEmptyString(place.placeId)
+  const placeName = toNonEmptyString(place.placeName)
+
+  if (!placeId || !placeName) return null
+
+  return {
+    id: placeId,
+    name: placeName,
+    category: isPlaceCategory(place.category) ? place.category : 'restaurant',
+    stationName: toString(place.stationName) || '중간지점',
+    walkingMinutes: toNumber(place.walkingMinutes) ?? 0,
+    placeId,
+    categoryGroupCode: toString(place.categoryGroupCode),
+    categoryGroupName: toString(place.categoryGroupName),
+    address: toString(place.address),
+    roadAddress: toString(place.roadAddress),
+    latitude: toNumber(place.latitude),
+    longitude: toNumber(place.longitude),
+    distance: toNumber(place.distance),
+    phone: toString(place.phone),
+    placeUrl: toString(place.placeUrl),
+  }
+}
+
 /* ================= 아이콘 풀 ================= */
 
 const ICONS_BY_CATEGORY: Record<PlaceCategory, LucideIcon[]> = {
@@ -213,24 +267,13 @@ export default function Step5PlaceList() {
 
         // 추천장소 설정 (6개 이상일 때만 교체)
         if (apiPlaces.length >= 6) {
-          setPlaceSource(apiPlaces.slice(0, 6).map((p: Record<string, unknown>) => ({
-            id: p.placeId as string,
-            name: p.placeName as string,
-            category: (p.category as PlaceCategory) || 'restaurant',
-            stationName: (p.stationName as string) || '중간지점',
-            walkingMinutes: (p.walkingMinutes as number) || 0,
-            // 장소 확정 API에 필요한 추가 필드
-            placeId: p.placeId as string,
-            categoryGroupCode: p.categoryGroupCode as string,
-            categoryGroupName: p.categoryGroupName as string,
-            address: p.address as string,
-            roadAddress: p.roadAddress as string,
-            latitude: p.latitude as number,
-            longitude: p.longitude as number,
-            distance: p.distance as number,
-            phone: p.phone as string,
-            placeUrl: p.placeUrl as string,
-          })))
+          const parsedPlaces = apiPlaces
+            .map(parseApiPlace)
+            .filter((place): place is Omit<RecommendedPlace, 'icon'> => place !== null)
+
+          if (parsedPlaces.length >= 6) {
+            setPlaceSource(parsedPlaces.slice(0, 6))
+          }
         }
       } catch {
         // places API 실패 시 기존 middle-point API 폴백
