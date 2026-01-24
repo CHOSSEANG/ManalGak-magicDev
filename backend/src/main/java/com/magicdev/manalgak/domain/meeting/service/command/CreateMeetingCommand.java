@@ -12,6 +12,7 @@ public class CreateMeetingCommand {
     private Long organizerId;
     private String meetingName;
     private LocalDateTime meetingTime;
+    private LocalDateTime endTime;
     private Meeting.MeetingPurpose purpose;
 
     public Meeting toEntity() {
@@ -20,6 +21,7 @@ public class CreateMeetingCommand {
         meeting.setMeetingName(this.meetingName);
         meeting.setMeetingTime(this.meetingTime);
         meeting.setPurpose(this.purpose);
+        meeting.setEndTime(this.endTime);
         return meeting;
     }
 }
