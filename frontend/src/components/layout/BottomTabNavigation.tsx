@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import BottomCTA from '@/components/layout/BottomCTA'
 import {
   Home,
@@ -11,57 +11,90 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 
-const TABS = [
-  { label: '메인', href: '/', icon: Home },
-  { label: '모임생성', href: '/meetings/new', icon: PlusCircle },
-  { label: '참여자설정', href: '/meetings/new/step2-meetingmembers', icon: Users },
-  { label: '추천장소', href: '/meetings/new/step3-result', icon: MapPin },
-  { label: '확정내용', href: '/meetings/meeting-001/complete', icon: CheckCircle,},
-]
-
 export default function BottomTabNavigation() {
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  // ✅ meetingUuid 추출 (query → path fallback)
+  let meetingUuid = searchParams.get('meetingUuid')
+
+  if (!meetingUuid) {
+    const match = pathname.match(/\/meetings\/([^/]+)\/complete/)
+    meetingUuid = match?.[1] ?? null
+  }
+
+  const TABS = [
+    { label: '메인', href: '/', icon: Home },
+
+    {
+      label: '모임생성',
+      href: meetingUuid
+        ? `/meetings/new/step1-basic?meetingUuid=${meetingUuid}`
+        : `/meetings/new/step1-basic`,
+      icon: PlusCircle,
+    },
+
+    {
+      label: '참여자설정',
+      href: meetingUuid
+        ? `/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}`
+        : `/meetings/new/step2-meetingmembers`,
+      icon: Users,
+    },
+
+    {
+      label: '추천장소',
+      href: meetingUuid
+        ? `/meetings/new/step3-result?meetingUuid=${meetingUuid}`
+        : `/meetings/new/step3-result`,
+      icon: MapPin,
+    },
+
+    {
+      label: '확정내용',
+      href: meetingUuid
+        ? `/meetings/${meetingUuid}/complete`
+        : `/meetings/complete`,
+      icon: CheckCircle,
+    },
+  ]
 
   return (
     <BottomCTA>
       <nav className="flex w-full items-center justify-between bg-[var(--wf-bg-soft)] border-t border-[var(--wf-border)]">
         {TABS.map(({ label, href, icon: Icon }) => {
-          const isActive = pathname.startsWith(href)
+          const isActive = pathname.startsWith(href.split('?')[0])
 
           return (
             <button
-              key={href}
+              key={label}
               type="button"
               onClick={() => router.push(href)}
               className="group flex flex-1 flex-col items-center justify-center gap-1 py-2"
             >
-              {/* 아이콘 영역 */}
               <div
                 className={clsx(
-                  'flex h-10 w-10 items-center justify-center rounded-full transition-colors  hover:bg-[var(--wf-highlight)]',
-                  isActive
-                    ? 'bg-[var(--wf-highlight)]'
-                    : 'bg-transparent'
+                  'flex h-10 w-10 items-center justify-center rounded-full',
+                  isActive && 'bg-[var(--wf-highlight)]'
                 )}
               >
                 <Icon
                   className={clsx(
-                    'h-5 w-5 transition-colors',
+                    'h-5 w-5',
                     isActive
                       ? 'text-[var(--wf-accent)]'
-                      : 'text-[var(--wf-subtle)] group-hover:text-[var(--wf-accent)]'
+                      : 'text-[var(--wf-subtle)]'
                   )}
                 />
               </div>
 
-              {/* 라벨 */}
               <span
                 className={clsx(
-                  'text-xs transition-colors',
+                  'text-xs',
                   isActive
                     ? 'font-semibold text-[var(--wf-text)]'
-                    : 'font-normal text-[var(--wf-subtle)] group-hover:text-[var(--wf-text)]'
+                    : 'text-[var(--wf-subtle)]'
                 )}
               >
                 {label}
