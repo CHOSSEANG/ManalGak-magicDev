@@ -14,6 +14,7 @@ public class MeetingCreateResponse {
     private String meetingUuid;
     private String meetingName;
     private LocalDateTime meetingTime;
+    private LocalDateTime endTime;
     private String status;
     private String shareUrl;
     private LocalDateTime expiresAt;
@@ -25,6 +26,7 @@ public class MeetingCreateResponse {
                 .meetingUuid(meeting.getMeetingUuid())
                 .meetingName(meeting.getMeetingName())
                 .meetingTime(meeting.getMeetingTime())
+                .endTime(meeting.getEndTime())
                 .status(meeting.getStatus().name())
                 .shareUrl(shareUrl)
                 .expiresAt(meeting.getExpiresAt())
