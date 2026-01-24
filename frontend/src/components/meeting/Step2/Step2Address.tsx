@@ -15,6 +15,7 @@ interface Step2AddressProps {
   setOriginAddress: (address: string) => void;
   transport: TransportMode | null;
   setTransport: (mode: TransportMode) => void;
+  readonly?: boolean; // ⭐ 추가
 }
 
 export default function Step2Address({
@@ -22,6 +23,7 @@ export default function Step2Address({
   setOriginAddress,
   transport,
   setTransport,
+  readonly = false, // ⭐ 추가
 }: Step2AddressProps) {
   /** 현재 주소 입력 대상 */
   const [activeAddressType, setActiveAddressType] =
@@ -33,6 +35,8 @@ export default function Step2Address({
 
   /** 주소 적용 */
   const applyAddress = (address: string) => {
+    if (readonly) return; // ⭐ readonly면 차단
+
     if (activeAddressType === "origin") {
       setOriginAddress(address);
     }
@@ -51,37 +55,42 @@ export default function Step2Address({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">나의 출발지 입력</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveAddressType("origin");
-                  setBookmarkOpen(true);
-                }}
-                className="flex items-center gap-1 text-xs text-[var(--wf-subtle)]"
-              >
-                <Bookmark className="h-3 w-3" />
-                가져오기 &gt;
-              </button>
+              {!readonly && ( // ⭐ readonly면 숨김
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveAddressType("origin");
+                    setBookmarkOpen(true);
+                  }}
+                  className="flex items-center gap-1 text-xs text-[var(--wf-subtle)]"
+                >
+                  <Bookmark className="h-3 w-3" />
+                  가져오기 &gt;
+                </button>
+              )}
             </div>
 
             <div className="flex items-center gap-2 rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-3 py-2">
               <input
                 type="text"
                 value={originAddress}
-                onChange={(e) => setOriginAddress(e.target.value)}
+                onChange={(e) => !readonly && setOriginAddress(e.target.value)}
                 placeholder="출발지를 입력해 주세요"
-                className="flex-1 bg-transparent text-sm outline-none"
+                className={`flex-1 bg-transparent text-sm outline-none ${readonly ? 'cursor-not-allowed' : ''}`}
+                disabled={readonly} // ⭐ readonly면 비활성화
               />
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveAddressType("origin");
-                  setSearchAddressOpen(true);
-                }}
-                className="shrink-0 rounded-lg border border-[var(--wf-border)] bg-[var(--wf-surface)] px-2 py-1.5 text-xs"
-              >
-                주소 검색
-              </button>
+              {!readonly && ( // ⭐ readonly면 숨김
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveAddressType("origin");
+                    setSearchAddressOpen(true);
+                  }}
+                  className="shrink-0 rounded-lg border border-[var(--wf-border)] bg-[var(--wf-surface)] px-2 py-1.5 text-xs"
+                >
+                  주소 검색
+                </button>
+              )}
             </div>
           </div>
 
@@ -89,22 +98,24 @@ export default function Step2Address({
           <div className="space-y-2">
             <p className="text-sm font-semibold">나의 교통수단 선택</p>
 
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { key: "WALK", label: "도보", icon: PersonStanding },
-              { key: "CAR", label: "자동차", icon: Car },
-              { key: "PUBLIC", label: "대중교통", icon: Bus },
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setTransport(key as TransportMode)}
-                className={`flex items-center justify-center gap-2 rounded-full border py-3 text-normal transition
-                  ${
-                    transport === key
-                      ? "bg-[var(--wf-highlight)] border-[var(--wf-highlight)]"
-                      : "border-[var(--wf-border)] "
-                  }`}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { key: "WALK", label: "도보", icon: PersonStanding },
+                { key: "CAR", label: "자동차", icon: Car },
+                { key: "PUBLIC", label: "대중교통", icon: Bus },
+              ].map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => !readonly && setTransport(key as TransportMode)}
+                  disabled={readonly} // ⭐ readonly면 비활성화
+                  className={`flex items-center justify-center gap-2 rounded-full border py-3 text-normal transition
+                    ${
+                      transport === key
+                        ? "bg-[var(--wf-highlight)] border-[var(--wf-highlight)]"
+                        : "border-[var(--wf-border)]"
+                    }
+                    ${readonly ? "cursor-not-allowed opacity-70" : ""}`} // ⭐ readonly 스타일
                 >
                   <Icon className="h-6 w-6 text-[var(--wf-accent)]" />
                   {label}
@@ -114,32 +125,36 @@ export default function Step2Address({
           </div>
         </StepCard>
 
-        {/* 주소 검색 모달 (단일 인스턴스) */}
-        <WireframeModal
-          open={searchAddressOpen}
-          title="주소 검색"
-          onClose={() => {
-            setSearchAddressOpen(false);
-            setActiveAddressType(null);
-          }}
-        >
-          {activeAddressType && (
-            <AddressSearch
-              key={`${activeAddressType}-search`}
-              onSelect={applyAddress}
-            />
-          )}
-        </WireframeModal>
+        {/* 주소 검색 모달 (readonly면 열리지 않음) */}
+        {!readonly && (
+          <WireframeModal
+            open={searchAddressOpen}
+            title="주소 검색"
+            onClose={() => {
+              setSearchAddressOpen(false);
+              setActiveAddressType(null);
+            }}
+          >
+            {activeAddressType && (
+              <AddressSearch
+                key={`${activeAddressType}-search`}
+                onSelect={applyAddress}
+              />
+            )}
+          </WireframeModal>
+        )}
 
-        {/* 북마크 모달 */}
-        <BookmarkAddressModal
-          open={bookmarkOpen}
-          onClose={() => {
-            setBookmarkOpen(false);
-            setActiveAddressType(null);
-          }}
-          onSelect={applyAddress}
-        />
+        {/* 북마크 모달 (readonly면 열리지 않음) */}
+        {!readonly && (
+          <BookmarkAddressModal
+            open={bookmarkOpen}
+            onClose={() => {
+              setBookmarkOpen(false);
+              setActiveAddressType(null);
+            }}
+            onSelect={applyAddress}
+          />
+        )}
       </div>
     </>
   );

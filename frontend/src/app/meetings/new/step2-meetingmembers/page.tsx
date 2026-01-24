@@ -10,6 +10,7 @@ import { Send } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import LoginRequired from "@/components/common/LoginRequired";
 
 type KakaoShareWithCustom = {
   sendCustom: (params: {
@@ -57,7 +58,7 @@ interface ApiResponse {
   error: unknown;
 }
 
-const sendKakaoInvite = (): void => {
+const sendKakaoInvite = (meetingUuid: string): void => {
   if (typeof window === "undefined") return;
 
   const Kakao = window.Kakao;
@@ -79,6 +80,9 @@ const sendKakaoInvite = (): void => {
 
   share.sendCustom({
     templateId: 128179,
+    templateArgs: {
+      meetingLink: meetingUuid,
+    },
   });
 };
 
@@ -86,13 +90,19 @@ function Step2Content(): JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const meetingUuid = searchParams.get("meetingUuid");
-  const { user } = useUser();
+  const { user, loading } = useUser();
+  const readonlyParam = searchParams.get("readonly") === "true";
+  const prevHref = `/meetings/new/step1-basic?meetingUuid=${meetingUuid}${readonlyParam ? "&readonly=true" : ""}`;
 
   const [originAddress, setOriginAddress] = useState<string>("");
   const [transport, setTransport] = useState<TransportMode | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [myParticipantId, setMyParticipantId] = useState<number | null>(null);
+  const [meetingData, setMeetingData] = useState<MeetingData | null>(null);
   const joinedRef = useRef<boolean>(false);
+
+  const isReadonly = meetingData?.status === 'COMPLETED';
+  const isOrganizer = meetingData?.organizerId === user?.id; // ⭐ 모임장 여부 체크
 
   /** 모임 조회 + 없으면 participant 생성 */
   useEffect(() => {
@@ -108,6 +118,8 @@ function Step2Content(): JSX.Element {
         );
 
         const data = res.data.data;
+        setMeetingData(data);
+
         const myParticipant = data.participants.find(
           (p) => p.userId === user.id
         );
@@ -132,6 +144,8 @@ function Step2Content(): JSX.Element {
             );
 
             const updatedData = resAfter.data.data;
+            setMeetingData(updatedData);
+
             const newParticipant = updatedData.participants.find(
               (p) => p.userId === user.id
             );
@@ -150,35 +164,41 @@ function Step2Content(): JSX.Element {
     void fetchMeeting();
   }, [meetingUuid, user]);
 
-  // meetingUuid 없으면 에러 표시
   if (!meetingUuid) {
     return (
-       <main className="flex flex-col items-center justify-center min-h-[60vh] p-6">
-            <div className="max-w-md w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-md p-8 text-center">
-              <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-                👋 아직 모임이 없어요
-              </h1>
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                먼저 Step1에서 모임을 생성해야 <br />
-                Step2/Step3 페이지를 사용할 수 있습니다.
-              </p>
-              <button
-                onClick={() => router.push("/meetings/new/step1-basic")}
-                className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-500 transition-colors"
-              >
-                Step1로 이동
-              </button>
-            </div>
-          </main>
+      <main className="flex flex-col items-center justify-center min-h-[60vh] p-6">
+        <div className="max-w-md w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-md p-8 text-center">
+          <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+            👋 아직 모임이 없어요
+          </h1>
+          <p className="text-gray-700 dark:text-gray-300 mb-6">
+            먼저 Step1에서 모임을 생성해야 <br />
+            Step2/Step3 페이지를 사용할 수 있습니다.
+          </p>
+          <button
+            onClick={() => router.push("/meetings/new/step1-basic")}
+            className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-500 transition-colors"
+          >
+            Step1로 이동
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-gray-500">로딩 중...</div>
+      </div>
     );
   }
 
   if (!user) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-sm text-gray-500">로그인 정보를 불러오는 중...</div>
-      </div>
-    );
+    // ⭐ 쿼리 파라미터 전체 포함하여 저장
+    const currentUrl = `/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}&readonly=true`;
+    localStorage.setItem("loginRedirect", currentUrl);
+    return <LoginRequired />;
   }
 
   return (
@@ -191,15 +211,20 @@ function Step2Content(): JSX.Element {
           </p>
         </div>
 
+        {/* ⭐ 모임장만 초대 버튼 사용 가능 */}
         <button
           type="button"
-          onClick={sendKakaoInvite}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl
-          bg-[var(--wf-highlight)] py-4 text-base font-semibold text-[var(--wf-text)]
-          hover:bg-[var(--wf-accent)] disabled:opacity-40"
+          onClick={() => sendKakaoInvite(meetingUuid!)}
+          disabled={isReadonly || !isOrganizer}
+          className={`flex w-full items-center justify-center gap-2 rounded-2xl
+            py-4 text-base font-semibold transition-colors
+            ${isReadonly || !isOrganizer
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-[var(--wf-highlight)] text-[var(--wf-text)] hover:bg-[var(--wf-accent)]'
+            }`}
         >
           <Send size={18} />
-          참여 멤버 초대
+          {isOrganizer ? '참여 멤버 초대' : '모임장만 멤버를 초대할 수 있어요'}
         </button>
 
         {!isLoading && (
@@ -208,6 +233,7 @@ function Step2Content(): JSX.Element {
             setOriginAddress={setOriginAddress}
             transport={transport}
             setTransport={setTransport}
+            readonly={isReadonly}
           />
         )}
 
@@ -223,13 +249,18 @@ function Step2Content(): JSX.Element {
           onMyParticipantResolved={(id) => {
             if (!myParticipantId) setMyParticipantId(id);
           }}
+          readonly={isReadonly}
         />
       </main>
 
       <StepNavigation
-        prevHref={`/meetings/new/step1-basic?meetingUuid=${meetingUuid}`}
+        prevHref={prevHref}
         nextHref={`/meetings/new/step3-result?meetingUuid=${meetingUuid}`}
         onNext={async () => {
+          if (meetingData?.status === 'COMPLETED') {
+            return `/meetings/new/step3-result?meetingUuid=${meetingUuid}`;
+          }
+
           if (!myParticipantId) {
             alert("참여자 정보가 아직 준비되지 않았어요.");
             throw new Error("participantId 없음");
@@ -248,6 +279,8 @@ function Step2Content(): JSX.Element {
             },
             { withCredentials: true }
           );
+
+          return `/meetings/new/step3-result?meetingUuid=${meetingUuid}`;
         }}
       />
     </>
