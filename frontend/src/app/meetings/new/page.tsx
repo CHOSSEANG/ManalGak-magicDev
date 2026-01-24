@@ -92,16 +92,11 @@ export default function CreateEntryPage() {
   }
 
   // ✅ URL 방식으로 단순화
-  const handleEdit = (meetingUuid: string, organizerId: number) => {
-    if (user?.id !== organizerId) {
-      alert("모임장이 아닙니다.")
-      return
-    }
-
-    // meetingUuid만 전달 (Step1에서 조회)
-    router.push(`/meetings/new/step1-basic?meetingUuid=${meetingUuid}`)
-  }
-
+const handleEdit = (meetingUuid: string, organizerId: number) => {
+  // 모임장이 아니면 readonly=true 추가
+  const url = `/meetings/new/step1-basic?meetingUuid=${meetingUuid}${user?.id !== organizerId ? "&readonly=true" : ""}`
+  router.push(url)
+}
   const handleCopy = async (meetingUuid: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/v1/meetings/${meetingUuid}/copy`, {
@@ -126,6 +121,44 @@ export default function CreateEntryPage() {
     } catch (err) {
       console.error("모임 복사 실패", err)
       alert("모임 복사에 실패했습니다.")
+    }
+  }
+
+  const handleDelete = async (meetingUuid: string, organizerId: number) => {
+    if (user?.id !== organizerId) {
+      alert("모임장이 아닙니다.")
+      return
+    }
+
+    const ok = confirm("정말 이 모임을 삭제하시겠어요?\n삭제하면 되돌릴 수 없어요.")
+    if (!ok) return
+
+    try {
+      const res = await axios.delete(
+        `${API_BASE_URL}/v1/meetings/${meetingUuid}`,
+        { withCredentials: true }
+      )
+
+      if (res.status === 200) {
+        // ✅ 화면에서 즉시 제거
+        setExistingMeetings(prev =>
+          prev.filter(item => item.meeting.meetingUuid !== meetingUuid)
+        )
+
+      setPageInfo(prev =>
+        prev
+          ? {
+              ...prev,
+              totalElements: Math.max(prev.totalElements - 1, 0),
+            }
+          : prev
+      )
+      } else {
+        alert("모임 삭제에 실패했습니다.")
+      }
+    } catch (err) {
+      console.error("모임 삭제 실패", err)
+      alert("모임 삭제에 실패했습니다.")
     }
   }
 
@@ -187,18 +220,28 @@ const formatDateTime = (dateString: string) => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(meeting.meetingUuid!, meeting.organizerId)}
-                              disabled={!isOrganizer}
                               className={`rounded-lg px-3 py-1 text-xs font-medium text-white transition-opacity ${
-                                isOrganizer ? 'bg-[var(--wf-accent)] hover:opacity-90' : 'bg-gray-400 cursor-not-allowed'
+                                isOrganizer ? 'bg-[var(--wf-accent)] hover:opacity-90' : 'bg-gray-500 hover:bg-gray-400'
                               }`}
                             >
-                              수정
+                              {isOrganizer ? '수정' : '조회'}
                             </button>
                             <button
                               onClick={() => handleCopy(meeting.meetingUuid!)}
                               className="rounded-lg bg-[var(--wf-accent)] px-3 py-1 text-xs font-medium text-white hover:opacity-90 transition-opacity"
                             >
                               복사
+                            </button>
+                            <button
+                              onClick={() => handleDelete(meeting.meetingUuid!, meeting.organizerId)}
+                              disabled={!isOrganizer}
+                              className={`rounded-lg px-3 py-1 text-xs font-medium text-white transition-opacity ${
+                                isOrganizer
+                                  ? 'bg-red-500 hover:opacity-90'
+                                  : 'bg-gray-400 cursor-not-allowed'
+                              }`}
+                            >
+                              삭제
                             </button>
                           </div>
                         </div>

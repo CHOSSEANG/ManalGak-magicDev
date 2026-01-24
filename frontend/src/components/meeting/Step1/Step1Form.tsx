@@ -10,6 +10,17 @@ function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
 
+function formatToLocalISO(date: Date): string {
+  const year = date.getFullYear();
+  const month = pad2(date.getMonth() + 1);
+  const day = pad2(date.getDate());
+  const hours = pad2(date.getHours());
+  const minutes = pad2(date.getMinutes());
+  const seconds = pad2(date.getSeconds());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
+
 function formatKoreanDate(date: Date) {
   const y = date.getFullYear();
   const m = date.getMonth() + 1;
@@ -69,9 +80,10 @@ export interface Step1FormRef {
 
 interface Step1FormProps {
   meetingUuid?: string; // optional: 있으면 수정 모드, 없으면 생성 모드
+  readonly?: boolean;
 }
 
-const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid }, ref) => {
+const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid , readonly = false}, ref) => {
   // --- 상태 관리 ---
   const [meetingName, setMeetingName] = useState("");
   const [selectedPurpose, setSelectedPurpose] = useState<string | null>(null);
@@ -128,6 +140,13 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid }, ref
           setStartTime(`${hours}:${minutes}`);
         }
 
+    if (data.endTime) {
+      const endDate = new Date(data.endTime);
+      setEndTime(`${pad2(endDate.getHours())}:${pad2(endDate.getMinutes())}`);
+    } else {
+      setEndTime(null);
+    }
+
       } catch (err) {
         console.error("❌ 모임 정보 조회 실패:", err);
         if (axios.isAxiosError(err)) {
@@ -166,6 +185,7 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid }, ref
 
   // --- 핸들러 함수 ---
   const openCalendar = () => {
+      if(readonly) return;
     const d = selectedDate ?? new Date();
     setDateDraft(`${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`);
     setIsCalendarOpen(true);
@@ -181,6 +201,7 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid }, ref
   };
 
   const openTimeModal = () => {
+       if(readonly) return;
     setStartDraft(startTime ?? "11:30");
     setEndDraft(endTime ?? "");
     setIsTimeModalOpen(true);
@@ -216,11 +237,26 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid }, ref
       meetingDate.setSeconds(0);
       meetingDate.setMilliseconds(0);
 
-      const payload = {
-        meetingName,
-        meetingTime: meetingDate.toISOString(),
-        purpose: purposeToApiMap[selectedPurpose!],
-      };
+      let endDateFormatted: string | null = null;
+
+      if (endTime) {
+        const [eh, em] = endTime.split(":");
+        const endDate = new Date(selectedDate!);
+        endDate.setHours(parseInt(eh, 10));
+        endDate.setMinutes(parseInt(em, 10));
+        endDate.setSeconds(0);
+        endDate.setMilliseconds(0);
+
+        endDateFormatted = formatToLocalISO(endDate); // ✅ 수정
+      }
+
+
+    const payload = {
+      meetingName,
+      meetingTime: formatToLocalISO(meetingDate), // ✅ 수정
+           endTime: endDateFormatted,              // ⭐ 여기!!
+      purpose: purposeToApiMap[selectedPurpose!],
+    };
 
       let resultMeetingUuid: string;
 
@@ -306,9 +342,10 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid }, ref
           <input
             type="text"
             value={meetingName}
-            onChange={(e) => setMeetingName(e.target.value)}
+            onChange={(e) => !readonly && setMeetingName(e.target.value)}
             placeholder="모임명을 입력해 주세요"
             className="w-full rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-4 py-3 text-sm outline-none focus:border-black transition-colors placeholder:text-gray-400"
+            disabled={readonly}
           />
         </div>
 
@@ -325,12 +362,11 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid }, ref
                       <button
                         key={item}
                         type="button"
-                        onClick={() => setSelectedPurpose(item)}
+                         onClick={() => !readonly && setSelectedPurpose(item)}
                         className={`flex items-center justify-center gap-2 border py-3 rounded-full transition-all ${
-                          isSelected
-                            ? "bg-[var(--wf-highlight)] text-black "
-                            : "border-[var(--wf-border)] bg-white text-gray-600 hover:bg-gray-50"
-                        }`}
+                          selectedPurpose === item ? "bg-[var(--wf-highlight)] text-black" : "border-[var(--wf-border)] bg-white text-gray-600 hover:bg-gray-50"
+                        } ${readonly ? "cursor-not-allowed opacity-70" : ""}`}
+                        disabled={readonly}
                       >
                         <div className={isSelected ? "text-[var(--wf-accent)]" : "text-gray-400"}>
                           {purposeIconMap[item]}

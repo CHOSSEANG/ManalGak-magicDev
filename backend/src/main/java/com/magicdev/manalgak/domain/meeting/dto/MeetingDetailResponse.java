@@ -29,7 +29,7 @@ public class MeetingDetailResponse {
                 .endTime(meeting.getEndTime())
                 .purpose(meeting.getPurpose())
                 .status(meeting.getStatus())
-                .totalParticipants(meeting.getTotalParticipants())
+                .totalParticipants(participants.size())
                 .participants(participants)
                 .organizerId(meeting.getOrganizerId())
                 .meetingUuid(meeting.getMeetingUuid())

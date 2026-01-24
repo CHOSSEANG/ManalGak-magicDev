@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useUser } from "@/context/UserContext";
@@ -8,8 +8,11 @@ import { useUser } from "@/context/UserContext";
 export default function LoginSuccessPage() {
   const router = useRouter();
   const { setUser } = useUser();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
+    if (isRedirecting) return; // 이미 리다이렉트 중이면 무시
+
     const fetchUser = async () => {
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`, {
@@ -20,16 +23,32 @@ export default function LoginSuccessPage() {
           name: res.data.data.nickname,
           profileImage: res.data.data.profileImageUrl,
         };
-        setUser(userData); // Context + localStorage 저장
+        setUser(userData);
+
+        // localStorage 읽기
+        const redirectUrl = localStorage.getItem("loginRedirect");
+        localStorage.removeItem("loginRedirect");
+
+        setIsRedirecting(true);
+
+        // 리다이렉트
+        const targetUrl = redirectUrl || "/meetings/new";
+        console.log("✅ 이동:", targetUrl);
+
+        // 약간의 딜레이 후 이동 (안전하게)
+        setTimeout(() => {
+          router.replace(targetUrl);
+        }, 100);
+
       } catch (err) {
         console.error("유저 정보 가져오기 실패", err);
-      } finally {
-        router.replace("/meetings/new"); // 이동
+        setIsRedirecting(true);
+        router.replace("/meetings/new");
       }
     };
 
     fetchUser();
-  }, [router, setUser]);
+  }, [router, setUser, isRedirecting]);
 
   return (
     <main className="flex min-h-screen items-center justify-center">

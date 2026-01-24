@@ -1,54 +1,30 @@
-// src/app/HomeClient.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Image from "next/image";
 import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
+import { useUser } from "@/context/UserContext";
 
-/**
- * 홈 = 로그인 + 서비스 인트로 페이지
- */
 export default function HomePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, loading, setUser } = useUser();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  /**
-   * 로그인 상태 판별
-   * - 쿠키 기반 인증이므로 단순 플래그 용도
-   * - 실제 인증 여부는 API 호출 시 서버에서 판단
-   */
-  useEffect(() => {
-    const loggedIn = !!localStorage.getItem("isLoggedIn");
-    setIsLoggedIn(loggedIn);
-  }, []);
-
-  /**
-   * 로그인 성공 후 이동 경로 결정
-   * - 초대 링크 유입: redirect 파라미터 우선
-   * - 일반 로그인: 모임 리스트
-   */
-  const getPostLoginRedirectPath = useCallback(() => {
+  const getPostLoginRedirectPath = () => {
     const redirect = searchParams.get("redirect");
-    if (redirect) return redirect;
+    return redirect ?? "/meetings";
+  };
 
-    return "/meetings";
-  }, [searchParams]);
-
-  /* 카카오 로그인 시작 */
   const handleKakaoLogin = () => {
     const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
     const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
-
-    if (!REST_API_KEY || !REDIRECT_URI) {
-      alert(
-        "카카오 로그인 설정이 완료되지 않았습니다.\n관리자에게 문의해주세요."
-      );
-      return;
-    }
+  if (!REST_API_KEY || !REDIRECT_URI) {
+    alert(
+      "카카오 로그인 설정이 완료되지 않았습니다.\n관리자에게 문의해주세요."
+    );
+    return;
+  }
 
     const state = getPostLoginRedirectPath();
 
@@ -62,16 +38,18 @@ export default function HomePage() {
     window.location.href = kakaoAuthUrl;
   };
 
-  /**
-   * 로그아웃
-   * - 쿠키는 서버에서 제거
-   * - 프론트는 상태만 초기화
-   */
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/logout`,
+      { credentials: "include" }
+    );
+
+    setUser(null);
     router.replace("/");
   };
+
+  // 🔑 auth/me 확인 중일 때 깜빡임 방지
+  if (loading) return null;
 
   return (
     <main className="flex flex-col justify-between gap-10">
@@ -103,10 +81,8 @@ export default function HomePage() {
             />
           </div>
 
-        {!isLoggedIn ? (
-          <Button type="button" onClick={handleKakaoLogin}>
-            로그인
-          </Button>
+        {!user ? (
+          <Button onClick={handleKakaoLogin}>로그인</Button>
         ) : (
           <Button
             type="button"
@@ -118,7 +94,7 @@ export default function HomePage() {
         )}
       </section>
 
-            <BottomTabNavigation />
+      <BottomTabNavigation />
     </main>
   );
 }

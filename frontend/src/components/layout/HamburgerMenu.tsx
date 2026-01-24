@@ -1,6 +1,7 @@
 // src/components/layout/HamburgerMenu.tsx
 'use client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { Suspense } from 'react'
 import Image from "next/image";
 import { useUser } from "@/context/UserContext"
 
@@ -27,22 +28,70 @@ const MENUS = [
   { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: SquareMousePointer },
   { label: '참여자 설정', href: '/meetings/new/step2-meetingmembers', icon: Users },
   { label: '추천 장소 선택', href: '/meetings/new/step3-result', icon: MapPin },
-  { label: '모임 확정', href: '/meetings/meeting-001/complete', icon: CheckCircle },
+  { label: '모임 확정', href: '/meetings/complete', icon: CheckCircle },
 ]
 const EXTRA_MENUS = [
-  { label: '지도 서비스', href: '/meetings/meeting-001/option-location', icon: LocateFixed },
-  { label: '회비 계산기', href: '/meetings/meeting-001/option-fee', icon: Calculator },
+  { label: '지도 서비스', href: '/meetings/option-location', icon: LocateFixed },
+  { label: '회비 계산기', href: '/meetings/option-fee', icon: Calculator },
 ]
 const ABOUT_MENUS = [{ label: '만날각 소개', href: '/about', icon: BookA }]
 
-export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
+const isValidUuid = (value: string | null): value is string => {
+  if (!value) return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
+// ✅ 실제 메뉴 내용 (useSearchParams 사용)
+function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
   const router = useRouter()
   const { user, setUser } = useUser()
   const isLoggedIn = !!user
-  const isLoading = user === null // Context가 아직 로딩 중이면 true
+  const isLoading = user === null
+  const searchParams = useSearchParams()
+  const readonlyParam = searchParams.get('readonly') === 'true';
+  const pathname = usePathname()
 
-  const handleNavigate = (href: string) => {
-    router.push(href)
+  const queryMeetingUuidRaw = searchParams.get('meetingUuid')
+  const queryMeetingUuid = isValidUuid(queryMeetingUuidRaw)
+    ? queryMeetingUuidRaw
+    : null
+
+  const pathMeetingUuid = (() => {
+    const match = pathname.match(/\/meetings\/([^/]+)/)
+    const candidate = match ? match[1] : null
+    return isValidUuid(candidate) ? candidate : null
+  })()
+
+  const meetingUuid = queryMeetingUuid ?? pathMeetingUuid
+
+const withMeetingUuid = (href: string) => {
+  if (!meetingUuid) return href;
+
+  const params = new URLSearchParams();
+  params.set('meetingUuid', meetingUuid);
+  if (readonlyParam) params.set('readonly', 'true');
+
+  return href.includes('?') ? `${href}&${params.toString()}` : `${href}?${params.toString()}`;
+}
+ const handleNavigate = (href: string) => {
+     let finalHref = href;
+
+     if (href === '/meetings/complete') {
+       finalHref = meetingUuid
+         ? `/meetings/${meetingUuid}/complete${readonlyParam ? '?readonly=true' : ''}`
+         : '/meetings/none';
+     } else if (href === '/meetings/option-location') {
+       finalHref = meetingUuid
+         ? `/meetings/${meetingUuid}/option-location${readonlyParam ? '?readonly=true' : ''}`
+         : '/meetings/none';
+     } else if (href === '/meetings/option-fee') {
+       finalHref = meetingUuid
+         ? `/meetings/${meetingUuid}/option-fee${readonlyParam ? '?readonly=true' : ''}`
+         : '/meetings/none';
+     } else {
+       finalHref = withMeetingUuid(href);
+     }
+    router.push(finalHref)
     onClose()
   }
 
@@ -55,7 +104,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
     } catch (err: unknown) {
       console.error('로그아웃 API 실패', err)
     } finally {
-      setUser(null) // 이제 안전하게 null 가능
+      setUser(null)
       onClose()
       router.replace('/')
     }
@@ -79,11 +128,11 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               {isLoading ? (
                 <div className="h-full w-full bg-gray-300 animate-pulse rounded-full" />
               ) : user?.profileImage ? (
-                <Image 
+                <Image
                   src={user.profileImage}
-                    alt="프로필 이미지"
-                    width={48}
-                    height={48}
+                  alt="프로필 이미지"
+                  width={48}
+                  height={48}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -199,5 +248,14 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
         </div>
       </aside>
     </div>
+  )
+}
+
+// ✅ Suspense로 감싸서 export
+export default function HamburgerMenu(props: HamburgerMenuProps) {
+  return (
+    <Suspense fallback={null}>
+      <HamburgerMenuContent {...props} />
+    </Suspense>
   )
 }

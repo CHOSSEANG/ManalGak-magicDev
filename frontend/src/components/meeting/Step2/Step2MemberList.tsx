@@ -10,6 +10,7 @@ interface MemberListProps {
   meetingUuid: string;
   userId: number;
   onMyParticipantResolved?: (participantId: number) => void;
+  readonly?: boolean; // ⭐ 추가
 }
 
 export type MemberStatus = "CONFIRMED" | "INVITED" | "DECLINED";
@@ -40,6 +41,7 @@ export default function MemberList({
   meetingUuid,
   userId,
   onMyParticipantResolved,
+  readonly = false, // ⭐ 추가
 }: MemberListProps) {
   const [members, setMembers] = useState<Member[]>([]);
   const [organizerId, setOrganizerId] = useState<number | null>(null);
@@ -53,16 +55,20 @@ export default function MemberList({
 
   // 상태 변경 권한 체크 함수
   const canChangeStatus = (targetMemberId: string) => {
+    if (readonly) return false; // ⭐ readonly면 권한 없음
     return isOrganizer || targetMemberId === userId.toString();
   };
 
   // 핸디캡 변경 권한 체크 함수
   const canChangeHandicap = (targetMemberId: string) => {
+    if (readonly) return false; // ⭐ readonly면 권한 없음
     return targetMemberId === userId.toString();
   };
 
   // 참여자 상태 변경 - id(userId)로 participantId 찾아서 전송
   const handleStatusChange = async (id: string, status: MemberStatus) => {
+    if (readonly) return; // ⭐ readonly면 차단
+
     // 권한 체크
     if (!canChangeStatus(id)) {
       console.warn("상태 변경 권한이 없습니다.");
@@ -92,6 +98,8 @@ export default function MemberList({
     handicap?: boolean,
     nickname?: string
   ) => {
+    if (readonly) return; // ⭐ readonly면 차단
+
     const targetMember = members.find(m => m.participantId === participantId);
     if (!targetMember || targetMember.id !== userId.toString()) {
       console.warn("본인 정보만 변경 가능합니다.");
@@ -162,9 +170,9 @@ export default function MemberList({
     void fetchMeeting();
   }, [meetingUuid, userId]);
 
-  // 웹소켓 연결 및 실시간 업데이트
+  // 웹소켓 연결 및 실시간 업데이트 (readonly면 연결하지 않음)
   useEffect(() => {
-    if (!meetingUuid) return;
+    if (!meetingUuid || readonly) return; // ⭐ readonly면 웹소켓 연결 안 함
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws`),
@@ -243,7 +251,7 @@ export default function MemberList({
     return () => {
       client.deactivate();
     };
-  }, [meetingUuid, userId]);
+  }, [meetingUuid, userId, readonly]); // ⭐ readonly 의존성 추가
 
   useEffect(() => {
     if (!myMember?.participantId) return;
