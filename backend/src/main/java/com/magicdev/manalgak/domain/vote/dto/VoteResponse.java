@@ -22,4 +22,8 @@ public class VoteResponse {
 
         return new VoteResponse(vote.getId(), optionResponses);
     }
+
+    public static VoteResponse empty() {
+        return new VoteResponse(null, List.of());
+    }
 }
