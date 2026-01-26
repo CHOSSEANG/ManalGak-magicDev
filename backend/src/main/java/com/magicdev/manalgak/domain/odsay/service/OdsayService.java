@@ -1,0 +1,74 @@
+package com.magicdev.manalgak.domain.odsay.service;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import com.magicdev.manalgak.domain.odsay.dto.GetRouteRequest;
+import com.magicdev.manalgak.domain.odsay.dto.OdsayRouteResponse;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class OdsayService {
+
+	private final RestTemplate restTemplate;
+
+	@Value("${api.odsay.key}")
+	private String apiKey;
+
+	@Value("${api.odsay.url}")
+	private String baseUrl;
+
+	public OdsayRouteResponse searchRoute(GetRouteRequest request) {
+		try {
+			// UriComponentsBuilder 생성
+			UriComponentsBuilder builder = UriComponentsBuilder
+				.fromHttpUrl(baseUrl + "/searchPubTransPathT")
+				// 필수 파라미터
+				.queryParam("SX", request.getStartX())
+				.queryParam("SY", request.getStartY())
+				.queryParam("EX", request.getEndX())
+				.queryParam("EY", request.getEndY())
+				.queryParam("apiKey", apiKey);
+
+			// 선택적 파라미터 추가 (null이 아닐 때만)
+			if (request.getOpt() != null) {
+				builder.queryParam("OPT", request.getOpt());
+			}
+
+			if (request.getSearchType() != null) {
+				builder.queryParam("SearchType", request.getSearchType());
+			}
+
+			if (request.getSearchPathType() != null) {
+				builder.queryParam("SearchPathType", request.getSearchPathType());
+			}
+
+			// URL 생성
+			String url = builder.build().toUriString();
+
+			log.info("ODsay API 요청 URL: {}", url);
+
+			// API 호출
+			OdsayRouteResponse response = restTemplate.getForObject(url, OdsayRouteResponse.class);  // 🔥 String.class -> OdsayRouteResponse.class
+
+			Integer totalTime = null;
+			if (response != null) {
+				totalTime = response.getResult().getPath().get(0).getInfo().getTotalTime();
+			}
+
+			System.out.println(totalTime);
+
+			return response;
+
+		} catch (Exception e) {
+			log.error("ODsay API 호출 중 오류 발생", e);
+			throw new RuntimeException("대중교통 경로 검색에 실패했습니다.", e);
+		}
+	}
+}
