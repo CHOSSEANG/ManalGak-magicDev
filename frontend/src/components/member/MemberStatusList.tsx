@@ -32,9 +32,12 @@ export default function MemberStatusList({ members, onPersonalChange }: Props) {
         <div className="space-y-2 rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-3">
           <div className="flex items-center gap-3">
             {myMember.profileImageUrl ? (
-              <img
+              <Image
                 src={myMember.profileImageUrl}
                 alt={myMember.name}
+                width={40}
+                height={40}
+                unoptimized
                 className="h-10 w-10 rounded-full object-cover"
               />
             ) : (
@@ -78,11 +81,14 @@ export default function MemberStatusList({ members, onPersonalChange }: Props) {
             >
               <div className="flex items-center gap-3">
                 {member.profileImageUrl ? (
-                  <img
-                    src={member.profileImageUrl}
-                    alt={member.name}
-                    className="h-10 w-10 rounded-full object-cover"
-                  />
+                  <Image
+                  src={member.profileImageUrl}
+                  alt={member.name}
+                  width={40}
+                  height={40}
+                  unoptimized
+                  className="h-10 w-10 rounded-full object-cover"
+                />
                 ) : (
                   <div className="h-10 w-10 rounded-full bg-[var(--wf-border)]" />
                 )}
