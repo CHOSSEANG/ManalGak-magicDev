@@ -85,9 +85,11 @@ const withMeetingUuid = (href: string) => {
          ? `/meetings/${meetingUuid}/option-location${readonlyParam ? '?readonly=true' : ''}`
          : '/meetings/none';
      } else if (href === '/meetings/option-fee') {
-       finalHref = meetingUuid
-         ? `/meetings/${meetingUuid}/option-fee${readonlyParam ? '?readonly=true' : ''}`
-         : '/meetings/none';
+        finalHref = meetingUuid
+          ? `/meetings/${meetingUuid}/option-fee${readonlyParam ? '?readonly=true' : ''}`
+          : '/meetings/none';
+     } else if (href === '/about') {
+              finalHref = href;
      } else {
        finalHref = withMeetingUuid(href);
      }

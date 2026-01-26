@@ -20,7 +20,7 @@ export default function BottomTabNavigation() {
   let meetingUuid = searchParams.get('meetingUuid')
 
   if (!meetingUuid) {
-    const match = pathname.match(/\/meetings\/([^/]+)\/complete/)
+    const match = pathname.match(/\/meetings\/([^/]+)\/none/)
     meetingUuid = match?.[1] ?? null
   }
 
@@ -55,7 +55,7 @@ export default function BottomTabNavigation() {
       label: '확정내용',
       href: meetingUuid
         ? `/meetings/${meetingUuid}/complete`
-        : `/meetings/complete`,
+        : `/meetings/none`,
       icon: CheckCircle,
     },
   ]
