@@ -53,12 +53,28 @@ public class OdsayService {
 			String url = builder.build().toUriString();
 
 			log.info("ODsay API 요청 URL: {}", url);
+			log.info("baseUrl 값: {}", baseUrl);
+
+			// 실제 절대 경로인지 확인
+			if (!url.startsWith("http")) {
+				log.error("❌ 상대 경로로 요청되고 있습니다!");
+			}
 
 			// API 호출
 			OdsayRouteResponse response = restTemplate.getForObject(url, OdsayRouteResponse.class);  // 🔥 String.class -> OdsayRouteResponse.class
 
-			Integer totalTime = null;
+			// ===== 응답 확인 (디버깅용) =====
+			log.info("=== ODsay API 응답 확인 ===");
+			log.info("response: {}", response);
 			if (response != null) {
+				log.info("response.getResult(): {}", response.getResult());
+			}
+			log.info("========================");
+
+			Integer totalTime = null;
+			if (response != null && response.getResult() != null
+				&& response.getResult().getPath() != null
+				&& !response.getResult().getPath().isEmpty()) {
 				totalTime = response.getResult().getPath().get(0).getInfo().getTotalTime();
 			}
 
