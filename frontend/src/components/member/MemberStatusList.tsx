@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import StepCard from "@/components/meeting/StepCard";
 import { Member } from "../meeting/Step2/Step2MemberList";
+import Image from "next/image";
 
 interface Props {
   members: Member[];

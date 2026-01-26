@@ -8,15 +8,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Image from "next/image";
-import { useUser } from "@/context/UserContext"; 
-import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
-
-import {
-  LocateFixed,
-  Calculator,
-  ChevronRight,
-  BookA,
-} from 'lucide-react'
+import { useUser } from "@/context/UserContext"; // 🔥 추가
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
@@ -154,13 +146,6 @@ export default function MyPage() {
     router.replace("/");
   };
 
-  const EXTRA_MENUS = [
-  { label: '지도 서비스', href: '/meetings/option-location', icon: LocateFixed },
-  { label: '회비 계산기', href: '/meetings/option-fee', icon: Calculator },
-]
-const ABOUT_MENUS = [{ label: '만날각 소개', href: '/about', icon: BookA }]
-
-  
   return (
     <>
       <main className="space-y-8 pb-24">
@@ -195,14 +180,6 @@ const ABOUT_MENUS = [{ label: '만날각 소개', href: '/about', icon: BookA }]
             </p>
           </div>
         </StepCard>
-
-        <button
-          type="button"
-          onClick={handleAuthButton}
-          className="w-full rounded-2xl bg-[var(--wf-highlight)] px-6 py-4 text-sm font-semibold"
-        >
-          {user ? "로그아웃" : "로그인"}
-        </button>
 
         {/* ===== Bookmark ===== */}
         <section className="space-y-3">
@@ -278,61 +255,43 @@ const ABOUT_MENUS = [{ label: '만날각 소개', href: '/about', icon: BookA }]
           </StepCard>
         </section>
 
-        {/* PERSONAL */}
-<section className="space-y-2">
-  <p className="px-1 text-xs font-semibold text-[var(--wf-subtle)]">
-    PERSONAL
-  </p>
+        {/* ===== Recent Meetings ===== */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">최근 내 모임 리스트</h2>
 
-  {EXTRA_MENUS.map(({ label, href, icon: Icon }) => (
-    <button
-      key={href}
-      type="button"
-      onClick={() => handleNavigate(href)}
-      className="
-        flex w-full items-center justify-between
-        rounded-2xl border border-[var(--wf-border)]
-        bg-white px-5 py-4 text-left
-        transition
-        hover:bg-[var(--wf-highlight-soft)]
-        active:scale-[0.98]
-      "
-    >
-      <div className="flex items-center gap-4">
-        <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
-        <span className="text-sm font-medium">{label}</span>
-      </div>
+          <StepCard className="space-y-3">
+            {meetings.map((item, i) => (
+              <div key={i} className="border-b pb-3 last:border-b-0">
+                <p className="text-sm font-semibold">
+                  {item.meeting.meetingName}
+                </p>
+                <p className="text-xs text-[var(--wf-subtle)]">
+                  {new Date(item.meeting.meetingTime).toLocaleString()}
+                </p>
+              </div>
+            ))}
 
-      <ChevronRight className="h-4 w-4 text-[var(--wf-subtle)] opacity-40" />
-    </button>
-  ))}
+            {hasMore && (
+              <button
+                type="button"
+                onClick={() => fetchMeetings(page + 1)}
+                className="w-full rounded-xl border py-2 text-sm"
+              >
+                더보기
+              </button>
+            )}
+          </StepCard>
+        </section>
 
-
-  {ABOUT_MENUS.map(({ label, href, icon: Icon }) => (
-    <button
-      key={href}
-      type="button"
-      onClick={() => handleNavigate(href)}
-      className="
-        flex w-full items-center justify-between
-        rounded-2xl border border-[var(--wf-border)]
-        bg-white px-5 py-4 text-left
-        transition
-        hover:bg-[var(--wf-highlight-soft)]
-        active:scale-[0.98]
-      "
-    >
-      <div className="flex items-center gap-4">
-        <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
-        <span className="text-sm font-medium">{label}</span>
-      </div>
-
-      <ChevronRight className="h-4 w-4 text-[var(--wf-subtle)] opacity-40" />
-    </button>
-  ))}
-</section>
         
-              <BottomTabNavigation />
+
+        <button
+          type="button"
+          onClick={handleAuthButton}
+          className="w-full rounded-2xl bg-[var(--wf-highlight)] px-6 py-4 text-sm font-semibold"
+        >
+          {user ? "로그아웃" : "로그인"}
+        </button>
       </main>
 
       <WireframeModal

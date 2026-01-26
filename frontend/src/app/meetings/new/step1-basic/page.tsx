@@ -7,7 +7,6 @@ import StepNavigation from "@/components/layout/StepNavigation";
 import Step1Form, { Step1FormRef } from "@/components/meeting/Step1/Step1Form";
 import { useUser } from "@/context/UserContext";
 import LoginRequired from "@/components/common/LoginRequired";
-import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
 // useSearchParams를 사용하는 컴포넌트를 분리
 function Step1Content() {
   const { user, loading } = useUser();
