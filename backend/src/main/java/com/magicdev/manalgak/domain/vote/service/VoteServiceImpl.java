@@ -35,7 +35,7 @@ public class VoteServiceImpl implements VoteService{
     private final ParticipantRepository participantRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-
+    @Transactional(readOnly = true)
     @Override
     public VoteResponse getVote(Long voteId) {
         Vote vote = voteRepository.findById(voteId).orElseThrow(()->
