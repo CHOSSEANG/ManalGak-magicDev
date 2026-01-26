@@ -227,7 +227,6 @@ const myParticipant = participants.find(
   p => p.userId === user?.id
 )
 const myNickname = myParticipant?.nickName ?? '나'
-const hasVoteOptions = voteData?.options && voteData.options.length > 0;
 
   /* ================= 모임장 여부 체크 ================= */
 
