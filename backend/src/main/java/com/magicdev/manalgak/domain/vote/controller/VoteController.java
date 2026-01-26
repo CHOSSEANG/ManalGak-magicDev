@@ -31,12 +31,6 @@ public class VoteController {
     ) {
         VoteResponse vote = voteService.createVote(meetingUuid, request.getOptions());
 
-        // ✅ STOMP 메시지 전송
-        messagingTemplate.convertAndSend(
-                "/topic/votes/meeting/" + meetingUuid,
-                vote
-        );
-
         return CommonResponse.success(vote);
     }
 

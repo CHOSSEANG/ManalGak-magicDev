@@ -121,12 +121,10 @@ public class VoteServiceImpl implements VoteService{
                 .toList();
         voteOptionRepository.saveAll(optionsToSave);
 
-        // 🔥 생성된 투표 응답
         VoteResponse response = getVote(vote.getId());
 
-        // 🔥🔥🔥 여기 핵심
         messagingTemplate.convertAndSend(
-                "/topic/meeting/" + meetingUuid + "/vote-created",
+                "/topic/votes/meeting/" + meetingUuid,
                 response
         );
         return response;
