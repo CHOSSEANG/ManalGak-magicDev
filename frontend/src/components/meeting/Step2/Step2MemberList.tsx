@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
@@ -13,15 +13,11 @@ interface MemberListProps {
   readonly?: boolean; // ⭐ 추가
 }
 
-export type MemberStatus = "CONFIRMED" | "INVITED" | "DECLINED";
-
 export interface Member {
   participantId: number;
   id: string;
   name: string;
-  status: MemberStatus;
   profileImageUrl?: string;
-  handicap?: boolean;
   nickname?: string;
 }
 
@@ -30,12 +26,11 @@ interface ParticipantData {
   participantId: number;
   userId: number;
   nickName: string;
-  status: MemberStatus;
   profileImageUrl?: string;
-  handicap?: boolean;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 
 export default function MemberList({
   meetingUuid,
@@ -44,76 +39,32 @@ export default function MemberList({
   readonly = false, // ⭐ 추가
 }: MemberListProps) {
   const [members, setMembers] = useState<Member[]>([]);
-  const [organizerId, setOrganizerId] = useState<number | null>(null);
 
   const myMember: Member | undefined = useMemo(
-    () => members.find(m => m.id === userId.toString()),
-    [members, userId]
+    () => members.find((m) => m.id === userId.toString()),
+    [members, userId],
   );
 
-  const isOrganizer = useMemo(() => organizerId === userId, [organizerId, userId]);
-
-  // 상태 변경 권한 체크 함수
-  const canChangeStatus = (targetMemberId: string) => {
-    if (readonly) return false; // ⭐ readonly면 권한 없음
-    return isOrganizer || targetMemberId === userId.toString();
-  };
-
-  // 핸디캡 변경 권한 체크 함수
-  const canChangeHandicap = (targetMemberId: string) => {
-    if (readonly) return false; // ⭐ readonly면 권한 없음
-    return targetMemberId === userId.toString();
-  };
-
-  // 참여자 상태 변경 - id(userId)로 participantId 찾아서 전송
-  const handleStatusChange = async (id: string, status: MemberStatus) => {
-    if (readonly) return; // ⭐ readonly면 차단
-
-    // 권한 체크
-    if (!canChangeStatus(id)) {
-      console.warn("상태 변경 권한이 없습니다.");
-      return;
-    }
-
-    const member = members.find(m => m.id === id);
-    if (!member) return;
-
-    try {
-      await axios.patch(
-        `${API_BASE_URL}/v1/meetings/${meetingUuid}/participants/${member.participantId}`,
-        { status },
-        { withCredentials: true }
-      );
-      setMembers(prev =>
-        prev.map(m => m.id === id ? { ...m, status } : m)
-      );
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) console.error("상태 변경 실패", err);
-    }
-  };
-
-  // 핸디캡/닉네임 변경 (본인만 가능) - userId로 비교
+  // 닉네임 변경 (본인만 가능) - userId로 비교
   const handlePersonalChange = async (
     participantId: number,
-    handicap?: boolean,
-    nickname?: string
+    nickname?: string,
   ) => {
     if (readonly) return; // ⭐ readonly면 차단
 
-    const targetMember = members.find(m => m.participantId === participantId);
+    const targetMember = members.find((m) => m.participantId === participantId);
     if (!targetMember || targetMember.id !== userId.toString()) {
       console.warn("본인 정보만 변경 가능합니다.");
       return;
     }
 
     type PersonalUpdatePayload = {
-      handicap?: boolean;
       nickName?: string;
     };
 
     const payload: PersonalUpdatePayload = {};
-    if (handicap !== undefined) payload.handicap = handicap;
-    if (nickname !== undefined && nickname.trim() !== "") payload.nickName = nickname;
+    if (nickname !== undefined && nickname.trim() !== "")
+      payload.nickName = nickname;
 
     if (Object.keys(payload).length === 0) return;
 
@@ -121,15 +72,15 @@ export default function MemberList({
       await axios.patch(
         `${API_BASE_URL}/v1/meetings/${meetingUuid}/participants/${participantId}`,
         payload,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
-      setMembers(prev =>
-        prev.map(m =>
+      setMembers((prev) =>
+        prev.map((m) =>
           m.participantId === participantId
             ? { ...m, ...payload, nickname: payload.nickName ?? m.nickname }
-            : m
-        )
+            : m,
+        ),
       );
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) console.error("본인 변경 실패", err);
@@ -142,23 +93,24 @@ export default function MemberList({
 
     const fetchMeeting = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/v1/meetings/${meetingUuid}`, { withCredentials: true });
+        const res = await axios.get(
+          `${API_BASE_URL}/v1/meetings/${meetingUuid}`,
+          { withCredentials: true },
+        );
         const data = res.data.data;
 
-        setOrganizerId(data.organizerId);
-
-        const mapped: Member[] = (data.participants as ParticipantData[] || []).map(p => ({
+        const mapped: Member[] = (
+          (data.participants as ParticipantData[]) || []
+        ).map((p) => ({
           participantId: p.participantId,
           id: p.userId.toString(),
           name: p.nickName,
-          status: p.status,
           profileImageUrl: p.profileImageUrl,
-          handicap: p.handicap,
-          nickname: ""
+          nickname: "",
         }));
 
         const sorted = mapped.sort((a, b) =>
-          a.id === userId.toString() ? -1 : b.id === userId.toString() ? 1 : 0
+          a.id === userId.toString() ? -1 : b.id === userId.toString() ? 1 : 0,
         );
 
         setMembers(sorted);
@@ -191,31 +143,41 @@ export default function MemberList({
               console.log("참여자 업데이트 수신:", data);
 
               setMembers((prev) => {
-                const exists = prev.find((m) => m.participantId === data.participantId);
+                const exists = prev.find(
+                  (m) => m.participantId === data.participantId,
+                );
 
                 if (exists) {
-                  // 기존 참여자 업데이트 (상태, 핸디캡, 닉네임 변경)
+                  // 기존 참여자 업데이트 (닉네임 변경)
                   const updated = prev.map((m) =>
                     m.participantId === data.participantId
                       ? {
                           ...m,
                           name: data.nickName,
-                          status: data.status,
-                          profileImageUrl: data.profileImageUrl ?? m.profileImageUrl,
-                          handicap: data.handicap ?? m.handicap,
+                          profileImageUrl:
+                            data.profileImageUrl ?? m.profileImageUrl,
                         }
-                      : m
+                      : m,
                   );
 
                   // 내 정보 맨 위 유지
                   return updated.sort((a, b) =>
-                    a.id === userId.toString() ? -1 : b.id === userId.toString() ? 1 : 0
+                    a.id === userId.toString()
+                      ? -1
+                      : b.id === userId.toString()
+                        ? 1
+                        : 0,
                   );
                 } else {
                   // ✅ userId 중복 체크 추가 (같은 userId가 있으면 추가하지 않음)
-                  const duplicateByUserId = prev.find((m) => m.id === data.userId.toString());
+                  const duplicateByUserId = prev.find(
+                    (m) => m.id === data.userId.toString(),
+                  );
                   if (duplicateByUserId) {
-                    console.log("이미 존재하는 userId, 추가하지 않음:", data.userId);
+                    console.log(
+                      "이미 존재하는 userId, 추가하지 않음:",
+                      data.userId,
+                    );
                     return prev;
                   }
 
@@ -224,21 +186,23 @@ export default function MemberList({
                     participantId: data.participantId,
                     id: data.userId.toString(),
                     name: data.nickName,
-                    status: data.status,
                     profileImageUrl: data.profileImageUrl,
-                    handicap: data.handicap ?? false,
-                    nickname: ""
+                    nickname: "",
                   };
 
                   return [...prev, newMember].sort((a, b) =>
-                    a.id === userId.toString() ? -1 : b.id === userId.toString() ? 1 : 0
+                    a.id === userId.toString()
+                      ? -1
+                      : b.id === userId.toString()
+                        ? 1
+                        : 0,
                   );
                 }
               });
             } catch (err) {
               console.error("웹소켓 메시지 파싱 실패:", err);
             }
-          }
+          },
         );
       },
       onStompError: (frame) => {
@@ -259,18 +223,17 @@ export default function MemberList({
     onMyParticipantResolved?.(myMember.participantId);
   }, [myMember, onMyParticipantResolved]);
 
-  const otherMembers = useMemo(() => members.filter(m => m.id !== myMember?.id), [members, myMember]);
+  const otherMembers = useMemo(
+    () => members.filter((m) => m.id !== myMember?.id),
+    [members, myMember],
+  );
 
   return (
     <div className="space-y-2">
       <MemberStatusList
         members={myMember ? [myMember, ...otherMembers] : members}
-        onStatusChange={handleStatusChange}
         onPersonalChange={handlePersonalChange}
         currentUserId={userId}
-        organizerId={organizerId}
-        canChangeStatus={canChangeStatus}
-        canChangeHandicap={canChangeHandicap}
       />
     </div>
   );
