@@ -10,12 +10,12 @@ import java.util.List;
 
 public interface VoteService {
 
-    VoteResponse createVote(Long meetingId, List<String> options);
+    VoteResponse createVote(String meetingUuid, List<String> options);
 
     VoteResponse getVote(Long voteId);
 
     VoteResultMessage vote(Long voteId, Long optionId, Long userId);
 
-    VoteResponse getVoteByMeetingId(Long meetingId);
+    VoteResponse getVoteByMeetingUuid(String meetingUuid);
 
 }

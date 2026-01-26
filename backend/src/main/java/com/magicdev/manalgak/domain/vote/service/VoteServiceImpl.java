@@ -36,7 +36,6 @@ public class VoteServiceImpl implements VoteService{
     private final SimpMessagingTemplate messagingTemplate;
 
 
-    @Transactional
     @Override
     public VoteResponse getVote(Long voteId) {
         Vote vote = voteRepository.findById(voteId).orElseThrow(()->
@@ -45,7 +44,6 @@ public class VoteServiceImpl implements VoteService{
         List<VoteRecord> records = voteRecordRepository.findByVoteId(voteId);
         return VoteResponse.from(vote, options,records);
     }
-
     @Transactional
     @Override
     public VoteResultMessage vote(Long voteId, Long optionId, Long userId) {
@@ -88,27 +86,32 @@ public class VoteServiceImpl implements VoteService{
     }
 
     @Transactional(readOnly = true)
-    public VoteResponse getVoteByMeetingId(Long meetingId) {
-        Vote vote = voteRepository.findFirstByMeetingId(meetingId).orElseThrow(()->
-                new BusinessException(ErrorCode.VOTE_NOT_FOUND));
+    public VoteResponse getVoteByMeetingUuid(String meetingUuid) {
+        Optional<Vote> voteOpt = voteRepository.findFirstByMeeting_MeetingUuid(meetingUuid);
 
+        if (voteOpt.isEmpty()) {
+            // 투표가 없으면 빈 VoteResponse 반환
+            return VoteResponse.empty(); // null이 아니라 안전한 빈 객체
+        }
+
+        Vote vote = voteOpt.get();
         List<VoteOption> options = voteOptionRepository.findByVoteId(vote.getId());
         List<VoteRecord> records = voteRecordRepository.findByVoteId(vote.getId());
-        return VoteResponse.from(vote, options,records);
+        return VoteResponse.from(vote, options, records);
     }
 
     @Transactional
     public VoteResponse createVote(
-            Long meetingId,
+            String meetingUuid,
             List<String> options
     ) {
-        Optional<Vote> existingVote = voteRepository.findFirstByMeetingId(meetingId);
+        Optional<Vote> existingVote = voteRepository.findFirstByMeeting_MeetingUuid(meetingUuid);
 
         if (existingVote.isPresent()) {
             throw new BusinessException(ErrorCode.VOTE_ALREADY_EXISTS);
         }
 
-        Meeting meeting = meetingRepository.findById(meetingId).orElseThrow(()->
+        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid).orElseThrow(()->
                 new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
         Vote vote = Vote.create(meeting);
@@ -117,7 +120,16 @@ public class VoteServiceImpl implements VoteService{
                 .map(optionContent -> VoteOption.create(vote, optionContent))
                 .toList();
         voteOptionRepository.saveAll(optionsToSave);
-        return getVote(vote.getId());
+
+        // 🔥 생성된 투표 응답
+        VoteResponse response = getVote(vote.getId());
+
+        // 🔥🔥🔥 여기 핵심
+        messagingTemplate.convertAndSend(
+                "/topic/meeting/" + meetingUuid + "/vote-created",
+                response
+        );
+        return response;
     }
 
 }

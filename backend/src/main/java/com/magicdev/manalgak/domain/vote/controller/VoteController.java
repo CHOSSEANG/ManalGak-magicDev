@@ -9,6 +9,7 @@ import com.magicdev.manalgak.domain.vote.service.VoteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,25 +21,33 @@ import org.springframework.web.bind.annotation.*;
 public class VoteController {
 
     private final VoteService voteService;
-
+    private final SimpMessagingTemplate messagingTemplate;
     @Operation(summary =  "투표 생성",
             description = "해당 모임에 대한 투표를 생성합니다.")
-    @PostMapping("/meeting/{meetingId}")
+    @PostMapping("/meeting/{meetingUuid}")
     public CommonResponse<VoteResponse> createVote(
-            @PathVariable Long meetingId,
+            @PathVariable String meetingUuid,
             @RequestBody VoteCreateRequest request
     ) {
-        VoteResponse vote = voteService.createVote(meetingId, request.getOptions());
+        VoteResponse vote = voteService.createVote(meetingUuid, request.getOptions());
+
+        // ✅ STOMP 메시지 전송
+        messagingTemplate.convertAndSend(
+                "/topic/votes/meeting/" + meetingUuid,
+                vote
+        );
+
         return CommonResponse.success(vote);
     }
+
     @Operation(
             summary = "투표 조회",
             description = "투표 정보를 조회합니다.")
-    @GetMapping("/meeting/{meetingId}")
+    @GetMapping("/meeting/{meetingUuid}")
     public CommonResponse<VoteResponse> getVoteByMeeting(
-            @PathVariable Long meetingId
+            @PathVariable String meetingUuid
     ) {
-        VoteResponse vote = voteService.getVoteByMeetingId(meetingId);
+        VoteResponse vote = voteService.getVoteByMeetingUuid(meetingUuid);
         return CommonResponse.success(vote);
     }
 
