@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
 import { useRouter } from "next/navigation"
-import StepNavigation from "@/components/layout/StepNavigation"
 import StepCard from "@/components/meeting/StepCard"
 import { useUser } from "@/context/UserContext"
+import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
 
 interface PageInfo {
   totalElements: number
@@ -269,10 +269,7 @@ const formatDateTime = (dateString: string) => {
         </section>
       </main>
 
-      <StepNavigation
-        prevHref="/auth/kakao/callback"
-        nextHref="/meetings/new/step1-basic"
-      />
+              <BottomTabNavigation />
     </>
   )
 }

@@ -5,8 +5,8 @@ import { use } from "react";
 import { useSearchParams } from "next/navigation";
 import CompleteSummaryCard from "@/components/meeting/Step6/CompleteSummaryCard";
 import CompleteMapSection from "@/components/meeting/Step6/CompleteMapSection";
-import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
 import { useMeetingComplete } from "@/lib/hooks/useMeetingComplete";
+import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
 
 interface PageProps {
   params: Promise<{
