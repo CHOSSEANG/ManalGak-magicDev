@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { PersonStanding, Bus, Car, Bookmark } from "lucide-react";
+import { Bus, Car, Bookmark } from "lucide-react";
 import StepCard from "@/components/meeting/StepCard";
 import WireframeModal from "@/components/ui/WireframeModal";
 import AddressSearch from "@/components/map/AddressSearch";
 import BookmarkAddressModal from "@/components/map/BookmarkAddressModal";
 
 type AddressType = "origin" | "return";
-export type TransportMode = "WALK" | "PUBLIC" | "CAR";
+export type TransportMode = "PUBLIC" | "CAR";
 
 interface Step2AddressProps {
   originAddress: string;
@@ -76,7 +76,7 @@ export default function Step2Address({
                 value={originAddress}
                 onChange={(e) => !readonly && setOriginAddress(e.target.value)}
                 placeholder="출발지를 입력해 주세요"
-                className={`flex-1 bg-transparent text-sm outline-none ${readonly ? 'cursor-not-allowed' : ''}`}
+                className={`flex-1 bg-transparent text-sm outline-none ${readonly ? "cursor-not-allowed" : ""}`}
                 disabled={readonly} // ⭐ readonly면 비활성화
               />
               {!readonly && ( // ⭐ readonly면 숨김
@@ -98,18 +98,19 @@ export default function Step2Address({
           <div className="space-y-2">
             <p className="text-sm font-semibold">나의 교통수단 선택</p>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {[
-                { key: "WALK", label: "도보", icon: PersonStanding },
                 { key: "CAR", label: "자동차", icon: Car },
                 { key: "PUBLIC", label: "대중교통", icon: Bus },
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
                   type="button"
-                  onClick={() => !readonly && setTransport(key as TransportMode)}
+                  onClick={() =>
+                    !readonly && setTransport(key as TransportMode)
+                  }
                   disabled={readonly} // ⭐ readonly면 비활성화
-                  className={`flex items-center justify-center gap-2 rounded-full border py-3 text-normal transition
+                  className={`flex w-full items-center justify-center gap-2 rounded-full border py-4 text-normal transition
                     ${
                       transport === key
                         ? "bg-[var(--wf-highlight)] border-[var(--wf-highlight)]"

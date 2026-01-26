@@ -1,57 +1,26 @@
-'use client';
+"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import StepCard from "@/components/meeting/StepCard";
-import MemberStatusSelect from "@/components/member/MemberStatusSelect";
-import { Member, MemberStatus } from "../meeting/Step2/Step2MemberList";
+import { Member } from "../meeting/Step2/Step2MemberList";
 
 interface Props {
   members: Member[];
   currentUserId: number;
-  organizerId: number | null;
-  onStatusChange: (id: string, status: MemberStatus) => void;
-  onPersonalChange: (
-    participantId: number,
-    handicap?: boolean,
-    nickname?: string
-  ) => void;
-  canChangeStatus?: (id: string) => boolean;
-  canChangeHandicap?: (id: string) => boolean;
+  onPersonalChange: (participantId: number, nickname?: string) => void;
 }
 
-export default function MemberStatusList({
-  members,
-  currentUserId,
-  organizerId,
-  onStatusChange,
-  onPersonalChange,
-  canChangeStatus,
-  canChangeHandicap
-}: Props) {
+export default function MemberStatusList({ members, onPersonalChange }: Props) {
   const myMember = members[0];
   const otherMembers = useMemo(() => members.slice(1), [members]);
 
   const [myNickname, setMyNickname] = useState("");
-  const [myHandicap, setMyHandicap] = useState(false);
 
   // members 변경 시 내 상태 동기화
   useEffect(() => {
     if (!myMember) return;
     setMyNickname(myMember.nickname || "");
-    setMyHandicap(myMember.handicap || false);
   }, [myMember]);
-
-  const isOrganizer = organizerId === currentUserId;
-
-  const canEditHandicap = (memberId: string) => {
-    if (canChangeHandicap) return canChangeHandicap(memberId);
-    return memberId === currentUserId.toString();
-  };
-
-  const canEditStatus = (memberId: string) => {
-    if (canChangeStatus) return canChangeStatus(memberId);
-    return isOrganizer || memberId === currentUserId.toString();
-  };
 
   return (
     <StepCard className="space-y-4">
@@ -72,26 +41,6 @@ export default function MemberStatusList({
             )}
 
             <p className="flex-1 text-sm font-semibold">{myMember.name}</p>
-
-            {/* ✅ 핸디캡만 변경 */}
-            <label className="flex items-center gap-1 text-xs cursor-pointer">
-              <input
-                type="checkbox"
-                checked={myHandicap}
-                onChange={(e) => {
-                  const newValue = e.target.checked;
-                  setMyHandicap(newValue);
-                  onPersonalChange(myMember.participantId, newValue, undefined);
-                }}
-                disabled={!canEditHandicap(myMember.id)}
-              />
-              핸디캡
-            </label>
-
-            <MemberStatusSelect
-              value={myMember.status}
-              onChange={(status) => onStatusChange(myMember.id, status)}
-            />
           </div>
 
           {/* 닉네임 설정 */}
@@ -107,7 +56,7 @@ export default function MemberStatusList({
             <button
               className="rounded-md border border-[var(--wf-border)] px-2 py-1 hover:bg-[var(--wf-surface)]"
               onClick={() =>
-                onPersonalChange(myMember.participantId, undefined, myNickname)
+                onPersonalChange(myMember.participantId, myNickname)
               }
             >
               저장
@@ -121,8 +70,6 @@ export default function MemberStatusList({
       {/* 다른 멤버 */}
       <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
         {otherMembers.map((member) => {
-          const canEditThisStatus = canEditStatus(member.id);
-
           return (
             <div
               key={member.id}
@@ -140,20 +87,6 @@ export default function MemberStatusList({
                 )}
 
                 <p className="flex-1 text-sm font-semibold">{member.name}</p>
-
-                {member.handicap && (
-                  <span className="text-xs rounded-md bg-[var(--wf-border)] px-2 py-0.5">
-                    핸디캡
-                  </span>
-                )}
-
-                <MemberStatusSelect
-                  value={member.status}
-                  onChange={(status) =>
-                    canEditThisStatus && onStatusChange(member.id, status)
-                  }
-                  disabled={!canEditThisStatus}
-                />
               </div>
 
               <div className="pl-13 text-xs text-[var(--wf-subtle)]">
