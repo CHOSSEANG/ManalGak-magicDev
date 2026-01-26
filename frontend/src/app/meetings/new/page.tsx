@@ -268,8 +268,8 @@ const formatDateTime = (dateString: string) => {
           </StepCard>
         </section>
       </main>
-
-              <BottomTabNavigation />
+    
+      <BottomTabNavigation />
     </>
   )
 }
