@@ -1,6 +1,6 @@
 // src/app/HomeClient.tsx
 "use client";
-
+// import { useState } from "react";
 // import { useRouter, useSearchParams } from "next/navigation";
 // import Button from "@/components/ui/Button";
 // import Image from "next/image";
@@ -11,9 +11,9 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
-  MapPin,
-  Share2,
-  Navigation,
+  // MapPin,
+  // Share2,
+  // Navigation,
   Users,
   Clock,
   Frown,
@@ -66,24 +66,13 @@ export default function HomeClient() {
 
   // 모선 관련 부분 
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const handleKakaoLogin = () => {
-    // 실제 프로젝트에서는 /auth/kakao 리다이렉트
-    setIsLoggedIn(true);
-    alert("카카오 로그인 (데모)");
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-  };
 
   const handleStartClick = () => {
     router.push("/meetings/new");
   };
 
   return (
-    <main className="flex flex-col justify-between gap-10">
       <div className="relative min-h-screen bg-white">
       <main className="pb-32">
         {/* Hero */}
@@ -189,9 +178,10 @@ export default function HomeClient() {
           </div>
           </section>
         <BottomTabNavigation />
-      </div>
       </main>
-        {/* {!user ? (
+    </div>
+
+        /* {!user ? (
           <Button onClick={handleKakaoLogin}>로그인</Button>
         ) : (
           <Button
@@ -201,6 +191,6 @@ export default function HomeClient() {
           >
             로그아웃
           </Button>
-        )} */}
+        )} */
   );
 }
