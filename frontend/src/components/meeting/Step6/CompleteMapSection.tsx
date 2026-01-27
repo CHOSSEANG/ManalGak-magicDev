@@ -1,3 +1,4 @@
+// src/components/meeting/Step6/CompleteMapSection.tsx
 "use client";
 
 import KakaoMap from "@/components/map/KakaoMap";
@@ -8,20 +9,21 @@ interface Props {
 }
 
 export default function CompleteMapSection({ lat, lng }: Props) {
-  const hasCoords =
-    typeof lat === "number" &&
-    Number.isFinite(lat) &&
-    typeof lng === "number" &&
-    Number.isFinite(lng);
-  const center = hasCoords ? { lat, lng } : undefined;
-  const markers = hasCoords ? [{ lat, lng }] : [];
+  const hasCoords = Number.isFinite(lat) && Number.isFinite(lng)
+  const center = hasCoords ? { lat, lng } : undefined
+  const markers = hasCoords ? [{ lat, lng }] : []
+
   return (
-    <div className="h-56 rounded-xl border border-[var(--wf-border)] overflow-hidden">
-        <KakaoMap
-          center={center}
-          markers={markers}
-          level={4}
-        />
-      </div>
-  );
+    <div className="absolute inset-0 z-0">
+      <KakaoMap
+        center={center}
+        markers={markers}
+        level={4}
+      />
+
+      
+    </div>
+
+    
+  )
 }

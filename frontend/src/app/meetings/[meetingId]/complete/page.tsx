@@ -3,9 +3,8 @@
 
 import { use } from "react";
 import { useSearchParams } from "next/navigation";
-import CompleteSummaryCard from "@/components/meeting/Step6/CompleteSummaryCard";
+import CompleteSummaryDrawer from '@/components/meeting/Step6/CompleteSummaryDrawer'
 import CompleteMapSection from "@/components/meeting/Step6/CompleteMapSection";
-import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
 import { useMeetingComplete } from "@/lib/hooks/useMeetingComplete";
 
 interface PageProps {
@@ -43,20 +42,17 @@ export default function MeetingCompletePage({ params }: PageProps) {
   };
 
   return (
-    <main className="space-y-6 pb-24">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">📍 확정 모임 정보</h1>
-        <p className="text-sm text-[var(--wf-subtle)]">
-          카카오톡으로 메시지를 전송 할 수 있습니다.
-        </p>
-      </div>
-      {/* 확정 장소 지도 */}
-      <CompleteMapSection lat={resolvedData?.lat} lng={resolvedData?.lng} />
+  <main className="relative h-[100dvh] overflow-hidden">
+    {/* 배경 지도 */}
+    <CompleteMapSection
+      lat={resolvedData?.lat}
+      lng={resolvedData?.lng}
+    />
 
-      {/* 확정 정보 요약 카드 */}
-      <CompleteSummaryCard meeting={meeting} />
-
-      <BottomTabNavigation />
-    </main>
-  );
+    {/* 위에 올라오는 UI */}
+    <div className="relative z-10">
+      <CompleteSummaryDrawer meeting={meeting} />
+    </div>
+  </main>
+)
 }

@@ -319,12 +319,13 @@ export default function CreateEntryPage() {
             )}
           </StepCard>
         </section>
-      </main>
-
-      <StepNavigation
+        <StepNavigation
         prevHref="/auth/kakao/callback"
         nextHref="/meetings/new/step1-basic"
       />
+      </main>
+
+      
     </>
   );
 }

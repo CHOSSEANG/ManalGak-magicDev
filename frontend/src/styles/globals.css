@@ -30,6 +30,9 @@
   /* Text */
   --wf-text: #212121;       /* 거의 블랙 */
   --wf-subtle: #6f6f6f;     /* 보조 텍스트 */
+
+  /* Status */
+  --bottom-cta-height: calc(72px + env(safe-area-inset-bottom));
 }
 
 /* ===============================
@@ -38,7 +41,8 @@
 html,
 body {
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 body {

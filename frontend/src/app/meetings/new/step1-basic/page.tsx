@@ -65,13 +65,14 @@ function Step1Content() {
         </div>
 
         <Step1Form ref={formRef} meetingUuid={meetingUuid} readonly={readonly} />
-      </main>
-
-      <StepNavigation
+        <StepNavigation
         prevHref="/meetings/new"
         nextHref="#"
         onNext={handleNext}
       />
+      </main>
+
+      
     </>
   );
 }

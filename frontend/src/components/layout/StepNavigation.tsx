@@ -4,7 +4,6 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import BottomCTA from '@/components/layout/BottomCTA'
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface StepNavigationProps {
@@ -57,7 +56,6 @@ export default function StepNavigation({
   }
 
   return (
-    <BottomCTA>
       <div
         className={`flex w-full items-center ${
           split && prevHref && nextHref ? 'gap-3' : 'justify-end'
@@ -94,6 +92,5 @@ export default function StepNavigation({
           </button>
         ) : null}
       </div>
-    </BottomCTA>
   )
 }

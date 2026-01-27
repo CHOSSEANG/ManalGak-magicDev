@@ -202,9 +202,9 @@ const handleDirection = () => {
               <p className="text-xs font-light text-[var(--wf-accent)]">
                 상세 주소
               </p>
-             <p className="text-base font-medium">
-               {place ? address : '-'}
-             </p>
+              <p className="text-base font-medium">
+                {place ? address : '-'}
+              </p>
             </div>
             <button
               type="button"

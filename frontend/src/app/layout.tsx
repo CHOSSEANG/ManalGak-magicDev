@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import BottomCTA from '@/components/layout/BottomCTA'
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "@/styles/globals.css";
 import { UserProvider } from "@/context/UserContext" // 추가
@@ -30,23 +31,25 @@ export default function RootLayout({
         />
       </head>
 
-      <body>
-       <UserProvider>
-        <TooltipProvider delayDuration={200}>
-          {/* 전체 앱: 세로 플렉스 */}
-          <div className="app-container h-screen  min-h-screen flex flex-col bg-[var(--wf-bg)] text-[var(--wf-text)] overflow-y-auto ">
-            <Header />
+      <body className="bg-[var(--wf-bg)] text-[var(--wf-text)]">
+        <UserProvider>
+          <TooltipProvider delayDuration={200}>
+            <div className="app-container min-h-screen flex flex-col">
+              <Header />
 
-            <main className="flex-1 min-h-0 flex justify-center">
-              <div className="w-full flex-1 min-h-0 py-6">
-                {children}
-              </div>
-            </main>
+              <main className="flex-1 flex justify-center">
+                <div className="w-full py-6">
+                  {children}
+                </div>
+              </main>
 
-            <Footer />
-          </div>
-        </TooltipProvider>
-         </UserProvider>
+              <Footer />
+            </div>
+          </TooltipProvider>
+        </UserProvider>
+
+        {/* 전역 고정 */}
+        <BottomCTA />
       </body>
     </html>
   );
