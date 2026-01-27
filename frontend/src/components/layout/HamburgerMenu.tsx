@@ -6,8 +6,11 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { Suspense } from 'react'
 import { useUser } from "@/context/UserContext"
 import ProfileIdentity from '@/components/layout/ProfileIdentity'
+import { motion } from "framer-motion";
 
 import {
+  X,
+  User,
   Calendar,
   SquareMousePointer,
   Users,
@@ -22,7 +25,10 @@ interface HamburgerMenuProps {
   onClose: () => void
 }
 
-const MY_MENUS = [{ label: '내 모임', href: '/meetings/new', icon: Calendar }]
+const MY_MENUS = [
+  { label: '내 페이지', href: '/my', icon: User },
+  { label: '내 모임', href: '/meetings/new', icon: Calendar },
+]
 const MENUS = [
   { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: SquareMousePointer },
   { label: '참여자 설정', href: '/meetings/new/step2-meetingmembers', icon: Users },
@@ -128,15 +134,31 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
 
   return (
     <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose}>
-      <aside
-        className="fixed left-0 top-0 h-full w-[50%] max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
+      <motion.aside
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'tween', duration: 0.25 }}
+        className="fixed right-0 top-0 h-full w-[60%] max-w-sm bg-[var(--wf-surface)] p-6 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm font-semibold"> </span>
+          <button
+            onClick={onClose}
+            aria-label="메뉴 닫기"
+            className="rounded-full p-2 hover:bg-[var(--wf-highlight-soft)]"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        
         {/* Profile */}
         <nav className="space-y-1">
           <div
-            onClick={() => handleNavigate(isLoggedIn ? '/my' : '/')}
-            className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)]"
+            // onClick={() => handleNavigate(isLoggedIn ? '/my' : '/')}
+            className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition "
           >
             <ProfileIdentity
               src={user?.profileImage}
@@ -207,7 +229,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
             </button>
           )}
         </div>
-      </aside>
+      </motion.aside>
     </div>
   )
 }
