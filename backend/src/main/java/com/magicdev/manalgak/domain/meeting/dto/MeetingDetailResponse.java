@@ -2,6 +2,7 @@ package com.magicdev.manalgak.domain.meeting.dto;
 
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantResponse;
+import com.magicdev.manalgak.domain.place.dto.PlaceResponse;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,10 +20,13 @@ public class MeetingDetailResponse {
     private Integer totalParticipants;
     private Long organizerId;
     private String meetingUuid;
+    private PlaceResponse.Place selectedPlace;
 
     private List<ParticipantResponse> participants; // 참여자 리스트
 
-    public static MeetingDetailResponse from(Meeting meeting, List<ParticipantResponse> participants){
+    public static MeetingDetailResponse from(Meeting meeting,
+                                             List<ParticipantResponse> participants,
+                                             PlaceResponse.Place selectedPlace){
         return MeetingDetailResponse.builder()
                 .meetingName(meeting.getMeetingName())
                 .meetingTime(meeting.getMeetingTime())
@@ -33,6 +37,7 @@ public class MeetingDetailResponse {
                 .participants(participants)
                 .organizerId(meeting.getOrganizerId())
                 .meetingUuid(meeting.getMeetingUuid())
+                .selectedPlace(selectedPlace)
                 .build();
     }
 }
