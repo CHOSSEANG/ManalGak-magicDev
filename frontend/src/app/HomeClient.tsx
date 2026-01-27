@@ -1,7 +1,6 @@
 // src/app/HomeClient.tsx
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -18,29 +17,32 @@ import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
 
 export default function HomeClient() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   /* =========================
-   * 로그인 (데모용)
+   * 카카오 로그인 (실서비스용)
    * ========================= */
   const handleKakaoLogin = () => {
-    // 🔒 실제 서비스용 (백엔드 OAuth 연동 시 사용)
-    // const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
-    // const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
-    // if (!REST_API_KEY || !REDIRECT_URI) return;
-    // window.location.href = `https://kauth.kakao.com/oauth/authorize?...`;
+    const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+    const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
 
-    alert("카카오 로그인 (데모)");
-    setIsLoggedIn(true);
-  };
+    if (!REST_API_KEY || !REDIRECT_URI) {
+      alert("카카오 로그인 설정이 완료되지 않았습니다.");
+      return;
+    }
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+    const kakaoAuthUrl =
+      "https://kauth.kakao.com/oauth/authorize" +
+      `?client_id=${REST_API_KEY}` +
+      `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+      "&response_type=code";
+
+    window.location.href = kakaoAuthUrl;
   };
 
   const handleStartClick = () => {
     router.push("/meetings/new");
   };
+
 
   return (
     <div className="relative min-h-screen bg-white">
@@ -210,7 +212,7 @@ export default function HomeClient() {
               더 이상 약속 장소로 고민하지 마세요
             </p>
             <button
-              onClick={handleStartClick}
+              onClick={handleKakaoLogin}
               className="rounded-full bg-[#FFDA38] px-8 py-4 font-semibold text-[#00006A]"
             >
               카카오로 3초만에 시작하기
