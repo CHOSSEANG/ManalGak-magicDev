@@ -46,8 +46,7 @@ export default function CompleteSummaryCard({ meeting }: Props) {
   } = meeting
 
 
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api'
+
 
   const [place, setPlace] = useState<PlaceResponse | null>(null)
 
@@ -85,7 +84,8 @@ const lng = typeof place?.longitude === 'number' ? place.longitude : null
 
   useEffect(() => {
     if (!meetingUuid) return
-
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api'
     const fetchPlace = async () => {
       try {
         const res = await axios.get(
@@ -100,7 +100,7 @@ const lng = typeof place?.longitude === 'number' ? place.longitude : null
         }
 
         setPlace(res.data.data)
-      } catch (error) {
+      } catch  {
 
       }
     }
