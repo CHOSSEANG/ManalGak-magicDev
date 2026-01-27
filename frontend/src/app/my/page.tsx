@@ -137,13 +137,13 @@ export default function MyPage() {
         {/* ===== Profile ===== */}
         <StepCard>
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full overflow-hidden border bg-[var(--wf-muted)] flex items-center justify-center">
+            <div className="h-16 w-16 overflow-hidden flex items-center justify-center">
               {user?.profileImage ? (
               <Image 
                   src={user.profileImage}
                     alt="프로필 이미지"
-                    width={48}
-                    height={48}
+                    width={52}
+                    height={52}
                   className="h-full w-full object-cover"
                 />
               ) : (

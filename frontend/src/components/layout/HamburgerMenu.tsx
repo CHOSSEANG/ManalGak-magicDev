@@ -2,8 +2,8 @@
 'use client'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { Suspense } from 'react'
-import Image from "next/image";
 import { useUser } from "@/context/UserContext"
+import ProfileIdentity from '@/components/layout/ProfileIdentity'
 
 import {
   Calendar,
@@ -126,29 +126,14 @@ const withMeetingUuid = (href: string) => {
             onClick={() => handleNavigate(isLoggedIn ? '/my' : '/')}
             className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)]"
           >
-            <div className="h-12 w-12 rounded-full bg-[var(--wf-accent)] flex items-center justify-center overflow-hidden border">
-              {isLoading ? (
-                <div className="h-full w-full bg-gray-300 animate-pulse rounded-full" />
-              ) : user?.profileImage ? (
-                <Image
-                  src={user.profileImage}
-                  alt="프로필 이미지"
-                  width={48}
-                  height={48}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-sm font-semibold text-white">
-                  {user?.name?.[0] ?? '?'}
-                </span>
-              )}
-            </div>
-
-            <div className="flex flex-col">
-              <p className="text-base font-semibold">
-                {user?.name ?? '로그인 필요'}
-              </p>
-            </div>
+            <ProfileIdentity
+              src={user?.profileImage}
+              name={user?.name ?? user?.name ?? '로그인 필요'}
+              isLoading={isLoading}
+              size={48}
+              layout="row"
+              shape="square"
+            />
           </div>
 
           {isLoggedIn && MY_MENUS.map(({ label, href, icon: Icon }) => (

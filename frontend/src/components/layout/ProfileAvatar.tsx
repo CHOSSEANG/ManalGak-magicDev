@@ -1,3 +1,4 @@
+// src/components/layout/ProfileAvatar.tsx
 'use client'
 
 import Image from 'next/image'
