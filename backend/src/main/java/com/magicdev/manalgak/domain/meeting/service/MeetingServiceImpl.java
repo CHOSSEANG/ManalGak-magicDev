@@ -12,6 +12,9 @@ import com.magicdev.manalgak.domain.participant.dto.ParticipantResponse;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
 import com.magicdev.manalgak.domain.participant.repository.ParticipantRepository;
 import com.magicdev.manalgak.domain.participant.service.ParticipantService;
+import com.magicdev.manalgak.domain.place.dto.PlaceResponse;
+import com.magicdev.manalgak.domain.place.entity.RecommendedPlace;
+import com.magicdev.manalgak.domain.place.repository.RecommendedPlaceRepository;
 import com.magicdev.manalgak.domain.user.entity.User;
 import com.magicdev.manalgak.domain.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,13 +35,22 @@ public class MeetingServiceImpl implements MeetingService {
     private final ParticipantService participantService;
     private final ParticipantRepository participantRepository;
     private final UserRepository userRepository;
+    private final RecommendedPlaceRepository recommendedPlaceRepository;
 
-    public MeetingServiceImpl(MeetingRepository meetingRepository, @Value("${frontend.base-url}") String frontendBaseUrl, ParticipantService participantService, ParticipantRepository participantRepository, UserRepository userRepository) {
+    public MeetingServiceImpl(
+            MeetingRepository meetingRepository,
+            @Value("${frontend.base-url}") String frontendBaseUrl,
+            ParticipantService participantService,
+            ParticipantRepository participantRepository,
+            UserRepository userRepository,
+            RecommendedPlaceRepository recommendedPlaceRepository
+    ) {
         this.meetingRepository = meetingRepository;
         this.frontendBaseUrl = frontendBaseUrl;
         this.participantService = participantService;
         this.participantRepository = participantRepository;
         this.userRepository = userRepository;
+        this.recommendedPlaceRepository = recommendedPlaceRepository;
     }
 
     @Override
@@ -57,14 +69,18 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     public MeetingDetailResponse getMeeting(String meetingUuid) {
-        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid).orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
         List<ParticipantResponse> participants = participantRepository.findByMeetingId(meeting.getId())
                 .stream()
                 .map(ParticipantResponse::from)
                 .toList();
 
-        return MeetingDetailResponse.from(meeting, participants);
+        // 선택된 장소 정보 조회
+        PlaceResponse.Place selectedPlace = getSelectedPlace(meetingUuid);
+
+        return MeetingDetailResponse.from(meeting, participants, selectedPlace);
     }
 
 
@@ -100,14 +116,59 @@ public class MeetingServiceImpl implements MeetingService {
                 .map(meeting -> {
                     List<ParticipantResponse> participants =
                             participantMap.getOrDefault(meeting.getId(), List.of());
-                    return MeetingAllResponse.from(meeting, participants);
+
+                    // 선택된 장소 정보 조회
+                    PlaceResponse.Place selectedPlace = getSelectedPlace(meeting.getMeetingUuid());
+
+                    return MeetingAllResponse.from(meeting, participants, selectedPlace);
                 })
                 .toList();
 
         return new PageImpl<>(responseList, pageable, meetingsPage.getTotalElements());
     }
+
+    /**
+     * 선택된 장소 조회
+     */
+    @Transactional(readOnly = true)
+    private PlaceResponse.Place getSelectedPlace(String meetingUuid) {
+        RecommendedPlace recommendedPlace = recommendedPlaceRepository
+                .findByMeetingMeetingUuid(meetingUuid)
+                .orElse(null);
+
+        if (recommendedPlace == null) {
+            return null;
+        }
+
+        return convertToPlaceDto(recommendedPlace);
+    }
+
+    /**
+     * RecommendedPlace를 PlaceResponse.Place로 변환
+     */
+    private PlaceResponse.Place convertToPlaceDto(RecommendedPlace recommendedPlace) {
+        return PlaceResponse.Place.builder()
+                .placeId(recommendedPlace.getPlaceId())
+                .placeName(recommendedPlace.getPlaceName())
+                .category(recommendedPlace.getCategory())
+                .categoryGroupCode(recommendedPlace.getCategoryGroupCode())
+                .categoryGroupName(recommendedPlace.getCategoryGroupName())
+                .categoryName(null)  // RecommendedPlace에 없는 필드
+                .address(recommendedPlace.getAddress())
+                .roadAddress(recommendedPlace.getRoadAddress())
+                .latitude(recommendedPlace.getLatitude())
+                .longitude(recommendedPlace.getLongitude())
+                .distance(recommendedPlace.getDistance())
+                .walkingMinutes(recommendedPlace.getWalkingMinutes())
+                .stationName(null)  // RecommendedPlace에 없는 필드
+                .phone(recommendedPlace.getPhone())
+                .placeUrl(recommendedPlace.getPlaceUrl())
+                .build();
+    }
+
     public Meeting getMeetingByMeetingUuid(String meetingUuid) {
-        return meetingRepository.findByMeetingUuid(meetingUuid).orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+        return meetingRepository.findByMeetingUuid(meetingUuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
     }
 
 
