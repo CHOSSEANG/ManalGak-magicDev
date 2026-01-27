@@ -1,17 +1,12 @@
 // src/app/meetings/[meetingId]/option-location/page.tsx
 "use client";
-import { useState } from "react";
+// import { useState } from "react";
 // import { KakaoMap } from "@/components/map/KakaoMap";
 
-const middlePlaceMarkers = [
-  { lat: 37.563617, lng: 126.997628 },
-  { lat: 37.565, lng: 126.99 },
-  { lat: 37.56, lng: 127.0 },
-];
 
 export default function OptionRealtimePage() {
   // eslint: setter unused in wireframe screen
-  const [mapLevel] = useState(5);
+  // const [mapLevel] = useState(5);
   // 와이어프레임 단계: 옵션 1
   return (
     <main className="space-y-6">
