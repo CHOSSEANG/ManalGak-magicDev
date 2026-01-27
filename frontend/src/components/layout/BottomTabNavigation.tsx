@@ -20,7 +20,7 @@ export default function BottomTabNavigation() {
   let meetingUuid = searchParams.get('meetingUuid')
 
   if (!meetingUuid) {
-    const match = pathname.match(/\/meetings\/([^/]+)\/none/)
+    const match = pathname.match(/\/meetings\/([^/]+)\/complete/)
     meetingUuid = match?.[1] ?? null
   }
 
