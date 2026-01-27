@@ -27,7 +27,7 @@ interface HamburgerMenuProps {
 
 const MY_MENUS = [
   { label: '내 페이지', href: '/my', icon: User },
-  { label: '내 모임', href: '/meetings/new', icon: Calendar },
+  { label: '모임 리스트', href: '/meetings/new', icon: Calendar },
 ]
 const MENUS = [
   { label: '모임 만들기', href: '/meetings/new/step1-basic', icon: SquareMousePointer },
@@ -177,7 +177,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
               className="flex w-full items-center justify-between rounded-xl px-4 py-3 hover:bg-[var(--wf-highlight-soft)]"
             >
               <div className="flex items-center gap-4">
-                <Icon className="h-5 w-5 text-[var(--wf-subtle)]" />
+                <Icon className="h-5 w-5 text-[var(--wf-subtle)] " />
                 <span>{label}</span>
               </div>
               <ChevronRight className="h-4 w-4 opacity-40" />
@@ -189,7 +189,6 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
 
         {/* MEETING */}
         <nav className="space-y-1">
-          <p className="text-xs font-semibold">MEETING</p>
           {MENUS.map(({ label, href, icon: Icon }) => (
             <button
               key={href}
@@ -204,7 +203,6 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
             </button>
           ))}
         </nav>
-
         <div className="my-4 border-t" />
 
         {/* Bottom Button */}
