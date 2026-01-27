@@ -1,10 +1,10 @@
 // src/components/layout/Header.tsx
-
 'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
+import Image from 'next/image'
 import HamburgerMenu from '@/components/layout/HamburgerMenu'
 import {
   Tooltip,
@@ -36,14 +36,16 @@ export default function Header() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
-                href="/meetings/new"
+                href="/"
                 onClick={closeMenu}
                 className="flex h-10 items-center"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- static logo svg */}
-                <img
+                <Image
                   src="/images/logo.svg"
                   alt="로고"
+                  width={96}
+                  height={24}
                   className="h-6 w-auto"
                 />
               </Link>
