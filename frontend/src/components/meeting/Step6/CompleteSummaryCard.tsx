@@ -100,9 +100,9 @@ const lng = typeof place?.longitude === 'number' ? place.longitude : null
         }
 
         setPlace(res.data.data)
-      } catch  {
-
-      }
+       } catch (error) {
+              console.error('장소 정보를 가져오는데 실패했습니다:', error);
+       }
     }
 
     fetchPlace()
