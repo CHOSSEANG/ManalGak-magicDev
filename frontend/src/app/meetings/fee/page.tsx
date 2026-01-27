@@ -4,7 +4,6 @@
 import { useState, useMemo } from 'react'
 import { MinusCircle, PlusCircle, Plus, Minus } from 'lucide-react'
 import StepCard from '@/components/meeting/StepCard'
-import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
 
 // =====================
 // 숫자 유틸
@@ -295,7 +294,6 @@ export default function OptionPaymentPage() {
         </div>
       </StepCard>
 
-      <BottomTabNavigation />
     </main>
   )
 }
