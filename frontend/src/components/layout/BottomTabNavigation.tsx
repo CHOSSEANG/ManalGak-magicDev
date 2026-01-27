@@ -2,7 +2,7 @@
 'use client'
 
 import { Suspense } from 'react'
-import BottomTabNav from './BottomTabNav'
+import BottomTabNav from '@/components/layout/BottomTabNav'
 
 export default function BottomTabNavigation() {
   return (
