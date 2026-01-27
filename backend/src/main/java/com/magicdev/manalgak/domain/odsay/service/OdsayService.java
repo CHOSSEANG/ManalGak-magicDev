@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.magicdev.manalgak.domain.algorithm.Model.Coordinate;
 import com.magicdev.manalgak.domain.odsay.dto.GetRouteRequest;
 import com.magicdev.manalgak.domain.odsay.dto.OdsayRouteResponse;
 
@@ -105,6 +106,55 @@ public class OdsayService {
 		} catch (Exception e) {
 			log.error("ODsay API 호출 중 오류 발생", e);
 			throw new RuntimeException("대중교통 경로 검색에 실패했습니다.", e);
+		}
+	}
+
+	/**
+	 * 출발지 좌표 -> 도착지 좌표 대중교통 소요시간 조회
+	 * @param origin 출발지 좌표
+	 * @param destination 도착지 좌표
+	 * @return 소요시간(분), 경로를 찾을 수 없으면 null
+	 */
+	public Integer getTravelTime(Coordinate origin, Coordinate destination) {
+		try {
+			GetRouteRequest request = GetRouteRequest.builder()
+				.startX(origin.getLongitude())
+				.startY(origin.getLatitude())
+				.endX(destination.getLongitude())
+				.endY(destination.getLatitude())
+				.build();
+
+			OdsayRouteResponse response = searchRoute(request);
+
+			// 응답 검증
+			if (response == null || response.getResult() == null) {
+				log.warn("ODsay API 응답이 null입니다.");
+				return null;
+			}
+
+			if (response.getResult().getPath() == null ||
+				response.getResult().getPath().isEmpty()) {
+				log.warn("경로를 찾을 수 없습니다. origin: {}, destination: {}",
+					origin, destination);
+				return null;
+			}
+
+			// 첫 번째 경로의 총 소요시간 추출
+			Integer totalTime = response.getResult()
+				.getPath()
+				.get(0)
+				.getInfo()
+				.getTotalTime();
+
+			log.info("소요시간 조회 성공: {}분 (출발: {}, 도착: {})",
+				totalTime, origin, destination);
+
+			return totalTime;
+
+		} catch (Exception e) {
+			log.error("소요시간 조회 중 오류 발생. origin: {}, destination: {}",
+				origin, destination, e);
+			return null;
 		}
 	}
 }
