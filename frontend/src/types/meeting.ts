@@ -29,16 +29,8 @@ export interface MeetingResponse {
   };
 }
 
-export type MeetingPurposeV1 =
-  | 'STUDY_CAFE'
-  | 'CAFE'
-  | 'ROOM_CAFE'
-  | 'MOVIE'
-  | 'SHOPPING'
-  | 'KARAOKE'
-  | 'RESTAURANT'
-  | 'BRUNCH'
-  | 'DRINK';
+// 현재 사용되는 모임 목적 타입
+export type MeetingPurposeV1 = 'DINING' | 'CAFE' | 'CULTURE' | 'TOUR';
 
 export type MeetingStatusV1 = 'PENDING' | 'COMPLETED';
 
