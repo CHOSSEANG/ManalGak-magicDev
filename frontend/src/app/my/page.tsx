@@ -141,17 +141,27 @@ export default function MyPage() {
 
         {/* ===== Profile ===== */}
         <StepCard>
-          <div className="flex items-center gap-4">
-            <div className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)]">
-                        <ProfileIdentity
-                          src={user?.profileImage}
-                          name={user?.name ?? '로그인이 필요합니다'}
-                          isLoading={isLoading}
-                          size={48}
-                          layout="row"
-                          shape="square"
-                        />
+          <div className="flex items-center justify-between gap-4">
+            {/* 좌측: 프로필 */}
+            <div className="flex cursor-pointer items-center rounded-xl transition hover:bg-[var(--wf-accent)]">
+              <ProfileIdentity
+                src={user?.profileImage}
+                name={user?.name ?? '로그인이 필요합니다'}
+                isLoading={isLoading}
+                size={52}
+                layout="row"
+                shape="square"
+              />
             </div>
+
+            {/* 우측: 버튼 */}
+            <button
+              type="button"
+              onClick={handleAuthButton}
+              className="shrink-0 rounded-xl bg-[var(--wf-highlight)] px-10 py-3 text-sm font-bold"
+            >
+              {user ? "로그아웃" : "로그인"}
+            </button>
           </div>
         </StepCard>
 
@@ -229,13 +239,7 @@ export default function MyPage() {
           </StepCard>
         </section>
 
-        <button
-          type="button"
-          onClick={handleAuthButton}
-          className="w-full rounded-2xl bg-[var(--wf-highlight)] px-6 py-4 text-sm font-semibold"
-        >
-          {user ? "로그아웃" : "로그인"}
-        </button>
+        
       </main>
 
       <WireframeModal
