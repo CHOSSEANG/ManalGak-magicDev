@@ -1,7 +1,6 @@
 // src/app/meetings/[meetingId]/option-location/page.tsx
 "use client";
 import { useState } from "react";
-import StepNavigation from "@/components/layout/StepNavigation";
 import KakaoMap from "@/components/map/KakaoMap";
 
 const middlePlaceMarkers = [
@@ -40,13 +39,6 @@ export default function OptionRealtimePage() {
         <KakaoMap markers={middlePlaceMarkers} level={mapLevel} />
       </div>
 
-      {/* 스텝 네비 */}
-      <StepNavigation
-        prevHref="/meetings/meeting-001/complete"
-        prevLabel="이전"
-        nextHref="/my"
-        nextLabel="내 모임 리스트"
-      />
     </main>
   );
 }
