@@ -1,5 +1,4 @@
 // src/components/layout/Footer.tsx
-
 "use client";
 import {
   DropdownMenu,
@@ -10,12 +9,10 @@ import {
 import { ChevronDown } from "lucide-react"
 
 export default function Footer() {
-  const handleFamilyLinkChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const url = e.target.value;
-    if (!url) return;
-    window.open(url, "_blank");
-    e.target.selectedIndex = 0; // 다시 placeholder로
-  };
+  // ✅ openLink 정의 추가 (기존 동작 그대로)
+  const openLink = (url: string) => {
+    window.open(url, "_blank")
+  }
 
   return (
     <footer className="w-full border-t border-[var(--wf-border)] pb-[var(--bottom-cta-height)]">
@@ -23,7 +20,6 @@ export default function Footer() {
         {/* 왼쪽: 최소 브랜드 */}
         <span className="text-[var(--wf-text-subtle)]">© Manalgak</span>
 
-        
         {/* 오른쪽: 패밀리 링크 (shadcn) */}
         <DropdownMenu>
           <DropdownMenuTrigger className="inline-flex items-center gap-1 rounded border border-[var(--wf-border)] px-2 py-1">
