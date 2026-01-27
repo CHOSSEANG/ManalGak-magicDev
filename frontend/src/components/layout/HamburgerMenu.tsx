@@ -1,5 +1,7 @@
 // src/components/layout/HamburgerMenu.tsx
+// src/components/layout/HamburgerMenu.tsx
 'use client'
+
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { Suspense } from 'react'
 import { useUser } from "@/context/UserContext"
@@ -11,10 +13,8 @@ import {
   Users,
   MapPin,
   CheckCircle,
-
   LogOut,
   ChevronRight,
-  // BookA,
 } from 'lucide-react'
 
 interface HamburgerMenuProps {
@@ -35,15 +35,17 @@ const isValidUuid = (value: string | null): value is string => {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
 }
 
-// ✅ 실제 메뉴 내용 (useSearchParams 사용)
+// ✅ 실제 메뉴 내용
 function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
   const { user, setUser } = useUser()
   const isLoggedIn = !!user
   const isLoading = user === null
-  const searchParams = useSearchParams()
-  const readonlyParam = searchParams.get('readonly') === 'true';
-  const pathname = usePathname()
+
+  const readonlyParam = searchParams.get('readonly') === 'true'
 
   const queryMeetingUuidRaw = searchParams.get('meetingUuid')
   const queryMeetingUuid = isValidUuid(queryMeetingUuidRaw)
@@ -58,37 +60,53 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
 
   const meetingUuid = queryMeetingUuid ?? pathMeetingUuid
 
-const withMeetingUuid = (href: string) => {
-  if (!meetingUuid) return href;
+  const withMeetingUuid = (href: string) => {
+    if (!meetingUuid) return href
 
-  const params = new URLSearchParams();
-  params.set('meetingUuid', meetingUuid);
-  if (readonlyParam) params.set('readonly', 'true');
+    const params = new URLSearchParams()
+    params.set('meetingUuid', meetingUuid)
+    if (readonlyParam) params.set('readonly', 'true')
 
-  return href.includes('?') ? `${href}&${params.toString()}` : `${href}?${params.toString()}`;
-}
- const handleNavigate = (href: string) => {
-     let finalHref = href;
+    return href.includes('?')
+      ? `${href}&${params.toString()}`
+      : `${href}?${params.toString()}`
+  }
 
-     if (href === '/meetings/complete') {
-       finalHref = meetingUuid
-         ? `/meetings/${meetingUuid}/complete${readonlyParam ? '?readonly=true' : ''}`
-         : '/meetings/none';
-     } else if (href === '/meetings/option-location') {
-       finalHref = meetingUuid
-         ? `/meetings/${meetingUuid}/option-location${readonlyParam ? '?readonly=true' : ''}`
-         : '/meetings/none';
-     } else if (href === '/meetings/option-fee') {
-        finalHref = meetingUuid
-          ? `/meetings/${meetingUuid}/option-fee${readonlyParam ? '?readonly=true' : ''}`
-          : '/meetings/none';
-     } else if (href === '/about') {
-              finalHref = href;
-     } else {
-       finalHref = withMeetingUuid(href);
-     }
+  const handleNavigate = (href: string) => {
+    let finalHref = href
+
+    if (href === '/meetings/complete') {
+      finalHref = meetingUuid
+        ? `/meetings/${meetingUuid}/complete${readonlyParam ? '?readonly=true' : ''}`
+        : '/meetings/none'
+    } else {
+      finalHref = withMeetingUuid(href)
+    }
+
     router.push(finalHref)
     onClose()
+  }
+
+  // ✅ 카카오 로그인 (단 1회 선언)
+  const handleKakaoLogin = () => {
+    const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY
+    const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI
+
+    if (!REST_API_KEY || !REDIRECT_URI) {
+      alert("카카오 로그인 설정이 완료되지 않았습니다.")
+      return
+    }
+
+    const redirectPath = pathname + location.search
+
+    const kakaoAuthUrl =
+      "https://kauth.kakao.com/oauth/authorize" +
+      `?client_id=${REST_API_KEY}` +
+      `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+      "&response_type=code" +
+      `&state=${encodeURIComponent(redirectPath)}`
+
+    window.location.href = kakaoAuthUrl
   }
 
   const handleLogout = async () => {
@@ -97,7 +115,7 @@ const withMeetingUuid = (href: string) => {
         method: 'GET',
         credentials: 'include',
       })
-    } catch (err: unknown) {
+    } catch (err) {
       console.error('로그아웃 API 실패', err)
     } finally {
       setUser(null)
@@ -122,7 +140,7 @@ const withMeetingUuid = (href: string) => {
           >
             <ProfileIdentity
               src={user?.profileImage}
-              name={user?.name ?? user?.name ?? '로그인 필요'}
+              name={user?.name ?? '로그인 필요'}
               isLoading={isLoading}
               size={48}
               layout="row"
@@ -167,7 +185,6 @@ const withMeetingUuid = (href: string) => {
 
         <div className="my-4 border-t" />
 
-        
         {/* Bottom Button */}
         <div className="mt-auto pt-6">
           {isLoggedIn ? (
@@ -182,11 +199,11 @@ const withMeetingUuid = (href: string) => {
             <button
               onClick={() => {
                 onClose()
-                router.push('/')
+                handleKakaoLogin()
               }}
-              className="flex w-full items-center justify-center rounded-xl px-4 py-3 bg-[var(--wf-accent)] text-white"
+              className="flex w-full items-center justify-center rounded-xl px-4 py-3 bg-[var(--wf-highlight)] hover:bg-[var(--wf-accenttext-white"
             >
-              로그인
+              카카오 로그인
             </button>
           )}
         </div>
