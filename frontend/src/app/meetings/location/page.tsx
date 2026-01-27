@@ -1,7 +1,7 @@
 // src/app/meetings/[meetingId]/option-location/page.tsx
 "use client";
 import { useState } from "react";
-import KakaoMap from "@/components/map/KakaoMap";
+import { KakaoMap } from "@/components/map/KakaoMap";
 
 const middlePlaceMarkers = [
   { lat: 37.563617, lng: 126.997628 },

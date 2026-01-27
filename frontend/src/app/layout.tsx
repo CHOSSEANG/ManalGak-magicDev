@@ -34,11 +34,11 @@ export default function RootLayout({
        <UserProvider>
         <TooltipProvider delayDuration={200}>
           {/* 전체 앱: 세로 플렉스 */}
-          <div className="h-screen  min-h-screen flex flex-col bg-[var(--wf-bg)] text-[var(--wf-text)]">
+          <div className="app-container h-screen  min-h-screen flex flex-col bg-[var(--wf-bg)] text-[var(--wf-text)] overflow-y-auto ">
             <Header />
 
             <main className="flex-1 min-h-0 flex justify-center">
-              <div className="app-container w-full flex-1 min-h-0 overflow-y-auto py-6">
+              <div className="w-full flex-1 min-h-0 py-6">
                 {children}
               </div>
             </main>

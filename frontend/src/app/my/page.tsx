@@ -247,7 +247,7 @@ export default function MyPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <Link
-                  href="/meetings/option-location"
+                  href="/meetings/location"
                   className={clsx(
                     "flex w-full items-center justify-center rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-6 py-4 text-base font-semibold"
                   )}
@@ -255,7 +255,7 @@ export default function MyPage() {
                   <LocateFixed />지도 서비스
               </Link>
               <Link
-                href="/meetings/option-fee"
+                href="/meetings/fee"
                 className={clsx(
                   "flex w-full items-center justify-center rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-6 py-4 text-base font-semibold"
                 )}
