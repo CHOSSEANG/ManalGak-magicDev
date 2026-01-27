@@ -4,6 +4,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -70,31 +74,52 @@ public class OdsayService {
 				log.error("❌ 상대 경로로 요청되고 있습니다!");
 			}
 
+			// 헤더 설정
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Content-type", "application/json");
+
+			HttpEntity<String> entity = new HttpEntity<>(headers);
+
+			log.info("📌 최종 요청 URL: {}", url);
+
 			// --------JSON 문자열 파싱
-			String jsonResponse = restTemplate.getForObject(url, String.class);
+			// 헤더와 함께 요청
+			ResponseEntity<String> jsonResponse = restTemplate.exchange(
+				url,
+				HttpMethod.GET,
+				entity,
+				String.class
+			);
+
 			log.info("ODsay API JSON 응답: {}", jsonResponse);
 
 			// API 호출
-			OdsayRouteResponse response = restTemplate.getForObject(url, OdsayRouteResponse.class);  // 🔥 String.class -> OdsayRouteResponse.class
+			// 파싱
+			ResponseEntity<OdsayRouteResponse> response = restTemplate.exchange(
+				url,
+				HttpMethod.GET,
+				entity,
+				OdsayRouteResponse.class
+			);
 
 			// ===== 응답 확인 (디버깅용) =====
 			log.info("=== ODsay API 응답 확인 ===");
 			log.info("response: {}", response);
 			if (response != null) {
-				log.info("response.getResult(): {}", response.getResult());
+				log.info("response.getResult(): {}", response.getBody().getResult());
 			}
 			log.info("========================");
 
 			Integer totalTime = null;
-			if (response != null && response.getResult() != null
-				&& response.getResult().getPath() != null
-				&& !response.getResult().getPath().isEmpty()) {
-				totalTime = response.getResult().getPath().get(0).getInfo().getTotalTime();
+			if (response != null && response.getBody().getResult() != null
+				&& response.getBody().getResult().getPath() != null
+				&& !response.getBody().getResult().getPath().isEmpty()) {
+				totalTime = response.getBody().getResult().getPath().get(0).getInfo().getTotalTime();
 			}
 
 			System.out.println(totalTime);
 
-			return response;
+			return response.getBody();
 
 		} catch (Exception e) {
 			log.error("ODsay API 호출 중 오류 발생", e);
