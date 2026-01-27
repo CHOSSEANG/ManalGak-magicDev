@@ -216,6 +216,11 @@ export default function Step5PlaceList() {
 
   const [middlePoint, setMiddlePoint] = useState<MiddlePoint | null>(null)
   const [placeSource, setPlaceSource] = useState<Omit<RecommendedPlace, 'icon'>[]>(rawPlaces)
+  const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
+  const [expandedSearchInfo, setExpandedSearchInfo] = useState<{
+    expandedSearch: boolean
+    searchRadius?: number
+  } | null>(null)
   const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
   const [isCreatingVote, setIsCreatingVote] = useState(false)
@@ -317,6 +322,9 @@ const isHost =organizerId != null && user?.id != null && organizerId === user.id
     if (!meetingUuid || !meetingPurpose) return
 
     const fetchPlacesAndMidpoint = async () => {
+      setIsLoadingPlaces(true)
+      setExpandedSearchInfo(null)
+
       try {
         const res = await axios.get(
           `${API_BASE_URL}/v1/meetings/${meetingUuid}/places?purpose=${meetingPurpose}&limit=6`,
@@ -326,6 +334,8 @@ const isHost =organizerId != null && user?.id != null && organizerId === user.id
         const data = res.data?.data
         const apiPlaces: unknown[] = Array.isArray(data?.places) ? data.places : []
         const apiMidpoint = data?.midpoint
+        const expandedSearch = Boolean(data?.expandedSearch)
+        const searchRadius = toNumber(data?.searchRadius)
 
         // 중간지점 설정
         if (apiMidpoint?.latitude && apiMidpoint?.longitude) {
@@ -335,6 +345,8 @@ const isHost =organizerId != null && user?.id != null && organizerId === user.id
             stationName: apiMidpoint.stationName,
           })
         }
+
+        setExpandedSearchInfo({ expandedSearch, searchRadius })
 
         // 추천장소 설정 (6개 이상일 때만 교체)
         if (apiPlaces.length >= 6) {
@@ -357,6 +369,8 @@ const isHost =organizerId != null && user?.id != null && organizerId === user.id
             setMiddlePoint(res.data)
           }
         } catch {}
+      } finally {
+        setIsLoadingPlaces(false)
       }
     }
 
@@ -677,69 +691,83 @@ useEffect(() => {
           </button>
         </div>
 
-        <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
-          {recommendedPlaces.map((place) => {
-            const Icon = place.icon
-            const selected = selectedPlace === place.id
-            const voteOption = placeVoteMap.get(place.id)
-            const hasVotes = voteOption && voteOption.voteCount > 0
-            const isTopChoice = voteOption && voteOption.voteCount === maxVotes && maxVotes > 0
-            const votePercentage = totalVotes > 0 && voteOption
-              ? (voteOption.voteCount / totalVotes) * 100
-              : 0
+        {isLoadingPlaces ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-sm text-[var(--wf-subtle)]">추천 장소를 찾고 있어요...</div>
+          </div>
+        ) : (
+          <>
+            {expandedSearchInfo?.expandedSearch && expandedSearchInfo.searchRadius != null && (
+              <div className="text-xs text-[var(--wf-subtle)]">
+                더 넓은 범위에서 찾았어요 ({expandedSearchInfo.searchRadius}m)
+              </div>
+            )}
 
-            return (
-              <button
-                key={place.id}
-                onClick={() => setSelectedPlace(place.id)}
-                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 border-4 relative overflow-hidden ${
-                  selected
-                    ? 'border-[var(--wf-accent)] bg-[var(--wf-highlight-soft)]'
-                    : hasVotes
-                    ? 'border-purple-200 bg-white'
-                    : 'border-[var(--wf-border)] bg-[var(--wf-surface)]'
-                }`}
-              >
-                {hasVotes && (
-                  <div
-                    className="absolute left-0 top-0 h-full bg-gradient-to-r from-purple-100/60 to-blue-100/60 transition-all"
-                    style={{ width: `${votePercentage}%` }}
-                  />
-                )}
+            <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
+              {recommendedPlaces.map((place) => {
+                const Icon = place.icon
+                const selected = selectedPlace === place.id
+                const voteOption = placeVoteMap.get(place.id)
+                const hasVotes = voteOption && voteOption.voteCount > 0
+                const isTopChoice = voteOption && voteOption.voteCount === maxVotes && maxVotes > 0
+                const votePercentage = totalVotes > 0 && voteOption
+                  ? (voteOption.voteCount / totalVotes) * 100
+                  : 0
 
-                <div className="relative flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--wf-muted)]">
-                  <Icon className="h-8 w-8 text-[var(--wf-accent)]" />
-                </div>
-                <div className="flex-1 text-left relative">
-                  <p className="text-sm font-semibold">{place.name}</p>
-                  <p className="text-xs text-[var(--wf-subtle)]">
-                    {place.stationName} 도보 {place.walkingMinutes}분
-                  </p>
+                return (
+                  <button
+                    key={place.id}
+                    onClick={() => setSelectedPlace(place.id)}
+                    className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 border-4 relative overflow-hidden ${
+                      selected
+                        ? 'border-[var(--wf-accent)] bg-[var(--wf-highlight-soft)]'
+                        : hasVotes
+                        ? 'border-purple-200 bg-white'
+                        : 'border-[var(--wf-border)] bg-[var(--wf-surface)]'
+                    }`}
+                  >
+                    {hasVotes && (
+                      <div
+                        className="absolute left-0 top-0 h-full bg-gradient-to-r from-purple-100/60 to-blue-100/60 transition-all"
+                        style={{ width: `${votePercentage}%` }}
+                      />
+                    )}
 
-                  {hasVotes && (
-                    <div className="mt-1 flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-3 w-3 text-purple-600" />
-                        <span className="text-xs font-semibold text-purple-600">
-                          {voteOption.voteCount}표
-                        </span>
-                      </div>
-                      {isTopChoice && (
-                        <span className="rounded-full bg-purple-600 px-1.5 py-0.5 text-[9px] font-semibold text-white">
-                          1위
-                        </span>
-                      )}
-                      <span className="text-[9px] text-[var(--wf-subtle)]">
-                        {votePercentage.toFixed(0)}%
-                      </span>
+                    <div className="relative flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--wf-muted)]">
+                      <Icon className="h-8 w-8 text-[var(--wf-accent)]" />
                     </div>
-                  )}
-                </div>
-                {selected && <CheckCircle className="h-5 w-5 text-[var(--wf-accent)] relative" />}
-              </button>
-            )
-          })}
-        </div>
+                    <div className="flex-1 text-left relative">
+                      <p className="text-sm font-semibold">{place.name}</p>
+                      <p className="text-xs text-[var(--wf-subtle)]">
+                        {place.stationName} 도보 {place.walkingMinutes}분
+                      </p>
+
+                      {hasVotes && (
+                        <div className="mt-1 flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3 w-3 text-purple-600" />
+                            <span className="text-xs font-semibold text-purple-600">
+                              {voteOption.voteCount}표
+                            </span>
+                          </div>
+                          {isTopChoice && (
+                            <span className="rounded-full bg-purple-600 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                              1위
+                            </span>
+                          )}
+                          <span className="text-[9px] text-[var(--wf-subtle)]">
+                            {votePercentage.toFixed(0)}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {selected && <CheckCircle className="h-5 w-5 text-[var(--wf-accent)] relative" />}
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        )}
       </StepCard>
 
       {/* 투표 모달 */}
