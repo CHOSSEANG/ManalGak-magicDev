@@ -7,8 +7,8 @@ import AddressSearch from "@/components/map/AddressSearch";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import Image from "next/image";
-import { useUser } from "@/context/UserContext"; // 🔥 추가
+import { useUser } from '@/context/UserContext'
+import ProfileIdentity from '@/components/layout/ProfileIdentity'
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
@@ -113,6 +113,11 @@ export default function MyPage() {
     fetchAddresses();
   };
 
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    if (user !== undefined) setIsLoading(false)
+  }, [user])
 
   /** ===== 로그아웃 ===== */
   const handleAuthButton = async () => {
@@ -137,24 +142,16 @@ export default function MyPage() {
         {/* ===== Profile ===== */}
         <StepCard>
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 overflow-hidden flex items-center justify-center">
-              {user?.profileImage ? (
-              <Image 
-                  src={user.profileImage}
-                    alt="프로필 이미지"
-                    width={52}
-                    height={52}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-lg font-semibold">
-                  {user?.name?.[0] ?? "?"}
-                </span>
-              )}
+            <div className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--wf-accent)]">
+                        <ProfileIdentity
+                          src={user?.profileImage}
+                          name={user?.name ?? '로그인이 필요합니다'}
+                          isLoading={isLoading}
+                          size={48}
+                          layout="row"
+                          shape="square"
+                        />
             </div>
-            <p className="text-base font-semibold">
-              {user?.name ?? "로그인이 필요합니다"}
-            </p>
           </div>
         </StepCard>
 
