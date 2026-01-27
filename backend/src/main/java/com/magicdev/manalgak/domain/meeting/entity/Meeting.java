@@ -38,37 +38,6 @@ public class Meeting {
 
     private Long organizerId;
 
-    @Transient
-    private String selectedPlaceId;
-    @Transient
-    private String selectedPlaceName;
-    @Transient
-    private String selectedPlaceCategory;
-    @Transient
-    private String selectedPlaceCategoryGroupCode;
-    @Transient
-    private String selectedPlaceCategoryGroupName;
-    @Transient
-    private String selectedPlaceCategoryName;
-    @Transient
-    private String selectedPlaceAddress;
-    @Transient
-    private String selectedPlaceRoadAddress;
-    @Transient
-    private Double selectedPlaceLatitude;
-    @Transient
-    private Double selectedPlaceLongitude;
-    @Transient
-    private Integer selectedPlaceDistance;
-    @Transient
-    private Integer selectedPlaceWalkingMinutes;
-    @Transient
-    private String selectedPlaceStationName;
-    @Transient
-    private String selectedPlacePhone;
-    @Transient
-    private String selectedPlaceUrl;
-
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
@@ -119,39 +88,5 @@ public class Meeting {
         if (command.getTotalParticipants() != null) {
             this.totalParticipants = command.getTotalParticipants();
         }
-    }
-
-    public void updateSelectedPlace(
-            String placeId,
-            String placeName,
-            String category,
-            String categoryGroupCode,
-            String categoryGroupName,
-            String categoryName,
-            String address,
-            String roadAddress,
-            Double latitude,
-            Double longitude,
-            Integer distance,
-            Integer walkingMinutes,
-            String stationName,
-            String phone,
-            String placeUrl
-    ) {
-        this.selectedPlaceId = placeId;
-        this.selectedPlaceName = placeName;
-        this.selectedPlaceCategory = category;
-        this.selectedPlaceCategoryGroupCode = categoryGroupCode;
-        this.selectedPlaceCategoryGroupName = categoryGroupName;
-        this.selectedPlaceCategoryName = categoryName;
-        this.selectedPlaceAddress = address;
-        this.selectedPlaceRoadAddress = roadAddress;
-        this.selectedPlaceLatitude = latitude;
-        this.selectedPlaceLongitude = longitude;
-        this.selectedPlaceDistance = distance;
-        this.selectedPlaceWalkingMinutes = walkingMinutes;
-        this.selectedPlaceStationName = stationName;
-        this.selectedPlacePhone = phone;
-        this.selectedPlaceUrl = placeUrl;
     }
 }
