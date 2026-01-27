@@ -2,12 +2,12 @@
 'use client'
 
 import { Suspense } from 'react'
-import BottomTabNavigationContent from './BottomTabNavigation'
+import BottomTabNav from './BottomTabNav'
 
 export default function BottomTabNavigation() {
   return (
     <Suspense fallback={null}>
-      <BottomTabNavigationContent />
+      <BottomTabNav />
     </Suspense>
   )
 }
