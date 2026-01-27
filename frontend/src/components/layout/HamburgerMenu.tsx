@@ -133,7 +133,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose}>
+    <div className="fixed inset-0 z-100 bg-black/30" onClick={onClose}>
       <motion.aside
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
