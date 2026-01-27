@@ -57,9 +57,21 @@ interface ApiResponse {
   success: boolean;
   error: unknown;
 }
-
-const sendKakaoInvite = (meetingUuid: string): void => {
+const formatMeetingTime = (iso: string): string => {
+  const date = new Date(iso)
+  return date.toLocaleString("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+const sendKakaoInvite = (  meetingUuid: string,
+                           meetingName: string,
+                           meetingTime: string): void => {
   if (typeof window === "undefined") return;
+
 
   const Kakao = window.Kakao;
   if (!Kakao) {
@@ -78,14 +90,15 @@ const sendKakaoInvite = (meetingUuid: string): void => {
 
   const share = Kakao.Share as unknown as KakaoShareWithCustom;
 
-  share.sendCustom({
-    templateId: 128179,
-    templateArgs: {
-      meetingLink: meetingUuid,
-    },
-  });
+ share.sendCustom({
+   templateId: 128179,
+   templateArgs: {
+     meetingLink: meetingUuid,
+     meetingName,
+     meetingDate: formatMeetingTime(meetingTime),
+   },
+ });
 };
-
 function Step2Content(): JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -214,7 +227,16 @@ function Step2Content(): JSX.Element {
         {/* ⭐ 모임장만 초대 버튼 사용 가능 */}
         <button
           type="button"
-          onClick={() => sendKakaoInvite(meetingUuid!)}
+          onClick={() => {
+            if (!meetingData) return;
+
+            sendKakaoInvite(
+              meetingUuid!,
+              meetingData.meetingName,
+              meetingData.meetingTime
+            );
+          }}
+
           disabled={isReadonly || !isOrganizer}
           className={`flex w-full items-center justify-center gap-2 rounded-2xl
             py-4 text-base font-semibold transition-colors
