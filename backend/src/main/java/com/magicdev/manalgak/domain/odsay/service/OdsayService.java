@@ -74,17 +74,6 @@ public class OdsayService {
 
 			log.info("📌 최종 요청 URL: {}", url);
 
-			// --------JSON 문자열 파싱
-			// 헤더와 함께 요청
-			ResponseEntity<String> jsonResponse = restTemplate.exchange(
-				url,
-				HttpMethod.GET,
-				entity,
-				String.class
-			);
-
-			log.info("ODsay API JSON 응답: {}", jsonResponse);
-
 			// API 호출
 			// 파싱
 			ResponseEntity<OdsayRouteResponse> response = restTemplate.exchange(
