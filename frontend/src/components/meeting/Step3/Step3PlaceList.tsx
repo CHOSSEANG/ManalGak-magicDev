@@ -221,6 +221,7 @@ export default function Step5PlaceList() {
   const [isCreatingVote, setIsCreatingVote] = useState(false)
   const [isVoting, setIsVoting] = useState(false)
   const [organizerId, setOrganizerId] = useState<number | null>(null)
+  const [meetingPurpose, setMeetingPurpose] = useState<string | null>(null)
   const { user } = useUser()
   const stompClientRef = useRef<Client | null>(null)
 const myParticipant = participants.find(
@@ -301,7 +302,8 @@ const isHost =organizerId != null && user?.id != null && organizerId === user.id
         const organizerIdValue = Number(data?.organizerId ?? 0)
         setOrganizerId(organizerIdValue || null)
 
-
+        // 모임 목적 저장
+        setMeetingPurpose(data?.purpose || 'DINING')
       })
       .catch((err) => {
         console.error('Meeting API Error:', err)
@@ -312,12 +314,12 @@ const isHost =organizerId != null && user?.id != null && organizerId === user.id
   /* ================= 추천장소 + 중간지점 통합 API ================= */
 
   useEffect(() => {
-    if (!meetingUuid) return
+    if (!meetingUuid || !meetingPurpose) return
 
     const fetchPlacesAndMidpoint = async () => {
       try {
         const res = await axios.get(
-          `${API_BASE_URL}/v1/meetings/${meetingUuid}/places`,
+          `${API_BASE_URL}/v1/meetings/${meetingUuid}/places?purpose=${meetingPurpose}&limit=6`,
           { withCredentials: true }
         )
 
@@ -359,7 +361,7 @@ const isHost =organizerId != null && user?.id != null && organizerId === user.id
     }
 
     fetchPlacesAndMidpoint()
-  }, [meetingUuid])
+  }, [meetingUuid, meetingPurpose])
 
   /* ================= 추천 장소 (아이콘 주입) ================= */
 
