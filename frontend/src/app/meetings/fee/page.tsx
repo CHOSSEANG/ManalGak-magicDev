@@ -1,4 +1,4 @@
-// src/app/meetings/[meetingId]/option-fee/page.tsx
+// src/app/meetings/fee/page.tsx
 'use client'
 
 import { useState, useMemo } from 'react'

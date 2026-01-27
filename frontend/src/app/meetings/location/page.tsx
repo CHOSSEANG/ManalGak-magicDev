@@ -1,4 +1,4 @@
-// src/app/meetings/[meetingId]/option-location/page.tsx
+// src/app/meetings/location/page.tsx
 // "use client";
 // import { useState } from "react";
 // import { KakaoMap } from "@/components/map/KakaoMap";
