@@ -23,12 +23,6 @@ interface Bookmark {
   isEditing: boolean;
 }
 
-interface MeetingItem {
-  meeting: {
-    meetingName: string;
-    meetingTime: string;
-  };
-}
 
 /** 🔥 주소 API 응답 타입 */
 interface UserAddressResponse {
@@ -52,15 +46,10 @@ export default function MyPage() {
   const [activeBookmarkIndex, setActiveBookmarkIndex] = useState<number | null>(null);
   const [searchAddressOpen, setSearchAddressOpen] = useState(false);
 
-  /** ===== 모임 ===== */
-  const [meetings, setMeetings] = useState<MeetingItem[]>([]);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
 
   /** ===== 초기 로드 ===== */
   useEffect(() => {
     fetchAddresses();
-    fetchMeetings(0);
   }, []);
 
   /** ===== 주소 조회 (항상 3개 유지) ===== */
@@ -124,18 +113,6 @@ export default function MyPage() {
     fetchAddresses();
   };
 
-  /** ===== 모임 조회 (페이징) ===== */
-  const fetchMeetings = async (pageNum: number) => {
-    const res = await axios.get(`${API_BASE_URL}/v1/meetings/user?page=${pageNum}`, {
-      withCredentials: true,
-    });
-
-    const data = res.data.data;
-
-    setMeetings((prev) => [...prev, ...data.content]);
-    setHasMore(!data.last);
-    setPage(pageNum);
-  };
 
   /** ===== 로그아웃 ===== */
   const handleAuthButton = async () => {
@@ -252,34 +229,6 @@ export default function MyPage() {
                 )}
               </div>
             ))}
-          </StepCard>
-        </section>
-
-        {/* ===== Recent Meetings ===== */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">최근 내 모임 리스트</h2>
-
-          <StepCard className="space-y-3">
-            {meetings.map((item, i) => (
-              <div key={i} className="border-b pb-3 last:border-b-0">
-                <p className="text-sm font-semibold">
-                  {item.meeting.meetingName}
-                </p>
-                <p className="text-xs text-[var(--wf-subtle)]">
-                  {new Date(item.meeting.meetingTime).toLocaleString()}
-                </p>
-              </div>
-            ))}
-
-            {hasMore && (
-              <button
-                type="button"
-                onClick={() => fetchMeetings(page + 1)}
-                className="w-full rounded-xl border py-2 text-sm"
-              >
-                더보기
-              </button>
-            )}
           </StepCard>
         </section>
 
