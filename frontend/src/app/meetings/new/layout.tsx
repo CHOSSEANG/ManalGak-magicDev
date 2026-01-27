@@ -18,14 +18,14 @@ export default function MeetingsNewLayout({
   const progress = stepMap[pathname] ?? 0;
 
   return (
-    <div className="space-y-6">
-      <div className="px-4 pt-4 space-y-3">
+    <div className="">
+      <div className="">
         <div className="relative">
-          <div className="flex justify-between text-xs px-1">
+          <div className="flex justify-between text-xs">
             {[
-              ["Step 1.", "기본 정보", "/meetings/new/step1-basic"],
-              ["Step 2.", "참여 멤버", "/meetings/new/step2-meetingmembers"],
-              ["Step 3.", "중간지점 & 추천장소", "/meetings/new/step3-result"],
+              ["", "모임생성", "/meetings/new/step1-basic"],
+              ["", "참여자", "/meetings/new/step2-meetingmembers"],
+              ["", "추천장소", "/meetings/new/step3-result"],
             ].map(([step, label, path]) => {
               const isActive = pathname === path;
               return (

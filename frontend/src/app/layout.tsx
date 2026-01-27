@@ -39,7 +39,7 @@ export default function RootLayout({
               <Header />
 
               <main className="flex-1 flex justify-center">
-                <div className="w-full py-6">
+                <div className="w-full">
                   {children}
                 </div>
               </main>
