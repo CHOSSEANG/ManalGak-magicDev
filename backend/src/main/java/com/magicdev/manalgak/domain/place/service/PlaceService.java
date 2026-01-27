@@ -12,7 +12,9 @@ import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
 import com.magicdev.manalgak.domain.place.dto.PlaceResponse;
 import com.magicdev.manalgak.domain.place.dto.PlaceSelectRequest;
+import com.magicdev.manalgak.domain.place.entity.PlaceCandidate;
 import com.magicdev.manalgak.domain.place.entity.RecommendedPlace;
+import com.magicdev.manalgak.domain.place.repository.PlaceCandidateRepository;
 import com.magicdev.manalgak.domain.place.repository.RecommendedPlaceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,24 +34,43 @@ public class PlaceService {
     private final KakaoLocalApiService kakaoLocalApiService;
     private final MidpointCalculationService midpointCalculationService;
     private final RecommendedPlaceRepository recommendedPlaceRepository;
+    private final PlaceCandidateRepository placeCandidateRepository;
     private final MeetingRepository meetingRepository;
 
     private static final int DEFAULT_RADIUS = 500;  // 반경 500m
 
+    @Transactional
     public PlaceResponse getRecommendedPlaces(String meetingUuid, String purpose, int limit) {
         String cacheKey = CacheKeys.placesKeyByMidpoint(meetingUuid, purpose, limit);
 
+        // 1. Redis 캐시 확인
         PlaceResponse cached = getCachedPlaces(cacheKey);
         if (cached != null) {
-            log.info("Cache HIT: {}", cacheKey);
+            log.info("Redis Cache HIT: {}", cacheKey);
             cached.setFromCache(true);
             return cached;
         }
 
+        // 2. DB 확인
+        List<PlaceCandidate> dbCandidates = placeCandidateRepository.findByMeetingMeetingUuid(meetingUuid);
+        if (!dbCandidates.isEmpty()) {
+            log.info("DB HIT: meetingUuid={}, count={}", meetingUuid, dbCandidates.size());
+            PlaceResponse response = convertCandidatesToResponse(dbCandidates, meetingUuid);
+            response.setFromCache(true);
+            // Redis 캐시에 저장
+            savePlacesToCache(cacheKey, response);
+            return response;
+        }
+
+        // 3. 카카오 API 호출
         log.info("Cache MISS: {}, calling Kakao API", cacheKey);
         PlaceResponse response = callKakaoApi(meetingUuid, purpose, limit);
         response.setFromCache(false);
 
+        // 4. DB에 저장
+        saveCandidatesToDb(meetingUuid, response.getPlaces());
+
+        // 5. Redis 캐시에 저장
         savePlacesToCache(cacheKey, response);
 
         return response;
@@ -275,5 +296,106 @@ public class PlaceService {
                 .phone(entity.getPhone())
                 .placeUrl(entity.getPlaceUrl())
                 .build();
+    }
+
+    // ========== 추천 장소 후보 (place_candidates) 관련 ==========
+
+    /**
+     * DB에 저장된 후보 장소들을 PlaceResponse로 변환
+     */
+    private PlaceResponse convertCandidatesToResponse(List<PlaceCandidate> candidates, String meetingUuid) {
+        Coordinate midpoint = midpointCalculationService.returnMidPointByMeetingID(meetingUuid);
+
+        List<PlaceResponse.Place> places = candidates.stream()
+                .map(this::convertCandidateToPlace)
+                .collect(Collectors.toList());
+
+        return PlaceResponse.builder()
+                .places(places)
+                .totalCount(places.size())
+                .midpoint(midpoint)
+                .fromCache(true)
+                .build();
+    }
+
+    /**
+     * PlaceCandidate 엔티티 -> PlaceResponse.Place DTO 변환
+     */
+    private PlaceResponse.Place convertCandidateToPlace(PlaceCandidate candidate) {
+        return PlaceResponse.Place.builder()
+                .placeId(candidate.getPlaceId())
+                .placeName(candidate.getPlaceName())
+                .category(candidate.getCategory())
+                .categoryGroupCode(candidate.getCategoryGroupCode())
+                .categoryGroupName(candidate.getCategoryGroupName())
+                .categoryName(candidate.getCategoryName())
+                .address(candidate.getAddress())
+                .roadAddress(candidate.getRoadAddress())
+                .latitude(candidate.getLatitude())
+                .longitude(candidate.getLongitude())
+                .distance(candidate.getDistance())
+                .walkingMinutes(candidate.getWalkingMinutes())
+                .stationName("중간지점")
+                .phone(candidate.getPhone())
+                .placeUrl(candidate.getPlaceUrl())
+                .build();
+    }
+
+    /**
+     * 추천 장소 후보를 DB에 저장
+     */
+    private void saveCandidatesToDb(String meetingUuid, List<PlaceResponse.Place> places) {
+        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        List<PlaceCandidate> candidates = places.stream()
+                .map(place -> PlaceCandidate.builder()
+                        .meeting(meeting)
+                        .placeId(place.getPlaceId())
+                        .placeName(place.getPlaceName())
+                        .category(place.getCategory())
+                        .categoryGroupCode(place.getCategoryGroupCode())
+                        .categoryGroupName(place.getCategoryGroupName())
+                        .categoryName(place.getCategoryName())
+                        .address(place.getAddress())
+                        .roadAddress(place.getRoadAddress())
+                        .latitude(place.getLatitude())
+                        .longitude(place.getLongitude())
+                        .distance(place.getDistance())
+                        .walkingMinutes(place.getWalkingMinutes())
+                        .phone(place.getPhone())
+                        .placeUrl(place.getPlaceUrl())
+                        .build())
+                .collect(Collectors.toList());
+
+        placeCandidateRepository.saveAll(candidates);
+        log.info("추천 장소 후보 DB 저장 완료: meetingUuid={}, count={}", meetingUuid, candidates.size());
+    }
+
+    /**
+     * 추천 장소 후보 새로고침 (기존 삭제 후 새로 저장)
+     */
+    @Transactional
+    public PlaceResponse refreshCandidates(String meetingUuid, String purpose, int limit) {
+        String cacheKey = CacheKeys.placesKeyByMidpoint(meetingUuid, purpose, limit);
+
+        // 1. 기존 DB 데이터 삭제
+        placeCandidateRepository.deleteByMeetingMeetingUuid(meetingUuid);
+        log.info("기존 추천 장소 후보 삭제: meetingUuid={}", meetingUuid);
+
+        // 2. Redis 캐시 삭제
+        redisTemplate.delete(cacheKey);
+
+        // 3. 카카오 API 호출
+        PlaceResponse response = callKakaoApi(meetingUuid, purpose, limit);
+        response.setFromCache(false);
+
+        // 4. DB에 저장
+        saveCandidatesToDb(meetingUuid, response.getPlaces());
+
+        // 5. Redis 캐시에 저장
+        savePlacesToCache(cacheKey, response);
+
+        return response;
     }
 }
