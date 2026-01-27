@@ -19,7 +19,7 @@
 
   /* Accents */
 --wf-highlight: #FEE500; /* Kakao Yellow (Primary) */
---wf-accent: #2b69c6;    /* Kakao Brown (Text/Icon/Active) */
+--wf-accent: #377eea;    /* Kakao Brown (Text/Icon/Active) */
 --wf-overlay: rgba(219, 93, 93, 0.35);  /* 선택/hover용 연톤 배경 (카카오 옐로우를 연하게) */
 --wf-highlight-soft: rgba(31, 114, 247, 0.22);
 

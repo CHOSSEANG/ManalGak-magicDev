@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import StepNavigation from "@/components/layout/StepNavigation";
 import StepCard from "@/components/meeting/StepCard";
 import { useUser } from "@/context/UserContext";
+import Button from "@/components/ui/Button";
 
 interface PageInfo {
   totalElements: number;
@@ -198,27 +198,32 @@ export default function CreateEntryPage() {
   );
   return (
     <>
-      <main className="space-y-6 pb-28">
-        <section className="space-y-4">
+      <main className="space-y-6">
+        <section className="">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold">모임 리스트 보기</h1>
+            <h1 className="text-2xl font-semibold">모임 리스트</h1>
             <p className="text-sm text-[var(--wf-subtle)]">
-              모임의 이름을 정하고, 설정을 시작해 주세요
+              이전 모임을 불러와 빠르게 생성할 수 있어요
             </p>
           </div>
 
-          <StepCard className="space-y-3">
-            <h2 className="text-base font-semibold">기존 모임에서 시작하기</h2>
-            <p className="text-xs text-[var(--wf-subtle)]">
-              이전 모임을 불러와 빠르게 생성할 수 있어요
-            </p>
+          <div className="p-2">
+          <Button
+            onClick={() => router.push("/meetings/new/step1-basic")}
+            className="w-full rounded-xl border border-[var(--wf-border)]"
+          >
+           모임 생성하기
+            </Button>
+            </div>
+            
 
+          <StepCard className="">
             {isLoading ? (
-              <div className="text-center py-8 text-sm text-[var(--wf-subtle)]">
+              <div className="text-center text-sm text-[var(--wf-subtle)]">
                 불러오는 중...
               </div>
             ) : error ? (
-              <div className="text-center py-8 text-sm text-red-500">
+              <div className="text-center text-sm text-red-500">
                 {error}
               </div>
             ) : uniqueMeetings.length === 0 ? (
@@ -227,7 +232,7 @@ export default function CreateEntryPage() {
               </div>
             ) : (
               <>
-                <div className="space-y-3">
+                <div className="">
                   {uniqueMeetings.map((item, index) => {
                     const { meeting } = item;
                     const place =
@@ -240,7 +245,7 @@ export default function CreateEntryPage() {
                           meeting.meetingUuid ??
                           `meeting-${meeting.organizerId}-${meeting.meetingTime}-${index}`
                         }
-                        className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-4 space-y-2"
+                        className="border-b border-[var(--wf-border)] py-1 space-y-2"
                       >
                         <div className="flex justify-between gap-4">
                           <div className="space-y-1">
@@ -261,17 +266,17 @@ export default function CreateEntryPage() {
                                   meeting.organizerId,
                                 )
                               }
-                              className={`rounded-lg px-3 py-1 text-xs font-medium text-white transition-opacity ${
+                              className={`rounded-full px-3 py-0 text-xs font-medium text-white transition-opacity ${
                                 isOrganizer
                                   ? "bg-[var(--wf-accent)] hover:opacity-90"
-                                  : "bg-gray-500 hover:bg-gray-400"
+                                  : "bg-[--wf-accent] hover:bg-gray-400"
                               }`}
                             >
                               {isOrganizer ? "수정" : "조회"}
                             </button>
                             <button
                               onClick={() => handleCopy(meeting.meetingUuid!)}
-                              className="rounded-lg bg-[var(--wf-accent)] px-3 py-1 text-xs font-medium text-white hover:opacity-90 transition-opacity"
+                              className="rounded-full bg-[var(--wf-accent)] px-3 py-1 text-xs font-medium text-white hover:opacity-90 transition-opacity"
                             >
                               복사
                             </button>
@@ -283,9 +288,9 @@ export default function CreateEntryPage() {
                                 )
                               }
                               disabled={!isOrganizer}
-                              className={`rounded-lg px-3 py-1 text-xs font-medium text-white transition-opacity ${
+                              className={`rounded-full px-3 py-0 text-xs font-medium text-white transition-opacity ${
                                 isOrganizer
-                                  ? "bg-red-500 hover:opacity-90"
+                                  ? "bg-[--wf-warning]"
                                   : "bg-gray-400 cursor-not-allowed"
                               }`}
                             >
@@ -319,13 +324,7 @@ export default function CreateEntryPage() {
             )}
           </StepCard>
         </section>
-        <StepNavigation
-        prevHref="/auth/kakao/callback"
-        nextHref="/meetings/new/step1-basic"
-      />
       </main>
-
-      
     </>
   );
 }
