@@ -2,11 +2,15 @@ package com.magicdev.manalgak.domain.meeting.entity;
 
 import com.magicdev.manalgak.common.util.DateTimeUtil;
 import com.magicdev.manalgak.domain.meeting.service.command.UpdateMeetingCommand;
+import com.magicdev.manalgak.domain.participant.entity.Participant;
+import com.magicdev.manalgak.domain.vote.entity.Vote;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -43,6 +47,12 @@ public class Meeting {
     private LocalDateTime updatedAt;
 
     private LocalDateTime expiresAt;
+
+    @OneToOne(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Vote vote;
+
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Participant> participants = new ArrayList<>();
 
     @PrePersist
     public void prePersist(){
