@@ -3,12 +3,23 @@
 import React, { useEffect, useMemo, useState } from "react";
 import StepCard from "@/components/meeting/StepCard";
 import { Member } from "../meeting/Step2/Step2MemberList";
-
+import { TransportMode } from "../meeting/Step2/Step2MemberList";
+import Image from "next/image";
 interface Props {
   members: Member[];
   currentUserId: number;
   onPersonalChange: (participantId: number, nickname?: string) => void;
 }
+
+const transportLabelMap: Record<TransportMode, string> = {
+  CAR: "자동차",
+  PUBLIC: "대중교통",
+};
+
+const transportIconMap: Record<TransportMode, string> = {
+  CAR: "🚗",
+  PUBLIC: "🚌",
+};
 
 export default function MemberStatusList({ members, onPersonalChange }: Props) {
   const myMember = members[0];
@@ -31,16 +42,27 @@ export default function MemberStatusList({ members, onPersonalChange }: Props) {
         <div className="space-y-2 rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-3">
           <div className="flex items-center gap-3">
             {myMember.profileImageUrl ? (
-              <img
-                src={myMember.profileImageUrl}
-                alt={myMember.name}
-                className="h-10 w-10 rounded-full object-cover"
-              />
+                <Image
+                  src={myMember.profileImageUrl}
+                  alt={myMember.name}
+                  width={48}
+                  height={48}
+                  className="h-10 w-10 rounded-full object-cover"
+                />
             ) : (
               <div className="h-10 w-10 rounded-full bg-[var(--wf-border)]" />
             )}
 
             <p className="flex-1 text-sm font-semibold">{myMember.name}</p>
+           {myMember.originAddress && myMember.transport && (
+             <div className="flex items-center gap-2 mt-1">
+               <div className="flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-gray-700">
+                 {transportIconMap[myMember.transport as TransportMode]}{" "}
+                 {transportLabelMap[myMember.transport as TransportMode]}
+               </div>
+               <div className="text-xs text-gray-500"> {myMember.originAddress}</div>
+             </div>
+           )}
           </div>
 
           {/* 닉네임 설정 */}
@@ -77,16 +99,27 @@ export default function MemberStatusList({ members, onPersonalChange }: Props) {
             >
               <div className="flex items-center gap-3">
                 {member.profileImageUrl ? (
-                  <img
-                    src={member.profileImageUrl}
-                    alt={member.name}
-                    className="h-10 w-10 rounded-full object-cover"
-                  />
+                    <Image
+                      src={member.profileImageUrl}
+                      alt={member.name}
+                      width={48}
+                      height={48}
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
                 ) : (
                   <div className="h-10 w-10 rounded-full bg-[var(--wf-border)]" />
                 )}
 
                 <p className="flex-1 text-sm font-semibold">{member.name}</p>
+                 {member.originAddress && member.transport && (
+                   <div className="flex items-center gap-2 mt-1">
+                     <div className="flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-gray-700">
+                       {transportIconMap[member.transport as TransportMode]}{" "}
+                       {transportLabelMap[member.transport as TransportMode]}
+                     </div>
+                     <div className="text-xs text-gray-500"> {member.originAddress}</div>
+                   </div>
+                 )}
               </div>
 
               <div className="pl-13 text-xs text-[var(--wf-subtle)]">

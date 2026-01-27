@@ -12,6 +12,8 @@ interface MemberListProps {
   onMyParticipantResolved?: (participantId: number) => void;
   readonly?: boolean; // ⭐ 추가
 }
+export type TransportMode = "CAR" | "PUBLIC" ;
+
 
 export interface Member {
   participantId: number;
@@ -19,14 +21,27 @@ export interface Member {
   name: string;
   profileImageUrl?: string;
   nickname?: string;
+  originAddress?: string; // 출발지
+  transport?: TransportMode; // 교통수단
 }
 
 // 서버에서 오는 participant 타입
 interface ParticipantData {
   participantId: number;
-  userId: number;
-  nickName: string;
-  profileImageUrl?: string;
+   userId: number;
+   nickName: string;
+   profileImageUrl?: string;
+   origin?: {
+     latitude: number;
+     longitude: number;
+     address: string;
+   };
+   destination?: {
+     latitude: number;
+     longitude: number;
+     address: string;
+   };
+   transportType?: TransportMode; // "CAR" | "PUBLIC"
 }
 
 const API_BASE_URL =
@@ -107,6 +122,8 @@ export default function MemberList({
           name: p.nickName,
           profileImageUrl: p.profileImageUrl,
           nickname: "",
+          originAddress: p.origin?.address ?? "",
+          transport: p.transportType ?? undefined,
         }));
 
         const sorted = mapped.sort((a, b) =>
@@ -154,12 +171,12 @@ export default function MemberList({
                       ? {
                           ...m,
                           name: data.nickName,
-                          profileImageUrl:
-                            data.profileImageUrl ?? m.profileImageUrl,
-                        }
+                          profileImageUrl: data.profileImageUrl ?? m.profileImageUrl,
+                          originAddress: data.origin?.address ?? m.originAddress,
+                          transport: data.transportType  ?? m.transport,
+                          }
                       : m,
                   );
-
                   // 내 정보 맨 위 유지
                   return updated.sort((a, b) =>
                     a.id === userId.toString()
