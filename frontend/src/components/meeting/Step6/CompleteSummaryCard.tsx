@@ -1,6 +1,9 @@
 // src/components/meeting/CompleteSummaryCard.tsx
 'use client'
-
+import { useUser } from "@/context/UserContext"
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { useParams } from 'next/navigation'
 import StepCard from '@/components/meeting/StepCard'
 import {
   Users,
@@ -15,16 +18,24 @@ export interface MeetingSummary {
   meetingName: string
   dateTime: string
   memberCount?: number
-  category: string
   placeName: string
   address: string
   parkingInfo: string
   reservationInfo: string
   phoneNumber: string
+   organizerId: number
 }
 
 interface Props {
   meeting: MeetingSummary
+}
+
+interface PlaceResponse {
+  placeName: string
+  address: string
+  phone: string
+  latitude : number
+  longitude : number
 }
 
 export default function CompleteSummaryCard({ meeting }: Props) {
@@ -32,48 +43,99 @@ export default function CompleteSummaryCard({ meeting }: Props) {
     meetingName,
     dateTime,
     memberCount,
-    category,
-    placeName,
-    address,
-    phoneNumber,
   } = meeting
 
-  // ✅ 임시 좌표 (백엔드 연결 전)
-  const lat = 37.566535
-  const lng = 126.977969
+
+
+
+  const [place, setPlace] = useState<PlaceResponse | null>(null)
+
+  const params = useParams()
+  const meetingUuid = params.meetingId  as string
+
+  const placeName = place?.placeName ?? ''
+  const address = place?.address ?? ''
+  const phoneNumber = place?.phone ?? ''
+  const { user } = useUser()
+  const isOrganizer = Number(user?.id) === Number(meeting.organizerId)
+
+const formatDateTime = (isoString?: string) => {
+  if (!isoString) return '-'
+
+  const date = new Date(isoString)
+  if (isNaN(date.getTime())) return '-'
+
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+
+  const hours = date.getHours()
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const period = hours < 12 ? '오전' : '오후'
+  const displayHour = hours % 12 || 12
+
+  return `${yyyy}.${mm}.${dd} ${period} ${displayHour}:${minutes}`
+}
+
+
+const lat = typeof place?.latitude === 'number' ? place.latitude : null
+const lng = typeof place?.longitude === 'number' ? place.longitude : null
+
+
+  useEffect(() => {
+    if (!meetingUuid) return
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api'
+    const fetchPlace = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/v1/meetings/${meetingUuid}/place`,
+          { withCredentials: true }
+        )
+
+        // 장소 미확정 (success는 true지만 data가 null인 경우)
+        if (!res.data?.data) {
+          setPlace(null)
+          return
+        }
+
+        setPlace(res.data.data)
+       } catch (error) {
+              console.error('장소 정보를 가져오는데 실패했습니다:', error);
+       }
+    }
+
+    fetchPlace()
+  }, [meetingUuid])
+
 
   const handleSendKakao = () => {
-    // eslint: Kakao typing provided in global.d.ts
     if (typeof window === 'undefined' || !window.Kakao) return
 
     if (!window.Kakao.isInitialized()) {
       window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
     }
 
-    window.Kakao.Share.sendDefault({
-      objectType: 'text',
-      text:
-        `📌 확정된 모임 정보\n\n` +
-        `모임명: ${meetingName}\n` +
-        `일시: ${dateTime}\n` +
-        `인원: ${memberCount}명\n` +
-        `카테고리: ${category}\n` +
-        `장소: ${placeName}\n` +
-        `주소: ${address}\n` +
-        `전화번호: ${phoneNumber}`,
-      link: {
-        mobileWebUrl: window.location.origin,
-        webUrl: window.location.origin,
+    window.Kakao.Share.sendCustom({
+      templateId: 128597,
+      templateArgs: {
+        meetingName,
+        meetingDate: formatDateTime(dateTime),
+        count: memberCount ? String(memberCount) : '-',
+        address: placeName,
+           place: placeName || '',
+             lat: lat ? String(lat) : '',
+             lng: lng ? String(lng) : '',
+        number: phoneNumber || '-',
       },
     })
   }
 
-  const handleDirection = () => {
-    const url = `https://map.kakao.com/link/to/${encodeURIComponent(
-      placeName
-    )},${lat},${lng}`
+const handleDirection = () => {
+    if (!placeName || lat === null || lng === null) return
+    const url = `https://map.kakao.com/link/to/${encodeURIComponent(placeName)},${lat},${lng}`
     window.open(url, '_blank')
-  }
+}
 
   return (
     <section className="space-y-4">
@@ -103,24 +165,33 @@ export default function CompleteSummaryCard({ meeting }: Props) {
               <p className="text-xs font-light text-[var(--wf-accent)]">
                 모임 일시
               </p>
-              <p className="text-lg font-bold">{dateTime}</p>
+              <p className="text-lg font-bold">
+                {formatDateTime(dateTime)}
+              </p>
             </div>
           </div>
 
           {/* 장소 */}
-          <div className="flex gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--wf-highlight-soft)]">
-              <Coffee className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
-            </div>
-            <div>
-              <p className="text-xs font-light text-[var(--wf-accent)]">
-                장소명 (카테고리)
-              </p>
-              <p className="text-lg font-bold">
-                {placeName} ({category})
-              </p>
-            </div>
+        <div className="flex gap-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--wf-highlight-soft)]">
+            <Coffee className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
           </div>
+          <div>
+            <p className="text-xs font-light text-[var(--wf-accent)]">
+              장소명
+            </p>
+
+            {place ? (
+              <p className="text-lg font-bold">
+                {placeName}
+              </p>
+            ) : (
+              <p className="text-sm text-[var(--wf-subtle)]">
+                아직 장소를 선택하지 않았습니다
+              </p>
+            )}
+          </div>
+        </div>
 
           {/* 주소 + 길찾기 */}
           <div className="flex items-start gap-4">
@@ -131,7 +202,9 @@ export default function CompleteSummaryCard({ meeting }: Props) {
               <p className="text-xs font-light text-[var(--wf-accent)]">
                 상세 주소
               </p>
-              <p className="text-base font-medium">{address}</p>
+             <p className="text-base font-medium">
+               {place ? address : '-'}
+             </p>
             </div>
             <button
               type="button"
@@ -151,21 +224,34 @@ export default function CompleteSummaryCard({ meeting }: Props) {
               <p className="text-xs font-light text-[var(--wf-accent)]">
                 문의 전화번호
               </p>
-              <p className="text-base font-medium">{phoneNumber}</p>
+              <p className="text-base font-medium">
+                {place ? phoneNumber : '-'}
+              </p>
             </div>
           </div>
         </div>
       </StepCard>
 
       {/* CTA */}
-      <button
-        onClick={handleSendKakao}
-        className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--wf-highlight)]  hover:bg-[var(--wf-accent)]
-        py-4 text-lg font-bold text-[var(--wf-text)] shadow-xl shadow-yellow-500/20 transition active:scale-[0.99]"
-      >
-        확정 장소 메시지 전송
-        <Send className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-      </button>
+        {isOrganizer ? (
+          <button
+            onClick={handleSendKakao}
+            className="group flex w-full items-center justify-center gap-2 rounded-2xl
+            bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]
+            py-4 text-lg font-bold text-[var(--wf-text)]
+            shadow-xl shadow-yellow-500/20 transition active:scale-[0.99]"
+          >
+            확정 장소 메시지 전송
+            <Send className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+          </button>
+        ) : (
+          <div className="flex w-full items-center justify-center rounded-2xl
+            border border-[var(--wf-border)] bg-[var(--wf-surface)]
+            py-4 text-sm text-[var(--wf-subtle)]"
+          >
+            확정 메시지는 <span className="mx-1 font-semibold">모임장</span>만 전송할 수 있어요
+          </div>
+        )}
     </section>
   )
 }

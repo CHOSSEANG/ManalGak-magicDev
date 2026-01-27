@@ -39,6 +39,7 @@ export default function MeetingCompletePage({ params }: PageProps) {
     parkingInfo: resolvedData?.parkingInfo ?? "",
     reservationInfo: resolvedData?.reservationInfo ?? "",
     phoneNumber: resolvedData?.phoneNumber ?? "",
+    organizerId: Number(resolvedData?.organizerId ?? 0),
   };
 
   return (

@@ -18,6 +18,7 @@ export interface MeetingCompleteViewModel {
   parkingInfo?: string
   reservationInfo?: string
   phoneNumber?: string
+  organizerId?: number
 }
 
 interface UseMeetingCompleteState {
@@ -81,6 +82,7 @@ export const useMeetingComplete = (
           parkingInfo: '',
           reservationInfo: '',
           phoneNumber: '',
+          organizerId: meetingData?.organizerId,
         }
 
         if (!isActive) return

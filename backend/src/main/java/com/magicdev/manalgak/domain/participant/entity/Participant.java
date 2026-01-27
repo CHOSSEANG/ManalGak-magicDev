@@ -4,12 +4,15 @@ package com.magicdev.manalgak.domain.participant.entity;
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.participant.service.command.UpdateParticipantCommand;
 import com.magicdev.manalgak.domain.user.entity.User;
+import com.magicdev.manalgak.domain.vote.entity.VoteRecord;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(
@@ -68,6 +71,9 @@ public class Participant {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(20)")
     private TransportType type;
+
+    @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VoteRecord> voteRecords = new ArrayList<>();
 
     public enum ParticipationStatus {
         INVITED,    // 초대됨

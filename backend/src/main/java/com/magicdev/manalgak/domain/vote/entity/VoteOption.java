@@ -5,6 +5,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Table(name = "vote_options")
@@ -18,6 +21,9 @@ public class VoteOption {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vote_id",nullable = false)
     private Vote vote;
+
+    @OneToMany(mappedBy = "voteOption", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VoteRecord> voteRecords = new ArrayList<>();
 
     private String content;
     private int voteCount;
