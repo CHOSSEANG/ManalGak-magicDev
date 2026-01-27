@@ -42,7 +42,7 @@ public class OdsayRouteResponse {
 		private Integer trafficType;
 		private Integer distance;
 		private Integer sectionTime;
-		private Lane lane;
+		private List<Lane> lane;
 		private Integer stationCount;
 		private PassStopList passStopList;
 		private String way;
@@ -63,9 +63,18 @@ public class OdsayRouteResponse {
 	@Getter
 	@Setter
 	public static class Lane {
+		// 지하철용 필드
 		private String name;
-		private Integer subwaycode;
+		private Integer subwayCode;
 		private Integer subwayCityCode;
+
+		// 버스용 필드
+		private String busNo;
+		private Integer type;
+		private Integer busID;
+		private String busLocalBlID;
+		private Integer busCityCode;
+		private Integer busProviderCode;
 	}
 
 	@Getter

@@ -1,5 +1,6 @@
 package com.magicdev.manalgak.domain.odsay.service;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -33,10 +34,6 @@ public class OdsayService {
 
 	public OdsayRouteResponse searchRoute(GetRouteRequest request) {
 		try {
-
-			// API Key 수동 인코딩
-			String encodedApiKey = URLEncoder.encode(apiKey, StandardCharsets.UTF_8);
-
 			// UriComponentsBuilder 생성
 			UriComponentsBuilder builder = UriComponentsBuilder
 				.fromHttpUrl(baseUrl + "/searchPubTransPathT")
@@ -45,7 +42,7 @@ public class OdsayService {
 				.queryParam("SY", request.getStartY())
 				.queryParam("EX", request.getEndX())
 				.queryParam("EY", request.getEndY())
-				.queryParam("apiKey", encodedApiKey);
+				.queryParam("apiKey", apiKey);
 
 			// 선택적 파라미터 추가 (null이 아닐 때만)
 			if (request.getOpt() != null) {
@@ -61,18 +58,13 @@ public class OdsayService {
 			}
 
 			// URL 생성
-			String url = builder.build().toUriString();
+			URI url = builder.build(true).toUri();
 
 			log.info("ODsay API 요청 URL: {}", url);
 			log.info("baseUrl 값: {}", baseUrl);
 
 			log.info("ODsay API 요청 URL: {}", url);
 			log.info("🔑 실제 사용 중인 API Key: [{}]", apiKey);  // ← 추가
-
-			// 실제 절대 경로인지 확인
-			if (!url.startsWith("http")) {
-				log.error("❌ 상대 경로로 요청되고 있습니다!");
-			}
 
 			// 헤더 설정
 			HttpHeaders headers = new HttpHeaders();
