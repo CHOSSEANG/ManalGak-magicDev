@@ -36,7 +36,7 @@ export default function Header() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
-                href="/meetings/new"
+                href="/"
                 onClick={closeMenu}
                 className="flex h-10 items-center"
               >

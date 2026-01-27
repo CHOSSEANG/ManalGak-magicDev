@@ -19,7 +19,7 @@ export default function BottomTabNav() {
   }
 
   const TABS = [
-    { label: '메인', href: '/', icon: Home },
+    { label: '모임리스트', href: '/meetings/new', icon: Home },
     {
       label: '모임생성',
       href: meetingUuid
