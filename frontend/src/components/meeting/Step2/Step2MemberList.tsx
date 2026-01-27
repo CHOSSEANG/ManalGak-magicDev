@@ -172,7 +172,7 @@ export default function MemberList({
                           ...m,
                           name: data.nickName,
                           profileImageUrl: data.profileImageUrl ?? m.profileImageUrl,
-                          originAddress: data.origin?.address ?? m.originAddress, // ⭐ 추가originAddress: data.originAddress ?? m.originAddress,
+                          originAddress: data.origin?.address ?? m.originAddress,
                           transport: data.transportType  ?? m.transport,
                           }
                       : m,
