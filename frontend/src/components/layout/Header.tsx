@@ -46,6 +46,7 @@ export default function Header() {
                   alt="로고"
                   width={96}
                   height={24}
+                  priority
                   className="h-6 w-24"
                 />
               </Link>

@@ -19,12 +19,22 @@
 
   /* Accents */
 --wf-highlight: #FEE500; /* Kakao Yellow (Primary) */
---wf-accent: #a7823f;    /* Kakao Brown (Text/Icon/Active) */
---wf-overlay: rgba(17, 17, 17, 0.35);  /* 선택/hover용 연톤 배경 (카카오 옐로우를 연하게) */
---wf-highlight-soft: rgba(254, 229, 0, 0.22);
+--wf-accent: #2b69c6;    /* Kakao Brown (Text/Icon/Active) */
+--wf-overlay: rgba(219, 93, 93, 0.35);  /* 선택/hover용 연톤 배경 (카카오 옐로우를 연하게) */
+--wf-highlight-soft: rgba(119, 159, 223, 0.22);
 
---wf-highlight-strong: #E0C200;
---wf-highlight-strong2: #C9AF00;
+--wf-highlight-strong: #20469f;
+--wf-highlight-strong2: #511a6e;
+
+/* Warning */
+  --wf-warning: #cf4a22;            /* 기본 */
+  --wf-warning-foreground: 38 90% 20%; /* 텍스트 */
+  --wf-warning-soft: 38 100% 96%;      /* 배경 */
+
+  /* Destructive */
+  --wf-danger: 0 84% 60%;
+  --wf-danger-foreground: 0 70% 30%;
+  --wf-danger-soft: 0 100% 97%;
 
 
   /* Text */
@@ -34,7 +44,7 @@
   /* Status */
   --bottom-cta-height: calc(72px + env(safe-area-inset-bottom));
 }
-
+ 
 /* ===============================
    Base Layout
    =============================== */

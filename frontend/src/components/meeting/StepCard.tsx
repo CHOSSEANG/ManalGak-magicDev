@@ -11,7 +11,7 @@ export default function StepCard({ children, className = "" }: StepCardProps) {
   // 와이어프레임 단계: 카드 컨테이너
   return (
     <div
-      className={`rounded-2xl border border-[var(--wf-border)] p-4 md:p-6 ${className}`}
+      className={`rounded-2xl p-4 md:p-6 ${className}`}
     >
       {children}
     </div>

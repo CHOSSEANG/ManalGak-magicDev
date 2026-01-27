@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import BottomCTA from '@/components/layout/BottomCTA'
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "@/styles/globals.css";
+import "@/styles/tailwind.css";
 import { UserProvider } from "@/context/UserContext" // 추가
 
 export const metadata: Metadata = {

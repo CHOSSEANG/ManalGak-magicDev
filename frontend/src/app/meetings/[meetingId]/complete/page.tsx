@@ -42,12 +42,21 @@ export default function MeetingCompletePage({ params }: PageProps) {
   };
 
   return (
-  <main className="relative h-[100dvh] overflow-hidden">
+  <main className="relative h-[100dvh] ">
+      
     {/* 배경 지도 */}
     <CompleteMapSection
       lat={resolvedData?.lat}
       lng={resolvedData?.lng}
-    />
+      />
+      
+      {/* 지도 위 상단 타이틀 */}
+    
+    <div className="-top-6 pointer-events-none absolute inset-x-0 z-20 flex justify-center">
+      <h1 className="text-lg font-semibold tracking-tight text-[var(--wf-text)] drop-shadow-sm">
+        모임 확정
+      </h1>
+    </div>
 
     {/* 위에 올라오는 UI */}
     <div className="relative z-10">
