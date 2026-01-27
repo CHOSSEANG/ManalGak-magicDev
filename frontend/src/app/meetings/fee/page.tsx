@@ -1,11 +1,10 @@
-// src/app/meetings/[meetingId]/option-fee/page.tsx
+// src/app/meetings/fee/page.tsx
 'use client'
 
 import { useState, useMemo } from 'react'
 import { MinusCircle, PlusCircle, Plus, Minus } from 'lucide-react'
 import StepCard from '@/components/meeting/StepCard'
-import CompleteSummaryCard from '@/components/meeting/Step6/CompleteSummaryCard'
-import StepNavigation from '@/components/layout/StepNavigation'
+import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
 
 // =====================
 // 숫자 유틸
@@ -61,17 +60,6 @@ export default function OptionPaymentPage() {
     return Math.ceil(payableTotal / safeMemberCount)
   }, [totalMeetingFee, totalExtraFee, memberCount])
 
-  const mockMeetingData = {
-    meetingName: '친구들끼리 친목모임',
-    dateTime: '2026.01.23 12:00',
-    memberCount: 5,
-    category: '카페',
-    placeName: '어쩌구 카페',
-    address: '서울시 어쩌구 저쩌동 12-34',
-    parkingInfo: '가능',
-    reservationInfo: '불필요',
-    phoneNumber: '02-123-4567',
-  }
 
   return (
     <main className="space-y-6">
@@ -307,15 +295,7 @@ export default function OptionPaymentPage() {
         </div>
       </StepCard>
 
-      <CompleteSummaryCard meeting={mockMeetingData} />
-
-      {/* 스텝 네비 */}
-      <StepNavigation
-        prevHref="/meetings/meeting-001/complete"
-        prevLabel="모임정보 상세보기"
-        nextHref="/my"
-        nextLabel="내 모임 리스트"
-      />
+      <BottomTabNavigation />
     </main>
   )
 }

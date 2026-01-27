@@ -9,7 +9,7 @@ export default function Button({ children, className, ...props }: ButtonProps) {
     <button
       {...props}
       className={clsx(
-        "flex w-full items-center justify-center rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-6 py-4 text-base font-semibold",
+        "flex items-center justify-center rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] p-2 text-base font-semibold",
         className
       )}
     >

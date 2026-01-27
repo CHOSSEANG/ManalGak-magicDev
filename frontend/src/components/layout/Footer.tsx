@@ -25,6 +25,9 @@ export default function Footer() {
           <option value="" disabled>
             패밀리 링크
           </option>
+          <option value="/about">
+            만날각 소개 & 만든사람들
+          </option>
           <option value="https://github.com/CHOSSEANG/ManalGak-magicDev.git">
             만날각 GitHub
           </option>
@@ -40,6 +43,7 @@ export default function Footer() {
           <option value="https://webicapp.com/">이전 프로젝트 보기</option>
         </select>
       </div>
+      <br />
       <br />
       <br />
       <br />

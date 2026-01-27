@@ -1,7 +1,6 @@
 // src/pages/my/page.tsx
 "use client";
 
-import StepCard from "@/components/meeting/StepCard";
 import WireframeModal from "@/components/ui/WireframeModal";
 import AddressSearch from "@/components/map/AddressSearch";
 import { useEffect, useState } from "react";
@@ -9,6 +8,15 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useUser } from '@/context/UserContext'
 import ProfileIdentity from '@/components/layout/ProfileIdentity'
+import Link from 'next/link'
+import clsx from 'clsx'
+import {
+  LocateFixed, Calculator,
+} from 'lucide-react'
+import Button from '@/components/ui/Button';
+
+
+
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
@@ -140,7 +148,6 @@ export default function MyPage() {
         </div>
 
         {/* ===== Profile ===== */}
-        <StepCard>
           <div className="flex items-center justify-between gap-4">
             {/* 좌측: 프로필 */}
             <div className="flex cursor-pointer items-center rounded-xl transition hover:bg-[var(--wf-accent)]">
@@ -163,13 +170,10 @@ export default function MyPage() {
               {user ? "로그아웃" : "로그인"}
             </button>
           </div>
-        </StepCard>
 
         {/* ===== Bookmark ===== */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">출발지 북마크</h2>
-
-          <StepCard className="space-y-3">
             {bookmarks.map((item, index) => (
               <div key={index} className="flex items-center gap-2">
                 <input
@@ -184,33 +188,33 @@ export default function MyPage() {
                       )
                     )
                   }
-                  className="w-24 rounded-md border px-2 py-2 text-sm disabled:bg-[var(--wf-muted)]"
+                  className="w-24 rounded-md border px-2 py-2 text-sm disabled:bg-[var(--wf-muted)] bg-[var(--wf-surface)]"
                 />
 
-                <button
+                <Button
                   type="button"
                   disabled={!item.isEditing}
                   onClick={() => {
                     setActiveBookmarkIndex(index);
                     setSearchAddressOpen(true);
                   }}
-                  className={`flex-1 rounded-md border px-3 py-2 text-left text-sm disabled:bg-[var(--wf-muted)]`}
+                  className={`flex-1 rounded-md border text-left text-sm disabled:bg-[var(--wf-muted)]`}
                 >
                   {item.address || "주소 검색"}
-                </button>
+                </Button>
 
                 {item.isEditing ? (
-                  <button
+                  <Button
                     type="button"
                     disabled={!item.address}
                     onClick={() => saveBookmark(index)}
-                    className="rounded-md bg-[var(--wf-highlight)] px-3 py-2 text-sm font-semibold disabled:opacity-40"
+                    className="rounded-md bg-[var(--wf-highlight)] text-sm font-semibold disabled:opacity-40"
                   >
                     저장
-                  </button>
+                  </Button>
                 ) : (
                   <>
-                    <button
+                    <Button
                       type="button"
                       onClick={() =>
                         setBookmarks((prev) =>
@@ -219,27 +223,47 @@ export default function MyPage() {
                           )
                         )
                       }
-                      className="rounded-md border px-3 py-2 text-sm"
+                      className="rounded-md border text-sm"
                     >
                       수정
-                    </button>
+                    </Button>
                     {item.id !== 0 && (
-                      <button
+                      <Button
                         type="button"
                         onClick={() => deleteBookmark(item.id)}
-                        className="rounded-md border px-3 py-2 text-sm text-red-500"
+                        className="rounded-md border text-sm text-red-500"
                       >
                         삭제
-                      </button>
+                      </Button>
                     )}
                   </>
                 )}
               </div>
             ))}
-          </StepCard>
         </section>
 
-        
+        <section className="space-y-3">
+            <h2 className="text-lg font-semibold">개별 기능 버튼들</h2>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Link
+                  href="/meetings/location"
+                  className={clsx(
+                    "flex w-full items-center justify-center rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-6 py-4 text-base font-semibold"
+                  )}
+                >
+                  <LocateFixed />지도 서비스
+              </Link>
+              <Link
+                href="/meetings/fee"
+                className={clsx(
+                  "flex w-full items-center justify-center rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-highlight)] px-6 py-4 text-base font-semibold"
+                )}
+              >
+                <Calculator className=""/> 회비 계산기
+              </Link>
+              </div>
+          </section>
       </main>
 
       <WireframeModal
