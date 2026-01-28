@@ -38,11 +38,11 @@ export default function CompleteSummaryCard({ meeting }: Props) {
   const placeName = meeting.placeName || '장소 미정'
   const address = meeting.address || '주소 미정'
   const phoneNumber = meeting.phoneNumber || '연락처 미정'
-  const parkingInfo = meeting.parkingInfo || '주차 정보 미정'
-  const reservationInfo = meeting.reservationInfo || '예약 정보 미정'
+  // const parkingInfo = meeting.parkingInfo || '주차 정보 미정'
+  // const reservationInfo = meeting.reservationInfo || '예약 정보 미정'
 
   return (
-    <div className="space-y-4">
+    <div className="app-container space-y-4">
       {/* 섹션 헤더는 카드 대신 타이포로 분리 */}
       <section className="space-y-1">
         <h2 className="text-base font-semibold text-[var(--text)]">모임 요약</h2>
@@ -62,10 +62,6 @@ export default function CompleteSummaryCard({ meeting }: Props) {
         <InfoRow label="연락처" value={phoneNumber} />
       </section>
 
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-4 space-y-3">
-        <InfoRow label="주차" value={parkingInfo} />
-        <InfoRow label="예약" value={reservationInfo} />
-      </section>
     </div>
   )
 }

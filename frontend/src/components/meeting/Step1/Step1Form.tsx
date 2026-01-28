@@ -183,7 +183,7 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(
       return null;
     }, [startDraft, endDraft]);
 
-    const canShowWeather = !!selectedDate && !!startTime;
+    // const canShowWeather = !!selectedDate && !!startTime;
 
     // --- 핸들러 함수 ---
     const openCalendar = () => {
@@ -336,7 +336,7 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(
       <div className="space-y-2">
   {/* 1. 모임 정보 */}
   <div className="space-y-2">
-    <p className="font-semibold text-[var(--text)] pt-3">모임명 <span className="text-[var(--text-subtle)] pl-5 text-xs">모임명을 반드시 입력하세요!</span></p>
+    <p className="font-semibold text-[var(--text)] pt-3">모임 이름 <span className="text-[var(--text-subtle)] pl-5 text-xs">모임명을 반드시 입력하세요!</span></p>
     <input
       type="text"
       value={meetingName}
@@ -407,7 +407,7 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(
 
 
   {/* 3. 날짜 및 시간 */}
-  <p className="font-semibold text-[var(--text)] pt-3">일시</p>
+  <p className="font-semibold text-[var(--text)] pt-3">모임 일시</p>
   <div className="flex gap-2">
     <div className="flex-1 flex flex-col gap-2">
       <button

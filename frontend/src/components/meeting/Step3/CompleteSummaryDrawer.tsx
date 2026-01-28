@@ -37,7 +37,7 @@ export default function CompleteSummaryDrawer({ open, onClose }: Props) {
 
   return (
     <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
-      <DrawerContent className="max-h-[75vh] rounded-t-3xl bg-[var(--bg)]">
+      <DrawerContent className="app-container max-h-[75vh] rounded-t-3xl bg-[var(--bg)]">
         {/* Header */}
         <DrawerHeader className="relative pb-3">
           <DrawerTitle className="text-left text-base font-semibold text-[var(--text)]">

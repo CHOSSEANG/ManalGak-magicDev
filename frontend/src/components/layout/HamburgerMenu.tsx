@@ -202,7 +202,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             {/* Profile Card */}
               <div className="">
-                {/* <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3">
                   <ProfileIdentity
                     src={user?.profileImage}
                     name={user?.name ?? "로그인 필요"}
@@ -211,7 +211,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                     layout="row"
                     shape="square"
                   />
-                </div> */}
+                </div>
 
                 {/* <div className="text-[var(--text-subtle)]">
                   {isLoggedIn ? (
