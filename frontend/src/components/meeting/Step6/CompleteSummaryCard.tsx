@@ -6,7 +6,7 @@ import axios from 'axios'
 import { useParams } from 'next/navigation'
 import StepCard from '@/components/meeting/StepCard'
 import { Badge } from "@/components/ui/badge"
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 
 import {
   Users,
@@ -231,7 +231,7 @@ const handleDirection = () => {
                 {place ? address : '-'}
               </p>
             </div>
-            <button type="button" onClick={handleDirection}>
+            <Button type="button" onClick={handleDirection}>
               <Badge
                 variant="secondary"
                 className="
@@ -242,7 +242,7 @@ const handleDirection = () => {
               >
                 길찾기
               </Badge>
-            </button>
+            </Button>
           </div>
 
           {/* 전화 */}
