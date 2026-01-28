@@ -1,8 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface StepBreadcrumbProps {
   className?: string;
@@ -22,57 +21,33 @@ export function Breadcrumb({
     { id: "04", name: "Confirmation", status: "upcoming" },
   ],
 }: StepBreadcrumbProps) {
-  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const queryString = searchParams.toString();
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 500);
-    };
-
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-
-    return () => {
-      window.removeEventListener("resize", checkScreenSize);
-    };
-  }, []);
 
   return (
     <nav
       className={cn(
-        "p-2 sm:p-3 rounded-xl bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 overflow-x-auto scrollbar-hide", //겉바탕
+        //겉바탕
+        "relative p-2 sm:p-3 rounded-xl bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100",
         className,
       )}
       aria-label="Progress"
     >
-      <ol
-        className={cn(
-          "flex w-full min-w-max",
-          isMobile ? "flex-col space-y-3" : "items-center justify-between",
-        )}
-      >
-        {steps.map((step, stepIdx) => (
-          <li
-            key={step.id}
-            className={cn(
-              "relative",
-              !isMobile && stepIdx !== steps.length - 1 && "pr-8 md:pr-16",
-            )}
-          >
-            {!isMobile && stepIdx !== steps.length - 1 && (
-              <div
-                className={cn(
-                  "absolute top-6 left-[28px] right-[-500px] mt-0.5 h-0.5",
-                  step.status === "complete"
-                    ? "bg-[var(--wf-accent)] dark:bg-green-500" //밑줄
-                    : "bg-gray-300 dark:bg-zinc-700",
-                )}
-                aria-hidden="true"
-              />
-            )}
+      <div className="absolute left-6 right-1 top-[38px] h-0.5 bg-gray-300" />
+      <div
+        className="absolute left-4 top-[38px] h-0.5 bg-[var(--wf-accent)]"
+        style={{
+          width: (() => {
+            const currentIndex = steps.findIndex((s) => s.status === "current");
+            const safeIndex =
+              currentIndex === -1 ? steps.length - 1 : currentIndex;
+            const ratio = safeIndex / (steps.length - 1);
+            return `calc(${ratio * 100}% - 20px)`;
+          })(),
+        }}
+      />
+      <ol className="relative z-10 flex w-full items-start justify-between">
+        {steps.map((step) => (
+          <li key={step.id} className="relative flex items-start">
             <button
               type="button"
               onClick={() => {
@@ -83,14 +58,11 @@ export function Breadcrumb({
                       ? "/meetings/new/step2-meetingmembers"
                       : "/meetings/new/step3-result";
 
-                router.push(
-                  queryString ? `${basePath}?${queryString}` : basePath,
-                );
+                const query =
+                  typeof window !== "undefined" ? window.location.search : "";
+                router.push(`${basePath}${query}`);
               }}
-              className={cn(
-                "group flex text-left",
-                isMobile ? "items-center" : "items-start",
-              )}
+              className={cn("group flex text-left items-start shrink-0")}
             >
               <span className="flex items-center">
                 <span
@@ -127,7 +99,7 @@ export function Breadcrumb({
                   className={cn(
                     "font-medium",
                     step.status === "complete"
-                      ? "text-gray-900 dark:text-zinc-100"
+                      ? "text-[var(--wf-accent)] dark:text-zinc-100"
                       : step.status === "current"
                         ? "text-black dark:text-green-500"
                         : "text-gray-500 dark:text-zinc-500",
@@ -137,6 +109,7 @@ export function Breadcrumb({
                 </span>
               </span>
             </button>
+            {/* (per-step underline removed) */}
           </li>
         ))}
       </ol>
