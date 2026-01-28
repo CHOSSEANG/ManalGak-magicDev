@@ -21,7 +21,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 interface HamburgerMenuProps {
@@ -41,10 +40,15 @@ const MENUS = [
   },
   {
     label: "참여자 설정",
-    href: "/meetings/new/step2-meetingmembers",
+    href: "/meetings/new/step2-gmembers",
     icon: Users,
   },
-  { label: "추천 장소 선택", href: "/meetings/new/step3-result", icon: MapPin },
+    {
+    label: "출발지 설정",
+    href: "/meetings/new/step3-meeting",
+    icon: Users,
+  },
+  { label: "추천 장소 선택", href: "/meetings/new/step4-result", icon: MapPin },
   { label: "모임 확정", href: "/meetings/complete", icon: CheckCircle },
 ];
 
@@ -174,12 +178,9 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
       >
         <div className="flex h-full flex-col">
           {/* Top bar: close + title */}
-          <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
+          <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-[var(--text)]">전체 메뉴</p>
-              <p className="text-xs text-[var(--text-subtle)]">
-                모임 생성 흐름과 내 메뉴로 이동
-              </p>
+              
             </div>
 
             <Button
@@ -196,7 +197,6 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
           {/* Content */}
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             {/* Profile Card */}
-            <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
               <div className="p-3">
                 <div className="flex items-center gap-3">
                   <ProfileIdentity
@@ -209,27 +209,21 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                   />
                 </div>
 
-                <div className="mt-3 text-xs text-[var(--text-subtle)]">
+                <div className="mt-3    text-[var(--text-subtle)]">
                   {isLoggedIn ? (
-                    <span>로그인 상태입니다.</span>
+                    <span></span>
                   ) : (
                     <span>로그인 후 내 모임과 내 페이지를 사용할 수 있어요.</span>
                   )}
                 </div>
               </div>
-            </Card>
+
 
             {/* My menus (login only) */}
-            <Card className="border border-[var(--border)] bg-[var(--bg)]">
-              <div className="border-b border-[var(--border)] px-3 py-2">
-                <p className="text-xs font-semibold text-[var(--text)]">
-                  내 메뉴
-                </p>
-              </div>
 
-              <div className="p-2">
+              <div className="">
                 {!isLoggedIn ? (
-                  <div className="px-2 py-3 text-sm text-[var(--text-subtle)]">
+                  <div className="px-2 py-3  text-[var(--text-subtle)]">
                     로그인하면 내 메뉴가 표시됩니다.
                   </div>
                 ) : (
@@ -240,11 +234,11 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                         type="button"
                         variant="outline"
                         onClick={() => handleNavigate(href)}
-                        className="w-full justify-between border-[var(--border)] bg-[var(--bg)] px-3 py-3"
+                        className="w-full justify-between border-[var(--border)] bg-[var(--bg)] px-3 py-6"
                       >
                         <span className="flex items-center gap-3">
                           <Icon className="h-5 w-5 text-[var(--text-subtle)]" />
-                          <span className="text-sm text-[var(--text)]">
+                          <span className=" text-[var(--text)]">
                             {label}
                           </span>
                         </span>
@@ -254,20 +248,11 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                   </div>
                 )}
               </div>
-            </Card>
 
             {/* Meeting flow */}
-            <Card className="border border-[var(--border)] bg-[var(--bg)]">
-              <div className="border-b border-[var(--border)] px-3 py-2">
-                <p className="text-xs font-semibold text-[var(--text)]">
-                  모임 생성 흐름
-                </p>
-                <p className="text-xs text-[var(--text-subtle)]">
-                  현재 meetingUuid가 있으면 동일 모임 컨텍스트로 이동합니다.
-                </p>
-              </div>
+            
 
-              <div className="p-2">
+              <div className="">
                 <div className="space-y-1">
                   {MENUS.map(({ label, href, icon: Icon }) => (
                     <Button
@@ -275,11 +260,11 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                       type="button"
                       variant="outline"
                       onClick={() => handleNavigate(href)}
-                      className="w-full justify-between border-[var(--border)] bg-[var(--bg)] px-3 py-3"
+                      className="w-full justify-between border-[var(--border)] bg-[var(--bg)] px-3 py-6"
                     >
                       <span className="flex items-center gap-3">
                         <Icon className="h-5 w-5 text-[var(--text-subtle)]" />
-                        <span className="text-sm text-[var(--text)]">
+                        <span className=" text-[var(--text)]">
                           {label}
                         </span>
                       </span>
@@ -288,19 +273,19 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                   ))}
                 </div>
               </div>
-            </Card>
+            
           </div>
 
           {/* Global Footer */}
           <Footer />
           
           {/* Bottom CTA area */}
-          <div className="border-t border-[var(--border)] bg-[var(--bg)] p-4">
+          <div className="border-t border-[var(--border)] bg-[var(--bg)] p-3">
             {isLoggedIn ? (
               <Button
                 type="button"
                 onClick={handleLogout}
-                className="w-full gap-2 bg-[var(--danger)] text-[var(--primary-foreground)]"
+                className="w-full gap-2 bg-[var(--kakao-yellow)] text-[var(--text)] p-6 rounded-xl"
               >
                 <LogOut className="h-5 w-5" />
                 로그아웃
@@ -309,15 +294,12 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
               <Button
                 type="button"
                 onClick={handleLoginClick}
-                className="w-full bg-[var(--primary)] text-[var(--primary-foreground)]"
+                className="w-full bg-[var(--kakao-yellow)] text-[var(--text] p-6 rounded-xl"
               >
                 카카오 로그인
               </Button>
             )}
 
-            <div className="mt-2 text-center text-xs text-[var(--text-subtle)]">
-              메뉴를 닫으려면 바깥 영역을 눌러도 됩니다.
-            </div>
           </div>
         </div>
       </motion.aside>

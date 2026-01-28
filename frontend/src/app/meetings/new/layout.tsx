@@ -3,18 +3,19 @@
 
 import { usePathname } from "next/navigation";
 import { StepProgress } from "@/components/ui/StepProgress";
-import { CardContent } from "@/components/ui/card";
 
 const stepMap: Record<string, number> = {
-  "/meetings/new/step1-basic": 33,
-  "/meetings/new/step2-meetingmembers": 67,
-  "/meetings/new/step3-result": 100,
+  "/meetings/new/step1-basic": 25,
+  "/meetings/new/step2-members": 50,
+  "/meetings/new/step3-meeting": 75,
+  "/meetings/new/step4-result": 100,
 };
 
 const STEPS = [
   { label: "모임생성", path: "/meetings/new/step1-basic" },
-  { label: "참여자", path: "/meetings/new/step2-meetingmembers" },
-  { label: "추천장소", path: "/meetings/new/step3-result" },
+  { label: "참여자", path: "/meetings/new/step2-members" },
+  { label: "출발지", path: "/meetings/new/step3-meeting" },
+  { label: "추천장소", path: "/meetings/new/step4-result" },
 ];
 
 export default function MeetingsNewLayout({
@@ -31,9 +32,8 @@ export default function MeetingsNewLayout({
   if (!hideProgressBar) {
     progressSection = (
       <div className="">
-        <CardContent className="space-y-4">
           {/* Step Labels */}
-          <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="grid grid-cols-4 gap-2 text-xs">
             {STEPS.map((step) => {
               const isActive = pathname === step.path;
 
@@ -56,7 +56,7 @@ export default function MeetingsNewLayout({
             className="h-2 bg-[var(--neutral-soft)]"
             indicatorClassName="bg-[var(--primary)]"
           />
-        </CardContent>
+
       </div>
     );
   }

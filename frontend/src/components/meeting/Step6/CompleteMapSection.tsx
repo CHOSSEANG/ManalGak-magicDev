@@ -3,16 +3,6 @@
 
 import KakaoMap from "@/components/map/KakaoMap"
 
-// shadcn/ui
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-
 interface Props {
   lat?: number
   lng?: number
@@ -34,33 +24,18 @@ export default function CompleteMapSection({ lat, lng }: Props): JSX.Element {
     : []
 
   return (
-    <Card className="relative h-full w-full border border-[var(--border)] bg-[var(--bg)]">
-      {/* Header Overlay */}
-      <CardHeader className="pointer-events-none absolute left-0 top-0 z-10 w-full bg-[var(--bg-soft)]/90 backdrop-blur">
-        <CardTitle className="text-[var(--text)] text-base">
-          모임 장소 지도
-        </CardTitle>
-        <CardDescription className="text-[var(--text-subtle)]">
-          최종 확정된 만남 장소 위치입니다.
-        </CardDescription>
-      </CardHeader>
+    <div className="absolute inset-0 z-0">
+      {/* 지도 영역은 100% 높이를 유지해야 함 */}
+      <div className="absolute inset-0">
+        <KakaoMap center={center} markers={markers} level={4} />
+      </div>
 
-      {/* Map Area */}
-      <CardContent className="relative h-full p-0">
-        {!hasCoords && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--bg-soft)]">
-            <Skeleton className="h-full w-full bg-[var(--neutral-soft)]" />
-          </div>
-        )}
-
-        <div className="absolute inset-0 z-0">
-          <KakaoMap
-            center={center}
-            markers={markers}
-            level={4}
-          />
+      {/* 좌표가 없을 때도 지도는 유지하고, 안내만 표시 */}
+      {!hasCoords && (
+        <div className="pointer-events-none absolute inset-x-0 top-4 z-10 mx-auto w-fit rounded-full bg-[var(--bg-soft)]/90 px-3 py-1 text-xs text-[var(--text-subtle)] shadow-sm">
+          위치 정보를 불러오는 중입니다.
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   )
 }

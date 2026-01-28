@@ -56,41 +56,44 @@ export default function StepNavigation({
   }
 
   return (
-      <div
-        className={`flex w-full items-center ${
-          split && prevHref && nextHref ? 'gap-3' : 'justify-end'
-        }`}
-      >
-        {prevHref ? (
-          <button
-            type="button"
-            onClick={() => router.push(prevHref)}
-            disabled={loading}
-            className={`${
-              split && nextHref ? 'w-1/2' : ''
-            } relative flex items-center justify-center rounded-2xl border border-[var(--wf-border)]
-              bg-[var(--wf-muted)] px-6 py-3 text-sm hover:bg-[var(--wf-surface)]
-              disabled:opacity-50`}
-          >
-            <ArrowLeft className="absolute left-3 h-6 w-6" /> {prevLabel}
-          </button>
-        ) : null}
-        {nextHref || onNext ? (
-          <button
-            type="button"
-            onClick={handleNext}
-            disabled={loading}
-            className={`${
-              split && prevHref ? 'w-1/2' : ''
-            } relative flex items-center justify-center
-              rounded-2xl border border-[var(--wf-border)]
-              bg-[var(--wf-highlight)] px-6 py-3
-              text-sm font-semibold hover:bg-[var(--wf-accent)]
-              disabled:opacity-50`}
-          >
-            {loading ? '처리중...' : nextLabel}<ArrowRight className="absolute right-3 h-6 w-6"/>
-          </button>
-        ) : null}
-      </div>
+      <div className="flex w-full items-center justify-between">
+  {prevHref ? (
+    <button
+      type="button"
+      onClick={() => router.push(prevHref)}
+      disabled={loading}
+      className="flex items-center gap-2 rounded-xl
+        border border-[var(--border)]
+        bg-[var(--bg-soft)]
+        px-4 py-2 text-sm
+        hover:bg-[var(--neutral-soft)]
+        disabled:opacity-50"
+    >
+      <ArrowLeft className="h-4 w-4" />
+      {prevLabel}
+    </button>
+  ) : (
+    <div /> /* 좌측 공간 유지용 (레이아웃 흔들림 방지) */
+  )}
+
+  {nextHref || onNext ? (
+    <button
+      type="button"
+      onClick={handleNext}
+      disabled={loading}
+      className="flex items-center gap-2 rounded-xl
+        border border-[var(--border)]
+        bg-[var(--primary)]
+        px-4 py-2 text-sm font-semibold
+        text-[var(--primary-foreground)]
+        hover:bg-[var(--primary)]
+        disabled:opacity-50"
+    >
+      {loading ? '처리중...' : nextLabel}
+      <ArrowRight className="h-4 w-4" />
+    </button>
+  ) : null}
+</div>
+
   )
 }

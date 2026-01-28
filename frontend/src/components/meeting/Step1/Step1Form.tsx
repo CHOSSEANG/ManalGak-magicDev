@@ -327,218 +327,257 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(
     if (isLoading) {
       return (
         <div className="flex items-center justify-center py-20">
-          <div className="text-sm text-gray-500">모임 정보를 불러오는 중...</div>
+          <div className=" text-gray-500">모임 정보를 불러오는 중...</div>
         </div>
       );
     }
 
     return (
       <div className="space-y-2">
-        {/* 1. 모임 정보 */}
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-black">모임 정보</p>
+  {/* 1. 모임 정보 */}
+  <div className="space-y-2">
+    <p className="font-semibold text-[var(--text)] pt-3">모임명 <span className="text-[var(--text-subtle)] pl-5 text-xs">모임명을 반드시 입력하세요!</span></p>
+    <input
+      type="text"
+      value={meetingName}
+      onChange={(e) => {
+        if (!readonly) setMeetingName(e.target.value);
+      }}
+      placeholder="모임명을 입력해 주세요"
+      className="w-full font-bold rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 outline-none transition-colors placeholder:text-[var(--text-subtle)] focus:border-[var(--primary)]"
+      disabled={readonly}
+    />
+  </div>
+
+  {/* 2. 모임 목적 */}
+<div className="space-y-2">
+  <p className="font-semibold text-[var(--text)] pt-3">모임 목적 <span className="text-[var(--text-subtle)] pl-5 text-xs">아래 4개의 목적 중 하나를 반드시 선택하세요!</span></p>
+
+  <div className="space-y-3 pt-1">
+    {purposeGroups.map((group, idx) => (
+      <div key={idx}>
+        <div className="grid grid-cols-4 gap-2">
+          {group.items.map((item) => {
+            const isSelected = selectedPurpose === item;
+
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => {
+                  if (!readonly) setSelectedPurpose(item);
+                }}
+                disabled={readonly}
+                className={`
+                  flex flex-col items-center justify-center gap-1
+                  rounded-xl border px-2 py-3
+                  transition-all
+                  md:flex-row md:gap-2 md:rounded-full md:px-4
+                  ${
+                    isSelected
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
+                      : "bg-[var(--bg)] text-[var(--text-subtle)] border-[var(--border)] hover:bg-[var(--bg-soft)]"
+                  }
+                  ${readonly ? "cursor-not-allowed opacity-70" : ""}
+                `}
+              >
+                {/* 아이콘 */}
+                <span
+                  className={
+                    isSelected
+                      ? "text-[var(--primary-foreground)]"
+                      : "text-[var(--text-subtle)]"
+                  }
+                >
+                  {purposeIconMap[item]}
+                </span>
+
+                {/* 텍스트 */}
+                <span className=" font-medium leading-tight md:text-sm md:leading-none">
+                  {item}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+
+  {/* 3. 날짜 및 시간 */}
+  <p className="font-semibold text-[var(--text)] pt-3">일시</p>
+  <div className="flex gap-2">
+    <div className="flex-1 flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={openCalendar}
+        className="flex w-full flex-col items-start gap-1 rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-left transition-colors hover:bg-[var(--neutral-soft)]"
+      >
+        <span
+          className={`font-medium ${
+            !selectedDate ? "text-[var(--text-subtle)]" : "text-[var(--text)]"
+          }`}
+        >
+          {dateLabel}
+        </span>
+      </button>
+    </div>
+
+    <div className="flex-1 flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={openTimeModal}
+        className="flex w-full flex-col items-start gap-1 rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-left transition-colors hover:bg-[var(--neutral-soft)]"
+      >
+        <span
+          className={`font-medium ${
+            !startTime ? "text-[var(--text-subtle)]" : "text-[var(--text)]"
+          }`}
+        >
+          {timeLabel}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  {/* 4. 예상 날씨
+  <p className="text-sm font-semibold text-[var(--text)]">예상 날씨</p>
+  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] p-4">
+    {!canShowWeather ? (
+      <div className="flex h-16 items-center justify-center text-xs text-[var(--text-subtle)]">
+        날짜와 시작 시간을 선택하면 날씨를 보여드려요
+      </div>
+    ) : (
+      <div className="text-center">
+        <p className="mt-1 text-xs text-[var(--text-subtle)]">
+          서울 예상 날씨: 맑음
+        </p>
+      </div>
+    )}
+  </div> */}
+
+  {/* 모달: 달력 */}
+  {isCalendarOpen && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--neutral)]/40 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-[var(--bg)] p-5 shadow-lg">
+        <h3 className="text-base font-semibold text-[var(--text)]">날짜 선택</h3>
+        <p className="mt-1 text-xs text-[var(--text-subtle)]">
+          만날 날짜를 선택해주세요.
+        </p>
+
+        <div className="mt-4">
           <input
-            type="text"
-            value={meetingName}
-            onChange={(e) => {
-              if (!readonly) setMeetingName(e.target.value);
-            }}
-            placeholder="모임명을 입력해 주세요"
-            className="w-full rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-4 py-3 text-sm outline-none focus:border-black transition-colors placeholder:text-gray-400"
-            disabled={readonly}
+            type="date"
+            value={dateDraft}
+            onChange={(e) => setDateDraft(e.target.value)}
+            className="w-full rounded-xl border border-[var(--border)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
           />
         </div>
 
-        {/* 2. 모임 목적 */}
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-black">모임 목적</p>
-          <div className="space-y-3 pt-1">
-            {purposeGroups.map((group, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="grid gap-2 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
-                  {group.items.map((item) => {
-                    const isSelected = selectedPurpose === item;
-
-                    return (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => {
-                          if (!readonly) setSelectedPurpose(item);
-                        }}
-                        className={`flex items-center justify-center gap-2 border py-3 rounded-full transition-all ${
-                          selectedPurpose === item
-                            ? "bg-[var(--wf-highlight)] text-black"
-                            : "border-[var(--wf-border)] bg-white text-gray-600 hover:bg-gray-50"
-                        } ${readonly ? "cursor-not-allowed opacity-70" : ""}`}
-                        disabled={readonly}
-                      >
-                        <div className={isSelected ? "text-[var(--wf-accent)]" : "text-gray-400"}>
-                          {purposeIconMap[item]}
-                        </div>
-                        <span className="text-[16px] font-medium leading-none">{item}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="mt-5 flex gap-2">
+          <button
+            type="button"
+            className="flex-1 rounded-xl bg-[var(--neutral-soft)] px-4 py-3 text-sm font-medium text-[var(--text)]"
+            onClick={() => setIsCalendarOpen(false)}
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            className="flex-1 rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-medium text-[var(--primary-foreground)]"
+            onClick={confirmCalendar}
+          >
+            선택
+          </button>
         </div>
-
-        {/* 3. 날짜 및 시간 */}
-        <p className="text-sm font-semibold text-black">날짜 및 시간</p>
-        <div className="flex gap-2">
-          <div className="flex-1 flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={openCalendar}
-              className="flex w-full flex-col items-start gap-1 rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-xs text-gray-500">날짜</span>
-              <span className={`text-sm font-medium ${!selectedDate ? "text-gray-400" : ""}`}>
-                {dateLabel}
-              </span>
-            </button>
-          </div>
-
-          <div className="flex-1 flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={openTimeModal}
-              className="flex w-full flex-col items-start gap-1 rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-xs text-gray-500">시간</span>
-              <span className={`text-sm font-medium ${!startTime ? "text-gray-400" : ""}`}>
-                {timeLabel}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* 4. 예상 날씨 */}
-        <p className="text-sm font-semibold text-black">예상 날씨</p>
-        <div className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-4">
-          {!canShowWeather ? (
-            <div className="flex h-16 items-center justify-center text-xs text-gray-400">
-              날짜와 시작 시간을 선택하면 날씨를 보여드려요
-            </div>
-          ) : (
-            <div className="text-center">
-              <p className="mt-1 text-xs text-gray-500">서울 예상 날씨: 맑음</p>
-            </div>
-          )}
-        </div>
-
-        {/* 모달: 달력 */}
-        {isCalendarOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-md animate-in rounded-2xl bg-white p-5 shadow-lg sm:zoom-in-95">
-              <h3 className="text-base font-semibold">날짜 선택</h3>
-              <p className="mt-1 text-xs text-black">만날 날짜를 선택해주세요.</p>
-
-              <div className="mt-4">
-                <input
-                  type="date"
-                  value={dateDraft}
-                  onChange={(e) => setDateDraft(e.target.value)}
-                  className="w-full rounded-xl border border-[var(--wf-border)] px-4 py-3 text-sm outline-none focus:border-black"
-                />
-              </div>
-
-              <div className="mt-5 flex gap-2">
-                <button
-                  type="button"
-                  className="flex-1 rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-200"
-                  onClick={() => setIsCalendarOpen(false)}
-                >
-                  취소
-                </button>
-                <button
-                  type="button"
-                  className="flex-1 rounded-xl bg-[var(--wf-accent)] px-4 py-3 text-sm font-medium text-white hover:opacity-90"
-                  onClick={confirmCalendar}
-                >
-                  선택
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 모달: 시간 */}
-        {isTimeModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-md animate-in rounded-2xl bg-white p-5 shadow-lg sm:zoom-in-95">
-              <h3 className="text-base font-semibold">시간 선택</h3>
-              <p className="mt-1 text-xs text-black">
-                시작 시간은 필수, 종료 시간은 선택입니다.
-              </p>
-
-              <div className="mt-4 space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-500">시작 시간</label>
-                  <input
-                    type="time"
-                    value={startDraft}
-                    onChange={(e) => {
-                      const next = e.target.value;
-                      setStartDraft(next);
-                      if (endDraft && minutesFromHHMM(endDraft) <= minutesFromHHMM(next)) {
-                        setEndDraft("");
-                      }
-                    }}
-                    className="w-full rounded-xl border border-[var(--wf-border)] px-4 py-3 text-sm outline-none focus:border-black"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <label className="text-xs font-medium text-gray-500">종료 시간</label>
-                    <button
-                      type="button"
-                      onClick={() => setEndDraft("")}
-                      className="text-xs text-blue-500 hover:underline"
-                    >
-                      미정으로 설정
-                    </button>
-                  </div>
-
-                  <input
-                    type="time"
-                    value={endDraft}
-                    min={startDraft}
-                    onChange={(e) => setEndDraft(e.target.value)}
-                    className="w-full rounded-xl border border-[var(--wf-border)] px-4 py-3 text-sm outline-none focus:border-black disabled:bg-gray-100"
-                    disabled={!startDraft}
-                  />
-
-                  {endTimeError && <p className="text-xs text-red-500">{endTimeError}</p>}
-                </div>
-              </div>
-
-              <div className="mt-5 flex gap-2">
-                <button
-                  type="button"
-                  className="flex-1 rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-200"
-                  onClick={() => setIsTimeModalOpen(false)}
-                >
-                  취소
-                </button>
-                <button
-                  type="button"
-                  className="flex-1 rounded-xl bg-[var(--wf-accent)] px-4 py-3 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
-                  onClick={confirmTime}
-                  disabled={!startDraft || !!endTimeError}
-                >
-                  완료
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+    </div>
+  )}
+
+  {/* 모달: 시간 */}
+  {isTimeModalOpen && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--neutral)]/40 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-[var(--bg)] p-5 shadow-lg">
+        <h3 className="text-base font-semibold text-[var(--text)]">시간 선택</h3>
+        <p className="mt-1 text-xs text-[var(--text-subtle)]">
+          시작 시간은 필수, 종료 시간은 선택입니다.
+        </p>
+
+        <div className="mt-4 space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-[var(--text-subtle)]">
+              시작 시간
+            </label>
+            <input
+              type="time"
+              value={startDraft}
+              onChange={(e) => {
+                const next = e.target.value;
+                setStartDraft(next);
+                if (
+                  endDraft &&
+                  minutesFromHHMM(endDraft) <= minutesFromHHMM(next)
+                ) {
+                  setEndDraft("");
+                }
+              }}
+              className="w-full rounded-xl border border-[var(--border)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+              required
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex justify-between">
+              <label className="text-xs font-medium text-[var(--text-subtle)]">
+                종료 시간
+              </label>
+              <button
+                type="button"
+                onClick={() => setEndDraft("")}
+                className="text-xs text-[var(--primary)]"
+              >
+                미정으로 설정
+              </button>
+            </div>
+
+            <input
+              type="time"
+              value={endDraft}
+              min={startDraft}
+              onChange={(e) => setEndDraft(e.target.value)}
+              className="w-full rounded-xl border border-[var(--border)] px-4 py-3 text-sm outline-none disabled:bg-[var(--neutral-soft)]"
+              disabled={!startDraft}
+            />
+
+            {endTimeError && (
+              <p className="text-xs text-[var(--danger)]">{endTimeError}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-5 flex gap-2">
+          <button
+            type="button"
+            className="flex-1 rounded-xl bg-[var(--neutral-soft)] px-4 py-3 text-sm font-medium text-[var(--text)]"
+            onClick={() => setIsTimeModalOpen(false)}
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            className="flex-1 rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-medium text-[var(--primary-foreground)] disabled:opacity-50"
+            onClick={confirmTime}
+            disabled={!startDraft || !!endTimeError}
+          >
+            완료
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
     );
   }
 );

@@ -259,31 +259,13 @@ function Step3MembersContent(): JSX.Element {
         {/* ===== Header ===== */}
         <section className="space-y-1">
           <h2 className="text-lg font-semibold text-[var(--text)]">
-             참여자
+             출발지와 교통편을 선택하세요
           </h2>
           <p className="text-sm text-[var(--text-subtle)]">
-            멤버를 초대하고 출발지·교통수단을 설정하세요.
+            출발지·교통수단을 설정하세요.
           </p>
         </section>
 
-        {/* 초대 CTA */}
-        <Button
-              className="w-full gap-2 py-6 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)]"
-              disabled={isReadonly || !isOrganizer}
-              onClick={() => {
-                if (!meetingData) return;
-                sendKakaoInvite(
-                  meetingUuid,
-                  meetingData.meetingName,
-                  meetingData.meetingTime
-                );
-              }}
-            >
-              <Send size={18} />
-              {isOrganizer
-                ? "참여 멤버 초대"
-                : "모임장만 멤버를 초대할 수 있어요"}
-            </Button>
 
         {/* 주소 입력 */}
             {isLoading ? (
@@ -297,22 +279,7 @@ function Step3MembersContent(): JSX.Element {
                 readonly={isReadonly}
               />
             )}
-
-        {/* 멤버 리스트 */}
-        <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardContent className="pt-6">
-            <MemberList
-              meetingUuid={meetingUuid}
-              userId={user.id}
-              onMyParticipantResolved={(id) => {
-                if (!myParticipantId) {
-                  setMyParticipantId(id);
-                }
-              }}
-              readonly={isReadonly}
-            />
-          </CardContent>
-        </Card>
+       
 
       </main>
 
@@ -343,7 +310,7 @@ function Step3MembersContent(): JSX.Element {
             { withCredentials: true }
           );
 
-          return `/meetings/new/step3-result?meetingUuid=${meetingUuid}`;
+          return `/meetings/new/step4-result?meetingUuid=${meetingUuid}`;
         }}
       />
     </>

@@ -1,66 +1,71 @@
-// src/components/meeting/CompleteSummaryCard.tsx
-"use client"
+// src/components/meeting/Step6/CompleteSummaryCard.tsx
+'use client'
 
-import KakaoMap from "@/components/map/KakaoMap"
+import type { ReactNode } from 'react'
 
-// shadcn/ui
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-
-interface Props {
-  lat?: number
-  lng?: number
+export interface MeetingSummary {
+  meetingName: string
+  dateTime: string
+  memberCount?: number
+  category: string
+  placeName: string
+  address: string
+  parkingInfo: string
+  reservationInfo: string
+  phoneNumber: string
+  organizerId: number
 }
 
-export default function CompleteMapSection({ lat, lng }: Props): JSX.Element {
-  const hasCoords =
-    typeof lat === "number" &&
-    Number.isFinite(lat) &&
-    typeof lng === "number" &&
-    Number.isFinite(lng)
+interface Props {
+  meeting: MeetingSummary
+}
 
-  const center = hasCoords
-    ? { lat: lat as number, lng: lng as number }
-    : undefined
+function InfoRow({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 text-sm">
+      <span className="text-[var(--text-subtle)]">{label}</span>
+      <span className="text-right text-[var(--text)]">{value}</span>
+    </div>
+  )
+}
 
-  const markers = hasCoords
-    ? [{ lat: lat as number, lng: lng as number }]
-    : []
+export default function CompleteSummaryCard({ meeting }: Props) {
+  const meetingName = meeting.meetingName || '모임 이름 미정'
+  const dateTime = meeting.dateTime || '일정 미정'
+  const memberCount =
+    typeof meeting.memberCount === 'number' ? `${meeting.memberCount}명` : '참여 인원 미정'
+  const category = meeting.category || '목적 미정'
+  const placeName = meeting.placeName || '장소 미정'
+  const address = meeting.address || '주소 미정'
+  const phoneNumber = meeting.phoneNumber || '연락처 미정'
+  const parkingInfo = meeting.parkingInfo || '주차 정보 미정'
+  const reservationInfo = meeting.reservationInfo || '예약 정보 미정'
 
   return (
-    <Card className="relative h-full w-full border border-[var(--border)] bg-[var(--bg)]">
-      {/* Header Overlay */}
-      <CardHeader className="pointer-events-none absolute left-0 top-0 z-10 w-full bg-[var(--bg-soft)]/90 backdrop-blur">
-        <CardTitle className="text-[var(--text)] text-base">
-          모임 장소 지도
-        </CardTitle>
-        <CardDescription className="text-[var(--text-subtle)]">
-          최종 확정된 만남 장소 위치입니다.
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-4">
+      {/* 섹션 헤더는 카드 대신 타이포로 분리 */}
+      <section className="space-y-1">
+        <h2 className="text-base font-semibold text-[var(--text)]">모임 요약</h2>
+        <p className="text-xs text-[var(--text-subtle)]">확정된 정보를 한 번 더 확인하세요.</p>
+      </section>
 
-      {/* Map Area */}
-      <CardContent className="relative h-full p-0">
-        {!hasCoords && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--bg-soft)]">
-            <Skeleton className="h-full w-full bg-[var(--neutral-soft)]" />
-          </div>
-        )}
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-4 space-y-3">
+        <InfoRow label="모임 이름" value={meetingName} />
+        <InfoRow label="일정" value={dateTime} />
+        <InfoRow label="참여 인원" value={memberCount} />
+        <InfoRow label="모임 목적" value={category} />
+      </section>
 
-        <div className="absolute inset-0 z-0">
-          <KakaoMap
-            center={center}
-            markers={markers}
-            level={4}
-          />
-        </div>
-      </CardContent>
-    </Card>
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-4 space-y-3">
+        <InfoRow label="장소명" value={placeName} />
+        <InfoRow label="주소" value={address} />
+        <InfoRow label="연락처" value={phoneNumber} />
+      </section>
+
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-4 space-y-3">
+        <InfoRow label="주차" value={parkingInfo} />
+        <InfoRow label="예약" value={reservationInfo} />
+      </section>
+    </div>
   )
 }
