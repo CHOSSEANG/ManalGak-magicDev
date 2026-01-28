@@ -220,6 +220,7 @@ export default function Step5PlaceList() {
 
   const [middlePoint, setMiddlePoint] = useState<MiddlePoint | null>(null)
   const [placeSource, setPlaceSource] = useState<Omit<RecommendedPlace, 'icon'>[]>(rawPlaces)
+  const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
   const [isCreatingVote, setIsCreatingVote] = useState(false)
@@ -321,6 +322,8 @@ export default function Step5PlaceList() {
     if (!meetingUuid || !meetingPurpose) return
 
     const fetchPlacesAndMidpoint = async () => {
+      setIsLoadingPlaces(true)
+
       try {
         const res = await axios.get(
           `${API_BASE_URL}/v1/meetings/${meetingUuid}/places?purpose=${meetingPurpose}&limit=6`,
@@ -361,6 +364,8 @@ export default function Step5PlaceList() {
             setMiddlePoint(res.data)
           }
         } catch {}
+      } finally {
+        setIsLoadingPlaces(false)
       }
     }
 
@@ -680,21 +685,29 @@ export default function Step5PlaceList() {
       </Card>
 
       {/* 추천 장소 */}
-      <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base text-[var(--text)]">추천장소 선택</CardTitle>
-            <Button
-              type="button"
-              disabled={voteButtonDisabled}
-              onClick={handleVoteButtonClick}
-              className="rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40"
-            >
-              {voteButtonLabel}
-            </Button>
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-[var(--text)]">추천장소 선택</h2>
+            <p className="text-xs text-[var(--text-subtle)]">
+              중간지점 기준으로 추천된 장소입니다.
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
+          <Button
+            type="button"
+            disabled={voteButtonDisabled}
+            onClick={handleVoteButtonClick}
+            className="rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40"
+          >
+            {voteButtonLabel}
+          </Button>
+        </div>
+
+        {isLoadingPlaces ? (
+          <div className="flex items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] py-10">
+            <span className="text-sm text-[var(--text-subtle)]">추천 장소를 찾고 있어요...</span>
+          </div>
+        ) : (
           <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
             {recommendedPlaces.map((place) => {
               const Icon = place.icon
@@ -710,8 +723,6 @@ export default function Step5PlaceList() {
                 'flex w-full items-center gap-3 rounded-xl px-4 py-3 border-2 relative overflow-hidden'
               if (selected) {
                 cardClass += ' border-[var(--primary)] bg-[var(--bg-soft)]'
-              } else if (hasVotes) {
-                cardClass += ' border-[var(--border)] bg-[var(--bg)]'
               } else {
                 cardClass += ' border-[var(--border)] bg-[var(--bg)]'
               }
@@ -766,8 +777,8 @@ export default function Step5PlaceList() {
               )
             })}
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </section>
 
       {/* 투표 모달 */}
       <WireframeModal

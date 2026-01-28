@@ -104,27 +104,61 @@ public class PlaceService {
         // 3. 목적 -> 프론트엔드 카테고리 변환
         String frontCategory = mapPurposeToFrontCategory(purpose);
 
-        // 4. 카카오 API 호출
-        KakaoPlaceSearchResponse kakaoResponse = kakaoLocalApiService.searchByCategory(
+        // 4. 1차 검색: 기본 반경
+        int firstRadius = DEFAULT_RADIUS;
+        KakaoPlaceSearchResponse firstResponse = kakaoLocalApiService.searchByCategory(
                 categoryCode,
                 midpoint.getLongitude(),  // x
                 midpoint.getLatitude(),   // y
-                DEFAULT_RADIUS,
+                firstRadius,
                 limit
         );
 
-        // 5. 응답 변환 (좌표가 null인 장소는 제외)
-        List<PlaceResponse.Place> places = kakaoResponse.getDocuments()
+        List<PlaceResponse.Place> places = convertToPlaces(firstResponse, frontCategory);
+
+        if (places.size() >= limit) {
+            return buildResponse(places, firstResponse, midpoint, false, firstRadius);
+        }
+
+        // 5. 2차 검색: 카테고리별 확대 반경
+        int expandedRadius = getExpandedRadius(purpose);
+        KakaoPlaceSearchResponse expandedResponse = kakaoLocalApiService.searchByCategory(
+                categoryCode,
+                midpoint.getLongitude(),  // x
+                midpoint.getLatitude(),   // y
+                expandedRadius,
+                limit
+        );
+
+        List<PlaceResponse.Place> expandedPlaces = convertToPlaces(expandedResponse, frontCategory);
+        return buildResponse(expandedPlaces, expandedResponse, midpoint, true, expandedRadius);
+    }
+
+    private List<PlaceResponse.Place> convertToPlaces(
+            KakaoPlaceSearchResponse response,
+            String frontCategory
+    ) {
+        return response.getDocuments()
                 .stream()
                 .map(doc -> convertToPlace(doc, frontCategory))
                 .filter(place -> place.getLatitude() != null && place.getLongitude() != null)
                 .collect(Collectors.toList());
+    }
 
+    private PlaceResponse buildResponse(
+            List<PlaceResponse.Place> places,
+            KakaoPlaceSearchResponse response,
+            Coordinate midpoint,
+            boolean expandedSearch,
+            int searchRadius
+    ) {
         return PlaceResponse.builder()
                 .places(places)
-                .totalCount(kakaoResponse.getMeta().getTotalCount())
+                .totalCount(response.getMeta().getTotalCount())
                 .midpoint(midpoint)
                 .fromCache(false)
+                .expandedSearch(expandedSearch)
+                .searchRadius(searchRadius)
                 .build();
     }
 
@@ -218,6 +252,22 @@ public class PlaceService {
             case "CULTURE", "MOVIE", "KARAOKE" -> "culture";
             case "TOUR", "SHOPPING" -> "tour";
             default -> "restaurant";
+        };
+    }
+
+    /**
+     * 목적별 확대 반경 반환
+     */
+    private int getExpandedRadius(String purpose) {
+        if (purpose == null) {
+            return 1000;
+        }
+        return switch (purpose.toUpperCase()) {
+            case "CAFE", "DATE", "STUDY" -> 1000;                   // 카페
+            case "DINING", "RESTAURANT", "BRUNCH", "DRINK" -> 1000;  // 음식점
+            case "TOUR", "SHOPPING" -> 1500;                        // 관광명소
+            case "CULTURE", "MOVIE", "KARAOKE" -> 2000;             // 문화시설
+            default -> 1000;
         };
     }
 
@@ -315,6 +365,8 @@ public class PlaceService {
                 .totalCount(places.size())
                 .midpoint(midpoint)
                 .fromCache(true)
+                .expandedSearch(false)
+                .searchRadius(null)
                 .build();
     }
 
