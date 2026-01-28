@@ -26,7 +26,7 @@ import java.util.List;
 @Slf4j
 @RequestMapping("/v1/meetings")
 public class MeetingController {
-    private static final int DEFAULT_PAGE_SIZE = 3;
+    private static final int DEFAULT_PAGE_SIZE = 5;
     private final MeetingService meetingService;
     private final ParticipantService participantService;
 
