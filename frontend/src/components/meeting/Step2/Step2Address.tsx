@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Bus, Car, Bookmark } from "lucide-react";
-import StepCard from "@/components/meeting/StepCard";
 import WireframeModal from "@/components/ui/WireframeModal";
 import AddressSearch from "@/components/map/AddressSearch";
 import BookmarkAddressModal from "@/components/map/BookmarkAddressModal";
@@ -51,7 +50,6 @@ export default function Step2Address({
     <>
       <div className="space-y-2">
         {/* 출발지 */}
-        <StepCard className="space-y-2">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">나의 출발지 입력</p>
@@ -124,7 +122,6 @@ export default function Step2Address({
               ))}
             </div>
           </div>
-        </StepCard>
 
         {/* 주소 검색 모달 (readonly면 열리지 않음) */}
         {!readonly && (

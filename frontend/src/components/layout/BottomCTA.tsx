@@ -1,17 +1,14 @@
 // src/components/layout/BottomCTA.tsx
+import { Suspense } from 'react'
+import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 
-import type { ReactNode } from 'react'
-
-interface BottomCTAProps {
-  children: ReactNode
-}
-
-export default function BottomCTA({ children }: BottomCTAProps) {
-  // 와이어프레임 단계: 하단 CTA 컨테이너
+export default function BottomCTA() {
   return (
-    <div className="fixed inset-x-0 bottom-0 bg-transparent">
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-4">
-        {children}
+    <div className="fixed inset-x-0 bottom-0 z-40 bg-transparent">
+      <div className="mx-auto w-full max-w-[1440px]">
+        <Suspense fallback={null}>
+          <BottomTabNavigation />
+        </Suspense>
       </div>
     </div>
   )

@@ -19,6 +19,22 @@ const nextConfig = {
         protocol: "https",
         hostname: "k.kakaocdn.net", // 카카오 프로필 이미지
       },
+            {
+        protocol: 'http',
+        hostname: 'img1.kakaocdn.net',
+      },
+      {
+        protocol: 'http',
+        hostname: 't1.kakaocdn.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img1.kakaocdn.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 't1.kakaocdn.net',
+      },
     ],
   },
 

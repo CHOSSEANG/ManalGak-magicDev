@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useImperativeHandle, forwardRef, useEffect } from "react";
-import StepCard from "@/components/meeting/StepCard";
 import { Utensils, Coffee, Film, Landmark } from "lucide-react";
 import axios from "axios";
 
@@ -21,14 +20,14 @@ function formatToLocalISO(date: Date): string {
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 }
 
-function formatKoreanDate(date: Date) {
-  const y = date.getFullYear();
-  const m = date.getMonth() + 1;
-  const d = date.getDate();
-  const days = ["일", "월", "화", "수", "목", "금", "토"];
-  const day = days[date.getDay()];
-  return `${y}. ${m}. ${d}. ${day}요일`;
-}
+// function formatKoreanDate(date: Date) {
+//   const y = date.getFullYear();
+//   const m = date.getMonth() + 1;
+//   const d = date.getDate();
+//   const days = ["일", "월", "화", "수", "목", "금", "토"];
+//   const day = days[date.getDay()];
+//   return `${y}. ${m}. ${d}. ${day}요일`;
+// }
 
 function formatSimpleDate(date: Date) {
   const m = date.getMonth() + 1;
@@ -336,7 +335,6 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid , read
   return (
     <div className="space-y-2">
       {/* 1. 모임 정보 */}
-      <StepCard className="space-y-2">
         <div className="space-y-2">
           <p className="text-sm font-semibold text-black">모임 정보</p>
           <input
@@ -380,10 +378,8 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid , read
             ))}
           </div>
         </div>
-      </StepCard>
 
       {/* 3. 날짜 및 시간 */}
-      <StepCard className="space-y-2">
         <p className="text-sm font-semibold text-black">날짜 및 시간</p>
         <div className="flex gap-2">
           <div className="flex-1 flex flex-col gap-2">
@@ -408,10 +404,8 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid , read
             </button>
           </div>
         </div>
-      </StepCard>
 
       {/* 4. 예상 날씨 */}
-      <StepCard className="space-y-2">
         <p className="text-sm font-semibold text-black">예상 날씨</p>
         <div className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] p-4">
           {!canShowWeather ? (
@@ -420,14 +414,14 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid , read
             </div>
           ) : (
             <div className="text-center">
-              <p className="text-sm font-medium">
+              {/* <p className="text-sm font-medium">
                 {formatKoreanDate(selectedDate!)} · {startTime}
-              </p>
+              </p> */}
               <p className="mt-1 text-xs text-gray-500">서울 예상 날씨: 맑음</p>
             </div>
           )}
         </div>
-      </StepCard>
+
 
       {/* 모달: 달력 */}
       {isCalendarOpen && (

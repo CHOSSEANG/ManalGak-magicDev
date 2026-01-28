@@ -13,8 +13,6 @@ import {
   Share2,
 } from "lucide-react";
 
-import BottomTabNavigation from "@/components/layout/BottomTabNavigation";
-
 export default function HomeClient() {
   const router = useRouter();
 
@@ -219,11 +217,6 @@ export default function HomeClient() {
             </button>
           </div>
         </section>
-
-       
-        
-
-        <BottomTabNavigation />
       </main>
     </div>
   );

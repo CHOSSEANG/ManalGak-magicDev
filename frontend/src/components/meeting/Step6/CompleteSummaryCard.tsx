@@ -1,10 +1,13 @@
 // src/components/meeting/CompleteSummaryCard.tsx
 'use client'
-import { useUser } from "@/context/UserContext"
+// import { useUser } from "@/context/UserContext"
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useParams } from 'next/navigation'
 import StepCard from '@/components/meeting/StepCard'
+import { Badge } from "@/components/ui/badge"
+import Button from '@/components/ui/Button'
+
 import {
   Users,
   Calendar,
@@ -23,7 +26,7 @@ export interface MeetingSummary {
   parkingInfo: string
   reservationInfo: string
   phoneNumber: string
-   organizerId: number
+  organizerId: number
 }
 
 interface Props {
@@ -56,8 +59,8 @@ export default function CompleteSummaryCard({ meeting }: Props) {
   const placeName = place?.placeName ?? ''
   const address = place?.address ?? ''
   const phoneNumber = place?.phone ?? ''
-  const { user } = useUser()
-  const isOrganizer = Number(user?.id) === Number(meeting.organizerId)
+  //const { user } = useUser()
+  //const isOrganizer = Number(user?.id) === Number(meeting.organizerId)
 
 const formatDateTime = (isoString?: string) => {
   if (!isoString) return '-'
@@ -109,13 +112,16 @@ const lng = typeof place?.longitude === 'number' ? place.longitude : null
   }, [meetingUuid])
 
 
-  const handleSendKakao = () => {
-    if (typeof window === 'undefined' || !window.Kakao) return
+const handleSendKakao = () => {
+  if (typeof window === "undefined") return
 
-    if (!window.Kakao.isInitialized()) {
-      window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
-    }
+  // Kakao SDK 없음 or 앱 없음
+  if (!window.Kakao || !window.Kakao.isInitialized()) {
+    fallbackShare()
+    return
+  }
 
+  try {
     window.Kakao.Share.sendCustom({
       templateId: 128597,
       templateArgs: {
@@ -123,13 +129,44 @@ const lng = typeof place?.longitude === 'number' ? place.longitude : null
         meetingDate: formatDateTime(dateTime),
         count: memberCount ? String(memberCount) : '-',
         address: placeName,
-           place: placeName || '',
-             lat: lat ? String(lat) : '',
-             lng: lng ? String(lng) : '',
+        lat: lat ? String(lat) : '',
+        lng: lng ? String(lng) : '',
         number: phoneNumber || '-',
       },
     })
+  } catch {
+    fallbackShare()
   }
+}
+
+const fallbackShare = async () => {
+  const url = window.location.href
+
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: '확정된 모임 장소',
+        text: `${meetingName} 모임 장소가 확정되었습니다.`,
+        url,
+      })
+    } else {
+      await navigator.clipboard.writeText(url)
+      alert('링크가 복사되었습니다.\n카카오톡에 붙여넣어 공유해주세요.')
+    }
+  } catch (error: unknown) {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'name' in error &&
+    (error as { name: string }).name === 'AbortError'
+  ) {
+    return
+  }
+
+  console.error('공유 중 오류:', error)
+}
+}
+  
 
 const handleDirection = () => {
     if (!placeName || lat === null || lng === null) return
@@ -139,101 +176,100 @@ const handleDirection = () => {
 
   return (
     <section className="space-y-4">
-      <StepCard className="space-y-5 rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-surface)] p-6 shadow-sm">
+      <StepCard className="space-y-5 rounded-2xl p-6 shadow-sm">
         <div className="space-y-4">
           {/* 모임명 */}
           <div className="flex gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--wf-highlight-soft)]">
-              <Users className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
-            </div>
-            <div>
-              <p className="text-xs font-light text-[var(--wf-accent)]">
+             <Users className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
+              {/* <p className="text-xs font-light text-[var(--wf-accent)]">
                 모임명 · 참여인원
-              </p>
-              <p className="text-lg font-bold">
+              </p> */}
+              <p className="">
                 {meetingName} · {memberCount}명
               </p>
-            </div>
           </div>
 
           {/* 일시 */}
           <div className="flex gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--wf-highlight-soft)]">
-              <Calendar className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
-            </div>
-            <div>
-              <p className="text-xs font-light text-[var(--wf-accent)]">
+             <Calendar className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
+              {/* <p className="text-xs font-light text-[var(--wf-accent)]">
                 모임 일시
+              </p> */}
+              <p className="">
+               {formatDateTime(dateTime)}
               </p>
-              <p className="text-lg font-bold">
-                {formatDateTime(dateTime)}
-              </p>
-            </div>
           </div>
 
           {/* 장소 */}
         <div className="flex gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--wf-highlight-soft)]">
             <Coffee className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
-          </div>
-          <div>
-            <p className="text-xs font-light text-[var(--wf-accent)]">
+            {/* <p className="text-xs font-light text-[var(--wf-accent)]">
               장소명
-            </p>
+            </p> */}
 
             {place ? (
-              <p className="text-lg font-bold">
+              <p className="">
                 {placeName}
               </p>
             ) : (
-              <p className="text-sm text-[var(--wf-subtle)]">
+              <p className="text-xs text-[var(--wf-warning)]">
                 아직 장소를 선택하지 않았습니다
               </p>
             )}
-          </div>
         </div>
 
           {/* 주소 + 길찾기 */}
           <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--wf-highlight-soft)]">
+            <div className="flex">
               <MapPinned className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
             </div>
             <div className="flex-1">
-              <p className="text-xs font-light text-[var(--wf-accent)]">
+              {/* <p className="text-xs font-light text-[var(--wf-accent)]">
                 상세 주소
+              </p> */}
+              <p className="text-base font-medium">
+                {place ? address : '-'}
               </p>
-             <p className="text-base font-medium">
-               {place ? address : '-'}
-             </p>
             </div>
-            <button
-              type="button"
-              onClick={handleDirection}
-              className="mt-1 flex h-6 items-center justify-center rounded-md border px-2 text-xs text-[var(--wf-subtle)] bg-[var(--wf-highlight-soft)]"
-            >
-              길찾기
+            <button type="button" onClick={handleDirection}>
+              <Badge
+                variant="secondary"
+                className="
+                  cursor-pointer
+                  gap-1 px-3 py-1 rounded-full
+                  bg-[--wf-highlight]
+                "
+              >
+                길찾기
+              </Badge>
             </button>
           </div>
 
           {/* 전화 */}
           <div className="flex gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--wf-highlight-soft)]">
               <Phone className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
-            </div>
-            <div>
-              <p className="text-xs font-light text-[var(--wf-accent)]">
+            {/* <p className="text-xs font-light text-[var(--wf-accent)]">
                 문의 전화번호
-              </p>
+              </p> */}
               <p className="text-base font-medium">
                 {place ? phoneNumber : '-'}
               </p>
-            </div>
           </div>
         </div>
       </StepCard>
 
       {/* CTA */}
-        {isOrganizer ? (
+      <Button
+            onClick={handleSendKakao}
+            className="group flex w-full items-center justify-center gap-2 rounded-2xl
+            bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]
+             text-lg font-bold text-[var(--wf-text)]
+            shadow-xl shadow-yellow-500/20 transition active:scale-[0.99]"
+          >
+            확정 장소 메시지 전송
+            <Send className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+          </Button>
+        {/* {isOrganizer ? (
           <button
             onClick={handleSendKakao}
             className="group flex w-full items-center justify-center gap-2 rounded-2xl
@@ -251,7 +287,7 @@ const handleDirection = () => {
           >
             확정 메시지는 <span className="mx-1 font-semibold">모임장</span>만 전송할 수 있어요
           </div>
-        )}
+        )} */}
     </section>
   )
 }
