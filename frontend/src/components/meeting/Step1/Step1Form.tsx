@@ -99,6 +99,10 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid , read
   const [endDraft, setEndDraft] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // --- 날씨 상태 ---
+  const [weather, setWeather] = useState<{ temperature: number; description: string; iconUrl: string } | null>(null);
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+
   // --- meetingUuid로 모임 정보 조회 (수정 모드) ---
   useEffect(() => {
     if (!meetingUuid) return;
@@ -160,6 +164,29 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid , read
 
     fetchMeetingData();
   }, [meetingUuid]);
+
+  // --- 날씨 정보 조회 ---
+  useEffect(() => {
+    if (!selectedDate || !startTime) return;
+
+    const fetchWeather = async () => {
+      setIsWeatherLoading(true);
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/weather/seoul`,
+          { withCredentials: true }
+        );
+        setWeather(response.data.data);
+      } catch (err) {
+        console.error("날씨 정보 조회 실패:", err);
+        setWeather(null);
+      } finally {
+        setIsWeatherLoading(false);
+      }
+    };
+
+    fetchWeather();
+  }, [selectedDate, startTime]);
 
   // --- 메모이제이션 ---
   const dateLabel = useMemo(() => {
@@ -412,12 +439,22 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(({ meetingUuid , read
             <div className="flex h-16 items-center justify-center text-xs text-gray-400">
               날짜와 시작 시간을 선택하면 날씨를 보여드려요
             </div>
+          ) : isWeatherLoading ? (
+            <div className="flex h-16 items-center justify-center text-xs text-gray-400">
+              날씨 정보를 불러오는 중...
+            </div>
+          ) : weather ? (
+            <div className="flex items-center justify-center gap-3">
+              <img src={weather.iconUrl} alt={weather.description} className="h-12 w-12" />
+              <div className="text-center">
+                <p className="text-xs text-gray-500">서울</p>
+                <p className="text-lg font-semibold">{weather.temperature}°C</p>
+                <p className="text-xs text-gray-500">{weather.description}</p>
+              </div>
+            </div>
           ) : (
-            <div className="text-center">
-              {/* <p className="text-sm font-medium">
-                {formatKoreanDate(selectedDate!)} · {startTime}
-              </p> */}
-              <p className="mt-1 text-xs text-gray-500">서울 예상 날씨: 맑음</p>
+            <div className="flex h-16 items-center justify-center text-xs text-gray-400">
+              날씨 정보를 불러올 수 없습니다
             </div>
           )}
         </div>
