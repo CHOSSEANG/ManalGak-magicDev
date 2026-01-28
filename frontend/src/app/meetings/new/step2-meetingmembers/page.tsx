@@ -210,7 +210,7 @@ function Step2Content(): JSX.Element {
     );
   }
 
-  if (loading || isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-sm text-gray-500">로딩 중...</div>
@@ -223,6 +223,14 @@ function Step2Content(): JSX.Element {
     const currentUrl = `/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}&readonly=true`;
     localStorage.setItem("loginRedirect", currentUrl);
     return <LoginRequired />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-gray-500">모임 정보를 불러오는 중...</div>
+      </div>
+    );
   }
 
   // ⭐ 만료된 모임 카드 UI
