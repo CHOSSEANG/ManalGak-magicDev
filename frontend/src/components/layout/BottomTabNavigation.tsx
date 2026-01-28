@@ -10,6 +10,8 @@ export default function BottomTabNav() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
+  const readonlyParam = searchParams.get('readonly') === 'true'
+
   let meetingUuid = searchParams.get('meetingUuid')
 
   if (!meetingUuid) {
@@ -17,33 +19,37 @@ export default function BottomTabNav() {
     meetingUuid = match?.[1] ?? null
   }
 
+  const buildHref = (basePath: string) => {
+    if (!meetingUuid) return basePath
+
+    const params = new URLSearchParams()
+    params.set('meetingUuid', meetingUuid)
+    if (readonlyParam) params.set('readonly', 'true')
+
+    return `${basePath}?${params.toString()}`
+  }
+
   const TABS = [
     { label: '모임리스트', href: '/meetings/new', icon: Home },
     {
       label: '모임생성',
-      href: meetingUuid
-        ? `/meetings/new/step1-basic?meetingUuid=${meetingUuid}`
-        : `/meetings/new/step1-basic`,
+      href: buildHref('/meetings/new/step1-basic'),
       icon: PlusCircle,
     },
     {
       label: '참여자설정',
-      href: meetingUuid
-        ? `/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}`
-        : `/meetings/new/step2-meetingmembers`,
+      href: buildHref('/meetings/new/step2-meetingmembers'),
       icon: Users,
     },
     {
       label: '추천장소',
-      href: meetingUuid
-        ? `/meetings/new/step3-result?meetingUuid=${meetingUuid}`
-        : `/meetings/new/step3-result`,
+      href: buildHref('/meetings/new/step3-result'),
       icon: MapPin,
     },
     {
       label: '확정내용',
       href: meetingUuid
-        ? `/meetings/${meetingUuid}/complete`
+        ? `/meetings/${meetingUuid}/complete${readonlyParam ? '?readonly=true' : ''}`
         : `/meetings/none`,
       icon: CheckCircle,
     },

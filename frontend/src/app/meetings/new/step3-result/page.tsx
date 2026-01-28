@@ -11,6 +11,7 @@ function Step3Content() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const meetingUuid = searchParams.get("meetingUuid");
+  const readonlyParam = searchParams.get("readonly") === "true";
 
   if (!meetingUuid) {
     return (
@@ -55,8 +56,8 @@ function Step3Content() {
       </main>
 
       <StepNavigation
-        prevHref={`/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}`}
-        nextHref={`/meetings/${meetingUuid}/complete`}
+        prevHref={`/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}${readonlyParam ? "&readonly=true" : ""}`}
+        nextHref={`/meetings/${meetingUuid}/complete${readonlyParam ? "?readonly=true" : ""}`}
         nextLabel="확정 내용 확인"
       />
     </>
