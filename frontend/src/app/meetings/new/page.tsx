@@ -94,7 +94,18 @@ export default function CreateEntryPage() {
   };
 
   useEffect(() => {
-    fetchMeetings(0);
+    let cancelled = false;
+
+    const loadMeetings = async () => {
+      if (cancelled) return;
+      await fetchMeetings(0);
+    };
+
+    loadMeetings();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleLoadMore = () => {
@@ -103,12 +114,11 @@ export default function CreateEntryPage() {
     fetchMeetings(nextPage, true);
   };
 
-  // ✅ URL 방식으로 단순화
   const handleEdit = (meetingUuid: string, organizerId: number) => {
-    // 모임장이 아니면 readonly=true 추가
     const url = `/meetings/new/step1-basic?meetingUuid=${meetingUuid}${user?.id !== organizerId ? "&readonly=true" : ""}`;
     router.push(url);
   };
+
   const handleCopy = async (meetingUuid: string) => {
     try {
       const response = await fetch(
@@ -125,7 +135,6 @@ export default function CreateEntryPage() {
         const copiedMeetingUuid = data.data?.meeting?.meetingUuid;
 
         if (copiedMeetingUuid) {
-          // 복사된 모임의 UUID로 이동
           router.push(
             `/meetings/new/step1-basic?meetingUuid=${copiedMeetingUuid}`,
           );
@@ -159,7 +168,6 @@ export default function CreateEntryPage() {
       );
 
       if (res.status === 200) {
-        // ✅ 화면에서 즉시 제거
         setExistingMeetings((prev) =>
           prev.filter((item) => item.meeting.meetingUuid !== meetingUuid),
         );
@@ -191,11 +199,6 @@ export default function CreateEntryPage() {
     return `${y}.${m}.${d} ${hh}:${mm}`;
   };
 
-  const uniqueMeetings = Array.from(
-    new Map(
-      existingMeetings.map((item) => [item.meeting.meetingUuid, item]),
-    ).values(),
-  );
   return (
     <>
       <main className="space-y-6">
@@ -208,14 +211,13 @@ export default function CreateEntryPage() {
           </div>
 
           <div className="p-2">
-          <Button
-            onClick={() => router.push("/meetings/new/step1-basic")}
-            className="w-full rounded-xl border border-[var(--wf-border)]"
-          >
-           모임 생성하기
+            <Button
+              onClick={() => router.push("/meetings/new/step1-basic")}
+              className="w-full rounded-xl border border-[var(--wf-border)]"
+            >
+              모임 생성하기
             </Button>
-            </div>
-            
+          </div>
 
           <StepCard className="">
             {isLoading ? (
@@ -223,17 +225,15 @@ export default function CreateEntryPage() {
                 불러오는 중...
               </div>
             ) : error ? (
-              <div className="text-center text-sm text-red-500">
-                {error}
-              </div>
-            ) : uniqueMeetings.length === 0 ? (
+              <div className="text-center text-sm text-red-500">{error}</div>
+            ) : existingMeetings.length === 0 ? (
               <div className="text-center py-8 text-sm text-[var(--wf-subtle)]">
                 아직 생성된 모임이 없습니다.
               </div>
             ) : (
               <>
                 <div className="">
-                  {uniqueMeetings.map((item, index) => {
+                  {existingMeetings.map((item, index) => {
                     const { meeting } = item;
                     const place =
                       meeting.selectedPlace?.placeName || "장소 미정";
@@ -241,10 +241,7 @@ export default function CreateEntryPage() {
 
                     return (
                       <div
-                        key={
-                          meeting.meetingUuid ??
-                          `meeting-${meeting.organizerId}-${meeting.meetingTime}-${index}`
-                        }
+                        key={meeting.meetingUuid ?? `meeting-${index}`}
                         className="border-b border-[var(--wf-border)] py-1 space-y-2"
                       >
                         <div className="flex justify-between gap-4">
@@ -316,7 +313,7 @@ export default function CreateEntryPage() {
                       {isLoadingMore ? "불러오는 중..." : "더보기"}
                     </button>
                     <p className="text-center text-xs text-[var(--wf-subtle)] mt-2">
-                      {uniqueMeetings.length} / {pageInfo.totalElements}개
+                      {existingMeetings.length} / {pageInfo.totalElements}개
                     </p>
                   </div>
                 )}
