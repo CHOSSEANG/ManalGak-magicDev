@@ -1,3 +1,5 @@
+// src/components/ui/StepProgress.tsx
+// 사용안함, 스탭 줄이기 1월 중순
 "use client";
 
 import * as React from "react";
