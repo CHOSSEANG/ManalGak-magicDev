@@ -21,15 +21,18 @@
 --wf-highlight: #FEE500; /* Kakao Yellow (Primary) */
 --wf-accent: #377eea;    /* Kakao Brown (Text/Icon/Active) */
 --wf-overlay: rgba(219, 93, 93, 0.35);  /* 선택/hover용 연톤 배경 (카카오 옐로우를 연하게) */
---wf-highlight-soft: rgba(31, 114, 247, 0.22);
+
+--wf-highlight-soft: #f5e559;
+--wf-accent-soft: #a1cff4;    /* Kakao Brown (Text/Icon/Active) */
 
 --wf-highlight-strong: #20469f;
 --wf-highlight-strong2: #511a6e;
 
 /* Warning */
-  --wf-warning: #cf4a22;            /* 기본 */
-  --wf-warning-foreground: 38 90% 20%; /* 텍스트 */
-  --wf-warning-soft: 38 100% 96%;      /* 배경 */
+  --warning: #e2704d;            /* 기본 */
+  --warning-soft: #e9a48e;       /* 연함 */
+  --warning-foreground: 38 90% 20%; /* 텍스트 */
+  --warning-soft: 38 100% 96%;      /* 배경 */
 
   /* Destructive */
   --wf-danger: 0 84% 60%;
