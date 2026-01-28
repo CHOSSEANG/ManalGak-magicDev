@@ -20,6 +20,7 @@ export default function StepNavigation({
   nextHref,
   prevLabel = '이전',
   nextLabel = '다음',
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   split = true,
   onNext,
 }: StepNavigationProps) {

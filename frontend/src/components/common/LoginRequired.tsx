@@ -9,16 +9,16 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function LoginRequired(): JSX.Element {
   const router = useRouter();
 
-  // const handleGoLogin = (): void => {
-  //   router.push("/");
-  // };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleGoLogin = (): void => {
+    router.push("/");
+  };
 
     const handleKakaoLogin = () => {
     const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;

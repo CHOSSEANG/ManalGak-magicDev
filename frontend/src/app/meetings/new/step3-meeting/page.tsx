@@ -4,11 +4,9 @@
 import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
-import { Send } from "lucide-react";
 
 import StepNavigation from "@/components/layout/StepNavigation";
 import Address, { TransportMode } from "@/components/meeting/Step2/Step2Address";
-import MemberList from "@/components/meeting/Step2/Step2MemberList";
 import LoginRequired from "@/components/common/LoginRequired";
 import { useUser } from "@/context/UserContext";
 
@@ -84,6 +82,7 @@ const formatMeetingTime = (iso: string): string => {
   });
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const sendKakaoInvite = (
   meetingUuid: string,
   meetingName: string,
@@ -138,7 +137,8 @@ function Step3MembersContent(): JSX.Element {
   const joinedRef = useRef(false);
 
   const isReadonly = meetingData?.status === "COMPLETED";
-  const isOrganizer = meetingData?.organizerId === user?.id;
+ // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const isOrganizer = meetingData?.organizerId === user?.id;
 
   const prevHref = `/meetings/new/step1-basic?meetingUuid=${meetingUuid}${
     readonlyParam ? "&readonly=true" : ""
