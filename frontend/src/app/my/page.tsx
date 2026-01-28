@@ -8,9 +8,6 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useUser } from "@/context/UserContext";
 import ProfileIdentity from "@/components/layout/ProfileIdentity";
-import Link from "next/link";
-import clsx from "clsx";
-import { LocateFixed, Calculator } from "lucide-react";
 
 // shadcn/ui
 import { Button } from "@/components/ui/button";
@@ -22,7 +19,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 
 /* ======================
  * Config (변경 없음)
@@ -184,10 +180,10 @@ export default function MyPage() {
 
   return (
     <>
-      <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6">
+      <main className="px-0 py-6">
         <div className="mx-auto w-full max-w-3xl space-y-4">
           {/* ===== Header ===== */}
-          <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
+          <Card className="">
             <CardHeader className="space-y-2">
               <CardTitle className="text-[var(--text)]">내 페이지</CardTitle>
               <CardDescription className="text-[var(--text-subtle)]">
@@ -197,13 +193,8 @@ export default function MyPage() {
           </Card>
 
           {/* ===== Profile ===== */}
-          <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base text-[var(--text)]">프로필</CardTitle>
-              <CardDescription className="text-[var(--text-subtle)]">
-                내 계정 상태를 확인하고 로그아웃할 수 있습니다.
-              </CardDescription>
-            </CardHeader>
+          <Card className="border-b border-[var(--border)] py-3">
+            
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center rounded-xl">
@@ -234,7 +225,7 @@ export default function MyPage() {
           </Card>
 
           {/* ===== Bookmark ===== */}
-          <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
+          <Card className="">
             <CardHeader className="pb-2">
               <CardTitle className="text-base text-[var(--text)]">
                 출발지 북마크
@@ -327,43 +318,7 @@ export default function MyPage() {
             </CardContent>
           </Card>
 
-          {/* ===== Quick Actions ===== */}
-          <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base text-[var(--text)]">
-                빠른 이동
-              </CardTitle>
-              <CardDescription className="text-[var(--text-subtle)]">
-                자주 사용하는 기능을 바로 실행합니다.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Link
-                  href="/meetings/location"
-                  className={clsx(
-                    "flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--neutral-soft)] px-6 py-4 text-base font-semibold text-[var(--text)]"
-                  )}
-                >
-                  <LocateFixed />
-                  지도 서비스
-                </Link>
-                <Link
-                  href="/meetings/fee"
-                  className={clsx(
-                    "flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--neutral-soft)] px-6 py-4 text-base font-semibold text-[var(--text)]"
-                  )}
-                >
-                  <Calculator />
-                  회비 계산기
-                </Link>
-              </div>
-              <Separator className="bg-[var(--border)]" />
-              <p className="text-xs text-[var(--text-subtle)]">
-                필요한 기능이 보이지 않나요? 상단 메뉴에서 전체 기능을 확인하세요.
-              </p>
-            </CardContent>
-          </Card>
+          
         </div>
       </main>
 

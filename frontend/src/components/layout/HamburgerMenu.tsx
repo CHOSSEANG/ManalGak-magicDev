@@ -19,6 +19,7 @@ import {
   CheckCircle,
   LogOut,
   ChevronRight,
+  Calculator,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ const MENUS = [
   },
   {
     label: "참여자 설정",
-    href: "/meetings/new/step2-gmembers",
+    href: "/meetings/new/step2-members",
     icon: Users,
   },
     {
@@ -49,7 +50,10 @@ const MENUS = [
     icon: Users,
   },
   { label: "추천 장소 선택", href: "/meetings/new/step4-result", icon: MapPin },
-  { label: "모임 확정", href: "/meetings/complete", icon: CheckCircle },
+  { label: "최근 확정모임 조희", href: "/meetings/complete", icon: CheckCircle },
+];
+const OPT_MENUS = [
+  { label: "회비 계산기", href: "/", icon: Calculator },
 ];
 
 const isValidUuid = (value: string | null): value is string => {
@@ -176,7 +180,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
         aria-modal="true"
         aria-label="전체 메뉴"
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col p-3">
           {/* Top bar: close + title */}
           <div className="flex items-center justify-between">
             <div className="min-w-0">
@@ -197,8 +201,8 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
           {/* Content */}
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             {/* Profile Card */}
-              <div className="p-3">
-                <div className="flex items-center gap-3">
+              <div className="">
+                {/* <div className="flex items-center gap-3">
                   <ProfileIdentity
                     src={user?.profileImage}
                     name={user?.name ?? "로그인 필요"}
@@ -207,15 +211,15 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                     layout="row"
                     shape="square"
                   />
-                </div>
+                </div> */}
 
-                <div className="mt-3    text-[var(--text-subtle)]">
+                {/* <div className="text-[var(--text-subtle)]">
                   {isLoggedIn ? (
                     <span></span>
                   ) : (
                     <span>로그인 후 내 모임과 내 페이지를 사용할 수 있어요.</span>
                   )}
-                </div>
+                </div> */}
               </div>
 
 
@@ -250,37 +254,64 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
               </div>
 
             {/* Meeting flow */}
-            
+            <div className="space-y-3 w-full justify-between border border-[var(--border)] bg-[var(--bg)] px-3 py-3">
+              {/* 상위 메뉴 */}
+              <button
+                type="button"
+                className="flex w-full items-center justify-between text-left text-[var(--text)]"
+              >
+                <span className="font-semibold">모임 사용하기 </span>
+                <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+              </button>
 
-              <div className="">
-                <div className="space-y-1">
-                  {MENUS.map(({ label, href, icon: Icon }) => (
-                    <Button
-                      key={href}
-                      type="button"
-                      variant="outline"
-                      onClick={() => handleNavigate(href)}
-                      className="w-full justify-between border-[var(--border)] bg-[var(--bg)] px-3 py-6"
-                    >
-                      <span className="flex items-center gap-3">
-                        <Icon className="h-5 w-5 text-[var(--text-subtle)]" />
-                        <span className=" text-[var(--text)]">
-                          {label}
+              {/* 하위 스텝 */}
+              <div className="ml-2 border-l border-[var(--border)] pl-3 space-y-5">
+                {MENUS.map(({ label, href, icon: Icon }) => (
+                  <button
+                    key={href}
+                    type="button"
+                    onClick={() => handleNavigate(href)}
+                    className="block w-full text-left text-[var(--text-subtle)] hover:text-[var(--text)] hover:bg-[var(--bg-subtle)]"
+                  >
+                    <span className="flex items-center gap-3">
+                          <Icon className="h-5 w-5 text-[var(--text-subtle)]" />
+                          <span className=" text-[var(--text)]">
+                            {label}
+                          </span>
                         </span>
-                      </span>
-                      <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
-                    </Button>
-                  ))}
-                </div>
+                  </button>
+                ))}
               </div>
-            
-          </div>
+            </div>
 
+            <div className="">
+                  <div className="space-y-1">
+                    {OPT_MENUS.map(({ label, href, icon: Icon }) => (
+                      <Button
+                        key={href}
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleNavigate(href)}
+                        className="w-full justify-between border-[var(--border)] bg-[var(--bg)] px-3 py-6"
+                      >
+                        <span className="flex items-center gap-3">
+                          <Icon className="h-5 w-5 text-[var(--text-subtle)]" />
+                          <span className=" text-[var(--text)]">
+                            {label}
+                          </span>
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                      </Button>
+                    ))} 
+                  </div>
+              </div>
+
+</div>
           {/* Global Footer */}
           <Footer />
           
           {/* Bottom CTA area */}
-          <div className="border-t border-[var(--border)] bg-[var(--bg)] p-3">
+          <div className="border-t border-[var(--border)] bg-[var(--bg)] pt-3">
             {isLoggedIn ? (
               <Button
                 type="button"
