@@ -1,6 +1,5 @@
 // src/app/meetings/new/page.tsx
 "use client";
-
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -47,8 +46,7 @@ const API_BASE_URL =
 
 export default function CreateEntryPage() {
   const router = useRouter();
-  const { user } = useUser();
-
+  const { user } = useUser(); // UserContext에서 사용자 정보 가져오기
   const [existingMeetings, setExistingMeetings] = useState<MeetingItem[]>([]);
   const [pageInfo, setPageInfo] = useState<PageInfo | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -56,56 +54,58 @@ export default function CreateEntryPage() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /* =========================
-   * fetch
-   * ========================= */
-  const fetchMeetings = async (page: number, append = false) => {
-  try {
-    if (append) {
-      setIsLoadingMore(true);
-    } else {
-      setIsLoading(true);
-    }
+  const fetchMeetings = async (page: number, append: boolean = false) => {
+    try {
+      if (append) setIsLoadingMore(true);
+      else setIsLoading(true);
 
-    const res = await axios.get(
-      `${API_BASE_URL}/v1/meetings/user?page=${page}`,
-      { withCredentials: true }
-    );
+      const res = await axios.get(
+        `${API_BASE_URL}/v1/meetings/user?page=${page}`,
+        {
+          withCredentials: true,
+        },
+      );
 
-    if (res.data?.data?.content) {
-      if (append) {
-        setExistingMeetings((prev) => [
-          ...prev,
-          ...res.data.data.content,
-        ]);
+      if (res.data?.data?.content) {
+        if (append)
+          setExistingMeetings((prev) => [...prev, ...res.data.data.content]);
+        else setExistingMeetings(res.data.data.content);
+
+        setPageInfo({
+          totalElements: res.data.data.totalElements,
+          totalPages: res.data.data.totalPages,
+          size: res.data.data.size,
+          number: res.data.data.number,
+          first: res.data.data.first,
+          last: res.data.data.last,
+          empty: res.data.data.empty,
+        });
       } else {
-        setExistingMeetings(res.data.data.content);
+        setExistingMeetings([]);
       }
-
-      setPageInfo({
-        totalElements: res.data.data.totalElements,
-        totalPages: res.data.data.totalPages,
-        size: res.data.data.size,
-        number: res.data.data.number,
-        first: res.data.data.first,
-        last: res.data.data.last,
-        empty: res.data.data.empty,
-      });
-    } else {
+    } catch (err) {
+      console.error("모임 불러오기 실패", err);
+      setError("모임을 불러오는데 실패했습니다.");
       setExistingMeetings([]);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
     }
-  } catch (err) {
-    console.error("모임 불러오기 실패", err);
-    setError("모임을 불러오는데 실패했습니다.");
-    setExistingMeetings([]);
-  } finally {
-    setIsLoading(false);
-    setIsLoadingMore(false);
-  }
-};
+  };
 
   useEffect(() => {
-    fetchMeetings(0);
+    let cancelled = false;
+
+    const loadMeetings = async () => {
+      if (cancelled) return;
+      await fetchMeetings(0);
+    };
+
+    loadMeetings();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleLoadMore = () => {
@@ -114,18 +114,9 @@ export default function CreateEntryPage() {
     fetchMeetings(nextPage, true);
   };
 
-  /* =========================
-   * ✅ 라우팅 (최소 교체)
-   * ========================= */
-
-  // 수정: 모임장만 step1
-  const handleEdit = (meetingUuid: string) => {
-    router.push(`/meetings/new/step1-basic?meetingUuid=${meetingUuid}`);
-  };
-
-  // 조회: 확정 결과
-  const handleView = (meetingUuid: string) => {
-    router.push(`/meetings/${meetingUuid}/complete`);
+  const handleEdit = (meetingUuid: string, organizerId: number) => {
+    const url = `/meetings/new/step1-basic?meetingUuid=${meetingUuid}${user?.id !== organizerId ? "&readonly=true" : ""}`;
+    router.push(url);
   };
 
   const handleCopy = async (meetingUuid: string) => {
@@ -136,7 +127,7 @@ export default function CreateEntryPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-        }
+        },
       );
 
       if (response.ok) {
@@ -145,7 +136,7 @@ export default function CreateEntryPage() {
 
         if (copiedMeetingUuid) {
           router.push(
-            `/meetings/new/step1-basic?meetingUuid=${copiedMeetingUuid}`
+            `/meetings/new/step1-basic?meetingUuid=${copiedMeetingUuid}`,
           );
         } else {
           router.push("/meetings/new/step1-basic");
@@ -166,19 +157,19 @@ export default function CreateEntryPage() {
     }
 
     const ok = confirm(
-      "정말 이 모임을 삭제하시겠어요?\n삭제하면 되돌릴 수 없어요."
+      "정말 이 모임을 삭제하시겠어요?\n삭제하면 되돌릴 수 없어요.",
     );
     if (!ok) return;
 
     try {
       const res = await axios.delete(
         `${API_BASE_URL}/v1/meetings/${meetingUuid}`,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (res.status === 200) {
         setExistingMeetings((prev) =>
-          prev.filter((item) => item.meeting.meetingUuid !== meetingUuid)
+          prev.filter((item) => item.meeting.meetingUuid !== meetingUuid),
         );
 
         setPageInfo((prev) =>
@@ -187,7 +178,7 @@ export default function CreateEntryPage() {
                 ...prev,
                 totalElements: Math.max(prev.totalElements - 1, 0),
               }
-            : prev
+            : prev,
         );
       } else {
         alert("모임 삭제에 실패했습니다.");
@@ -208,15 +199,6 @@ export default function CreateEntryPage() {
     return `${y}.${m}.${d} ${hh}:${mm}`;
   };
 
-  const uniqueMeetings = Array.from(
-    new Map(
-      existingMeetings.map((item) => [item.meeting.meetingUuid, item])
-    ).values()
-  );
-
-  /* =========================
-   * JSX (변경 없음)
-   * ========================= */
   return (
     <>
       <main className="space-y-6">
@@ -244,14 +226,14 @@ export default function CreateEntryPage() {
               </div>
             ) : error ? (
               <div className="text-center text-sm text-red-500">{error}</div>
-            ) : uniqueMeetings.length === 0 ? (
+            ) : existingMeetings.length === 0 ? (
               <div className="text-center py-8 text-sm text-[var(--wf-subtle)]">
                 아직 생성된 모임이 없습니다.
               </div>
             ) : (
               <>
                 <div className="">
-                  {uniqueMeetings.map((item, index) => {
+                  {existingMeetings.map((item, index) => {
                     const { meeting } = item;
                     const place =
                       meeting.selectedPlace?.placeName || "장소 미정";
@@ -259,10 +241,7 @@ export default function CreateEntryPage() {
 
                     return (
                       <div
-                        key={
-                          meeting.meetingUuid ??
-                          `meeting-${meeting.organizerId}-${meeting.meetingTime}-${index}`
-                        }
+                        key={meeting.meetingUuid ?? `meeting-${index}`}
                         className="border-b border-[var(--wf-border)] py-1 space-y-2"
                       >
                         <div className="flex justify-between gap-4">
@@ -278,47 +257,44 @@ export default function CreateEntryPage() {
 
                           <div className="flex gap-2">
                             <button
-                              onClick={() => {
-                                
-                                if (isOrganizer) {
-                                  handleEdit(meeting.meetingUuid!)
-                                } else {
-                                  handleView(meeting.meetingUuid!)
-                                }
-                              }}
-                              className={`rounded-xl px-3 py-0 text-xs font-medium transition-opacity ${
-                                "border bg-[var(--wf-accent-soft)] hover:opacity-90 text-[var(--wf-foreground)]"
+                              onClick={() =>
+                                handleEdit(
+                                  meeting.meetingUuid!,
+                                  meeting.organizerId,
+                                )
+                              }
+                              className={`rounded-full px-3 py-0 text-xs font-medium text-white transition-opacity ${
+                                isOrganizer
+                                  ? "bg-[var(--wf-accent)] hover:opacity-90"
+                                  : "bg-[--wf-accent] hover:bg-gray-400"
                               }`}
                             >
                               {isOrganizer ? "수정" : "조회"}
                             </button>
-
                             <button
                               onClick={() => handleCopy(meeting.meetingUuid!)}
-                              className="rounded-xl bg-[var(--wf-accent-soft)] px-3 py-1 text-xs font-medium hover:opacity-90 transition-opacity"
+                              className="rounded-full bg-[var(--wf-accent)] px-3 py-1 text-xs font-medium text-white hover:opacity-90 transition-opacity"
                             >
                               복사
                             </button>
-
                             <button
                               onClick={() =>
                                 handleDelete(
                                   meeting.meetingUuid!,
-                                  meeting.organizerId
+                                  meeting.organizerId,
                                 )
                               }
                               disabled={!isOrganizer}
-                              className={`rounded-xl px-3 py-0 text-xs font-medium transition-opacity ${
+                              className={`rounded-full px-3 py-0 text-xs font-medium text-white transition-opacity ${
                                 isOrganizer
-                                  ? "border border-[var(--warning)] bg-[var(--warning-soft)] text-[var(--warning)] hover:bg-[var(--warning)] hover:text-white"
-                                  : "border border-[var(--wf-border)] bg-[var(--wf-muted)] text-[var(--wf-subtle)] cursor-not-allowed"
+                                  ? "bg-[--wf-warning]"
+                                  : "bg-gray-400 cursor-not-allowed"
                               }`}
                             >
-                              X
+                              삭제
                             </button>
                           </div>
                         </div>
-
                         <p className="text-xs text-[var(--wf-subtle)]">
                           {place}
                         </p>
@@ -337,7 +313,7 @@ export default function CreateEntryPage() {
                       {isLoadingMore ? "불러오는 중..." : "더보기"}
                     </button>
                     <p className="text-center text-xs text-[var(--wf-subtle)] mt-2">
-                      {uniqueMeetings.length} / {pageInfo.totalElements}개
+                      {existingMeetings.length} / {pageInfo.totalElements}개
                     </p>
                   </div>
                 )}
