@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import StepCard from "@/components/meeting/StepCard";
 import { useUser } from "@/context/UserContext";
 import Button from "@/components/ui/Button";
+import { CalendarPlus, ChevronDown } from "lucide-react";
+
 
 interface PageInfo {
   totalElements: number;
@@ -206,16 +208,16 @@ export default function CreateEntryPage() {
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold">모임 리스트</h1>
             <p className="text-sm text-[var(--wf-subtle)]">
-              이전 모임을 불러와 빠르게 생성할 수 있어요
+              내 모임 리스트를 조회, 수정, 복사 할 수 있습니다.
             </p>
           </div>
 
           <div className="p-2">
             <Button
               onClick={() => router.push("/meetings/new/step1-basic")}
-              className="w-full rounded-xl border border-[var(--wf-border)]"
+              className="w-full rounded-xl border border-[var(--wf-border)] gap-3 py-3 bg-[var(--primary)] text-base text-[var(--text-inverse)]"
             >
-              모임 생성하기
+              <CalendarPlus className="h-5 w-5" /> 모임 생성하기
             </Button>
           </div>
 
@@ -256,7 +258,7 @@ export default function CreateEntryPage() {
                           </div>
 
                           <div className="flex gap-2">
-                            <button
+                            <Button
                               onClick={() =>
                                 handleEdit(
                                   meeting.meetingUuid!,
@@ -270,14 +272,16 @@ export default function CreateEntryPage() {
                               }`}
                             >
                               {isOrganizer ? "수정" : "조회"}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               onClick={() => handleCopy(meeting.meetingUuid!)}
-                              className="rounded-full bg-[var(--wf-accent)] px-3 py-1 text-xs font-medium text-white hover:opacity-90 transition-opacity"
+                              variant="neutral"
+                              size="sm"
+                              className="text-[var(--color-neutral)]"
                             >
                               복사
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               onClick={() =>
                                 handleDelete(
                                   meeting.meetingUuid!,
@@ -285,14 +289,16 @@ export default function CreateEntryPage() {
                                 )
                               }
                               disabled={!isOrganizer}
-                              className={`rounded-full px-3 py-0 text-xs font-medium text-white transition-opacity ${
+                              variant="neutral"
+                              size="sm"
+                              className={`text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] ${
                                 isOrganizer
-                                  ? "bg-[--wf-warning]"
-                                  : "bg-gray-400 cursor-not-allowed"
+                                  ? "bg-[--neutral-soft]"
+                                  : "bg-[var(--neutral-soft)] cursor-not-allowed"
                               }`}
                             >
-                              삭제
-                            </button>
+                              X
+                            </Button>
                           </div>
                         </div>
                         <p className="text-xs text-[var(--wf-subtle)]">
@@ -304,15 +310,19 @@ export default function CreateEntryPage() {
                 </div>
 
                 {pageInfo && !pageInfo.last && (
-                  <div className="pt-4">
-                    <button
+                  <div className="mt-6 flex flex-col items-center gap-3">
+                    <Button
                       onClick={handleLoadMore}
                       disabled={isLoadingMore}
-                      className="w-full rounded-xl border border-[var(--wf-border)] bg-white py-3 text-sm font-medium text-[var(--wf-foreground)] hover:bg-[var(--wf-muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      variant="outline"
+                      className="w-full max-w-sm gap-2"
+                      aria-busy={isLoadingMore}
                     >
                       {isLoadingMore ? "불러오는 중..." : "더보기"}
-                    </button>
-                    <p className="text-center text-xs text-[var(--wf-subtle)] mt-2">
+                      <ChevronDown className="h-4 w-4 opacity-70" />
+                    </Button>
+
+                    <p className="text-xs text-[var(--text-subtle)]">
                       {existingMeetings.length} / {pageInfo.totalElements}개
                     </p>
                   </div>
