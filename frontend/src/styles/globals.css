@@ -23,6 +23,8 @@
 
   /* ===== Primary (Brand) ===== */
   --primary: #3B6FD8;            /* 기존 --primary */
+  --primary-base: #a1cff4;
+  --primary-soft: #e9f1f8;  
   --primary-foreground: #FFFFFF;/* 기존 --text-inverse */
 
   /* ===== Neutral ===== */

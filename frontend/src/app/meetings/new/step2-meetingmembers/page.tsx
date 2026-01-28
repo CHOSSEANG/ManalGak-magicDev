@@ -12,6 +12,7 @@ import MemberList from "@/components/meeting/Step2/Step2MemberList";
 import LoginRequired from "@/components/common/LoginRequired";
 import { useUser } from "@/context/UserContext";
 
+
 // shadcn/ui
 import {
   Card,
@@ -254,24 +255,20 @@ function Step3MembersContent(): JSX.Element {
   // =====================
   return (
     <>
-      <main className="mx-auto max-w-xl space-y-6 pb-28">
-        {/* 헤더 */}
-        <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardHeader>
-            <CardTitle className="text-[var(--text)]">
-              참여자 설정
-            </CardTitle>
-            <CardDescription className="text-[var(--text-subtle)]">
-              멤버를 초대하고 출발지·교통수단을 설정하세요.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <main className="mx-auto max-w-xl space-y-6">
+        {/* ===== Header ===== */}
+        <section className="space-y-1">
+          <h2 className="text-lg font-semibold text-[var(--text)]">
+             참여자
+          </h2>
+          <p className="text-sm text-[var(--text-subtle)]">
+            멤버를 초대하고 출발지·교통수단을 설정하세요.
+          </p>
+        </section>
 
         {/* 초대 CTA */}
-        <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardContent className="pt-6">
-            <Button
-              className="w-full gap-2 bg-[var(--primary)] text-[var(--primary-foreground)]"
+        <Button
+              className="w-full gap-2 py-6 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)]"
               disabled={isReadonly || !isOrganizer}
               onClick={() => {
                 if (!meetingData) return;
@@ -287,12 +284,8 @@ function Step3MembersContent(): JSX.Element {
                 ? "참여 멤버 초대"
                 : "모임장만 멤버를 초대할 수 있어요"}
             </Button>
-          </CardContent>
-        </Card>
 
         {/* 주소 입력 */}
-        <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardContent className="pt-6">
             {isLoading ? (
               <Skeleton className="h-32 w-full rounded-xl bg-[var(--neutral-soft)]" />
             ) : (
@@ -304,8 +297,6 @@ function Step3MembersContent(): JSX.Element {
                 readonly={isReadonly}
               />
             )}
-          </CardContent>
-        </Card>
 
         {/* 멤버 리스트 */}
         <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
@@ -322,6 +313,7 @@ function Step3MembersContent(): JSX.Element {
             />
           </CardContent>
         </Card>
+
       </main>
 
       <StepNavigation

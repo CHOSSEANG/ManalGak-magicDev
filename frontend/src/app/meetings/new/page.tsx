@@ -5,21 +5,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-
 import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-
 import { Skeleton } from "@/components/ui/skeleton";
-
-import { CalendarPlus, ChevronDown } from "lucide-react";
+import { CalendarPlus, ChevronDown, Users } from "lucide-react";
 
 /* ======================
  * Types (변경 없음)
@@ -200,14 +190,14 @@ export default function CreateEntryPage() {
     <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6">
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {/* ===== Header ===== */}
-        <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-[var(--text)]">모임 리스트</CardTitle>
-            <CardDescription className="text-[var(--text-subtle)]">
-              내 모임을 조회, 수정, 복사할 수 있습니다.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <section className="space-y-1">
+          <h2 className="text-lg font-semibold text-[var(--text)]">
+            모임 리스트
+          </h2>
+          <p className="text-sm text-[var(--text-subtle)]">
+            내 모임을 조회, 수정, 복사할 수 있습니다.
+          </p>
+        </section>
 
         {/* ===== Primary CTA ===== */}
             <Button
@@ -219,150 +209,143 @@ export default function CreateEntryPage() {
             </Button>
 
        {/* ===== List Section ===== */}
-<section className="space-y-3">
-  {listState}
+      <section className="space-y-3">
+        {listState}
 
-  {!listState && (
-    <div className="divide-y divide-[var(--border)] bg-[var(--bg)]">
-      {existingMeetings.map(({ meeting }) => {
-        const isOrganizer = user?.id === meeting.organizerId;
-        const primaryLabel = isOrganizer ? "수정" : "조회";
+        {!listState && (
+          <div className="divide-y divide-[var(--border)] bg-[var(--bg)]">
+            {existingMeetings.map(({ meeting }) => {
+              const isOrganizer = user?.id === meeting.organizerId;
+              const primaryLabel = isOrganizer ? "수정" : "조회";
 
-        return (
-          <div
-            key={meeting.meetingUuid}
-            className="px-4 py-3"
-          >
-            <div className="flex items-start gap-3">
-              {/* ===== 인원수 영역 ===== */}
-              <div className="flex flex-col items-center w-10 shrink-0 text-[var(--text-subtle)]">
-                {/* 아이콘 */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="h-4 w-4"
+              return (
+                <div
+                  key={meeting.meetingUuid}
+                  className="px-0 py-3"
                 >
-                  <path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-                </svg>
+                  <div className="flex items-start gap-4">
+                    {/* ===== 인원수 영역 ===== */}
+                    <div className="relative flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-[var(--primary-soft)]">
+                      <Users className="h-5 w-5 text-[var(--primary)]" />
+                      {meeting.totalParticipants > 0 && (
+                        <span className="absolute -right-1 -bottom-1 min-w-4 h-3 px-1 rounded-full bg-[var(--primary-soft)] text-sm leading-4 text-center font-medium text-[var(--text)]">
+                          {meeting.totalParticipants}
+                        </span>
+                      )}
+                    </div>
 
-                {/* 숫자 */}
-                <span className="text-xs font-medium">
-                  {meeting.totalParticipants}
-                </span>
-              </div>
 
-              {/* ===== 텍스트 정보 ===== */}
-              <div className="flex-1 space-y-1">
-                {/* 1줄: 모임명 */}
-                <p className="text-sm font-medium text-[var(--text)] truncate">
-                  {meeting.meetingName}
-                </p>
+                    {/* ===== 텍스트 정보 ===== */}
+                    <div className="flex-1 space-y-1">
+                      {/* 1줄: 모임명 */}
+                      <p className="text-base font-semibold text-[var(--text)] truncate">
+                        {meeting.meetingName}
+                      </p>
 
-                {/* 2줄: 장소 · 날짜 */}
-                <p className="text-xs text-[var(--text-subtle)]">
-                  {meeting.selectedPlace?.placeName || "장소 미정"}
-                  <span className="mx-1">·</span>
-                  {formatDateTime(meeting.meetingTime)}
-                </p>
-              </div>
+                      {/* 2줄: 장소 · 날짜 */}
+                      <p className="text-sm text-[var(--text-subtle)]">
+                        {meeting.selectedPlace?.placeName || "장소 미정"}
+                        <span className="mx-2">·</span>
+                        {formatDateTime(meeting.meetingTime)}
+                      </p>
+                    </div>
 
-              {/* ===== 액션 영역 ===== */}
-              <div className="shrink-0">
-                {/* 데스크톱 버튼 */}
-                <div className="hidden sm:flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      handleEdit(meeting.meetingUuid!, meeting.organizerId)
-                    }
-                    className={
-                      isOrganizer
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--neutral-soft)] text-[var(--text)]"
-                    }
-                  >
-                    {primaryLabel}
-                  </Button>
+                    {/* ===== 액션 영역 ===== */}
+                    <div className="shrink-0">
+                      {/* 데스크톱 버튼 */}
+                      <div className="hidden sm:flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            handleEdit(meeting.meetingUuid!, meeting.organizerId)
+                          }
+                          className={
+                            isOrganizer
+                              ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                              : "bg-[var(--neutral-soft)] text-[var(--text)]"
+                          }
+                        >
+                          {primaryLabel}
+                        </Button>
 
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleCopy(meeting.meetingUuid!)}
-                  >
-                    복사
-                  </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleCopy(meeting.meetingUuid!)}
+                        >
+                          복사
+                        </Button>
 
-                  <Button
-                    size="sm"
-                    disabled={!isOrganizer}
-                    onClick={() =>
-                      handleDelete(meeting.meetingUuid!, meeting.organizerId)
-                    }
-                    className="bg-[var(--danger-soft)] text-[var(--danger)]"
-                  >
-                    삭제
-                  </Button>
+                        <Button
+                          size="sm"
+                          disabled={!isOrganizer}
+                          onClick={() =>
+                            handleDelete(meeting.meetingUuid!, meeting.organizerId)
+                          }
+                          className="bg-[var(--danger-soft)] text-[var(--danger)]"
+                        >
+                          삭제
+                        </Button>
+                      </div>
+
+                      {/* 모바일 … 메뉴 */}
+                      <div className="sm:hidden">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
+                              aria-label="더보기"
+                            >
+                              …
+                            </button>
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleEdit(
+                                  meeting.meetingUuid!,
+                                  meeting.organizerId
+                                )
+                              }
+                            >
+                              {primaryLabel}
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              onClick={() => handleCopy(meeting.meetingUuid!)}
+                            >
+                              복사
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              disabled={!isOrganizer}
+                              onClick={() =>
+                                handleDelete(
+                                  meeting.meetingUuid!,
+                                  meeting.organizerId
+                                )
+                              }
+                              className="text-destructive"
+                            >
+                              삭제
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-
-                {/* 모바일 … 메뉴 */}
-                <div className="sm:hidden">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
-                        aria-label="더보기"
-                      >
-                        …
-                      </button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleEdit(
-                            meeting.meetingUuid!,
-                            meeting.organizerId
-                          )
-                        }
-                      >
-                        {primaryLabel}
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem
-                        onClick={() => handleCopy(meeting.meetingUuid!)}
-                      >
-                        복사
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem
-                        disabled={!isOrganizer}
-                        onClick={() =>
-                          handleDelete(
-                            meeting.meetingUuid!,
-                            meeting.organizerId
-                          )
-                        }
-                        className="text-destructive"
-                      >
-                        삭제
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
-        );
-      })}
-    </div>
-  )}
-</section>
+        )}
+      </section>
 
 
 
        
-        {/* ===== Pagination ===== */}f
+        {/* ===== Pagination ===== */}
         {pageInfo && !pageInfo.last && (
             <div className="flex flex-col items-center gap-2 py-4">
               <Button

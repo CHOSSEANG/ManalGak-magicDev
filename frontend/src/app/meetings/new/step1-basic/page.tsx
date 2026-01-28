@@ -84,19 +84,17 @@ function Step1Content() {
   };
 
   return (
-    <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6">
+    <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)]">
       <div className="mx-auto w-full max-w-3xl space-y-4">
-        <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-[var(--text)]">
-              Step 1. 기본 정보
-            </CardTitle>
-            <CardDescription className="text-[var(--text-subtle)]">
-              모임의 기본 정보와 목적, 일정을 한 번에 설정해 주세요. 선택한 정보에
+        <section className="space-y-1">
+          <h2 className="text-lg font-semibold text-[var(--text)]">
+            모임 생성
+          </h2>
+          <p className="text-sm text-[var(--text-subtle)]">
+            모임의 기본 정보와 목적, 일정을 한 번에 설정해 주세요. 선택한 정보에
               맞춰 최적의 장소를 추천해 드립니다.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+          </p>
+        </section>
 
         <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
           <CardHeader className="pb-3">
@@ -118,21 +116,11 @@ function Step1Content() {
           </CardContent>
         </Card>
 
-        <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base text-[var(--text)]">다음 단계</CardTitle>
-            <CardDescription className="text-[var(--text-subtle)]">
-              Step 2에서 참여자 정보를 입력합니다.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
             <StepNavigation
               prevHref="/meetings/new"
               nextHref="#"
               onNext={handleNext}
             />
-          </CardContent>
-        </Card>
       </div>
     </main>
   );

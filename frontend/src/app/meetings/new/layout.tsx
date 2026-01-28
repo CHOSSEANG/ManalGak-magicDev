@@ -3,7 +3,7 @@
 
 import { usePathname } from "next/navigation";
 import { StepProgress } from "@/components/ui/StepProgress";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 
 const stepMap: Record<string, number> = {
   "/meetings/new/step1-basic": 33,
@@ -30,12 +30,7 @@ export default function MeetingsNewLayout({
   let progressSection: React.ReactNode = null;
   if (!hideProgressBar) {
     progressSection = (
-      <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base text-[var(--text)]">
-            모임 생성 진행 단계
-          </CardTitle>
-        </CardHeader>
+      <div className="">
         <CardContent className="space-y-4">
           {/* Step Labels */}
           <div className="grid grid-cols-3 gap-2 text-xs">
@@ -62,7 +57,7 @@ export default function MeetingsNewLayout({
             indicatorClassName="bg-[var(--primary)]"
           />
         </CardContent>
-      </Card>
+      </div>
     );
   }
 
