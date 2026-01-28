@@ -126,6 +126,14 @@ public class OdsayService {
 
 			OdsayRouteResponse response = searchRoute(request);
 
+			// 🆕 에러 체크 먼저!
+			if (response.getError() != null) {
+				log.warn("⚠️ ODsay API 에러 - code: {}, msg: {}",
+					response.getError().getCode(),
+					response.getError().getMsg());
+				return null;
+			}
+
 			// 응답 검증
 			if (response == null || response.getResult() == null) {
 				log.warn("ODsay API 응답이 null입니다.");

@@ -13,6 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class OdsayRouteResponse {
 	private Result result;
+	private Error error;  // 🆕 이거 추가!
 
 	@Getter
 	@Setter
@@ -111,4 +112,13 @@ public class OdsayRouteResponse {
 		private String lastEndStation;
 		private Integer totalWalkTime;
 	}
+
+	// 🆕 Error 클래스 추가
+	@Getter
+	@Setter
+	public static class Error {
+		private String code;
+		private String msg;
+	}
+
 }

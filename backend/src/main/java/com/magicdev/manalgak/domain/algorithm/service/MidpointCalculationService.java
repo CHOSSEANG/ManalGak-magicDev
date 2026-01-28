@@ -94,14 +94,13 @@ public class MidpointCalculationService {
 
 		// 3. 중간지점 기준 가까운 역들 정렬
 		List<SubwayStation> nearbyStations = findNearbyStationsOrderByDistance(midpoint);
-
 		// 4. 각 역에 대해 소요시간 차이 검증
 		for (SubwayStation station : nearbyStations) {
 			StationWithTravelTimes result = calculateTravelTimesForStation(
 				participants, station
 			);
 
-			if (result.getTimeDifference() <= 5) {
+			if (result.getTimeDifference() <= 15) {
 				// 조건 만족하는 역 찾음!
 				log.info("최적 역 발견: {} ({}호선), 소요시간 차이: {}분",
 					station.getStationName(),
@@ -129,22 +128,19 @@ public class MidpointCalculationService {
 	 * 최적 역 찾기 + 상세 정보 반환 (테스트용)
 	 */
 	public OptimalStationDetailResponse findOptimalStationWithDetails(String meetingUuid) {
-		// 1. 참여자 출발지 조회
+		// 1~5번 기존 코드 동일
 		List<ParticipantResponse> participants = participantService.getAllParticipants(meetingUuid);
 
-		// 2. 출발지가 설정된 참여자만 필터링
 		List<ParticipantResponse> participantsWithOrigin = participants.stream()
 			.filter(participant -> participant.getOrigin() != null)
 			.filter(participant -> participant.getOrigin().getLatitude() != null)
 			.filter(participant -> participant.getOrigin().getLongitude() != null)
 			.toList();
 
-		// 3. 유효한 참여자가 없으면 예외
 		if (participantsWithOrigin.isEmpty()) {
 			throw new BusinessException(ErrorCode.ADDRESS_NO_ORIGIN);
 		}
 
-		// 4. Location을 Coordinate로 변환
 		List<Coordinate> coordinates = participantsWithOrigin.stream()
 			.map(participant -> new Coordinate(
 				participant.getOrigin().getLatitude(),
@@ -152,59 +148,64 @@ public class MidpointCalculationService {
 			))
 			.collect(Collectors.toList());
 
-		// 5. 기하학적 중간지점 계산
 		Coordinate midpoint = calculateGeometricCenter(coordinates);
-
-		// 6. 중간지점 기준 가까운 역들 정렬
 		List<SubwayStation> nearbyStations = findNearbyStationsOrderByDistance(midpoint);
 
-		// 7. 각 역에 대해 소요시간 차이 검증
+		// 🆕 최선의 역 추적
+		SubwayStation bestStation = null;
+		StationWithTravelTimes bestResult = null;
+		int minTimeDifference = Integer.MAX_VALUE;
+
 		for (SubwayStation station : nearbyStations) {
 			StationWithTravelTimes result = calculateTravelTimesForStation(
 				participantsWithOrigin, station
 			);
 
-			if (result.getTimeDifference() <= 5) {
-				// 조건 만족하는 역 찾음!
-				log.info("최적 역 발견: {} ({}호선), 소요시간 차이: {}분",
+			// 15분 이내면 바로 채택
+			if (result.getTimeDifference() <= 10) {
+				log.info("✅ 최적 역 발견: {} ({}호선), 소요시간 차이: {}분",
 					station.getStationName(),
 					station.getLineNumber(),
 					result.getTimeDifference());
 
-				// 상세 정보 반환
-				List<OptimalStationDetailResponse.ParticipantTravelInfo> travelInfos =
-					result.getTravelTimes().stream()
-						.map(tt -> OptimalStationDetailResponse.ParticipantTravelInfo.builder()
-							.nickName(tt.getParticipantName())
-							.originLatitude(tt.getOrigin().getLatitude())
-							.originLongitude(tt.getOrigin().getLongitude())
-							.travelTimeMinutes(tt.getTravelTimeMinutes())
-							.build())
-						.toList();
+				return buildOptimalStationResponse(station, result);
+			}
 
-				return OptimalStationDetailResponse.builder()
-					.stationName(station.getStationName())
-					.lineNumber(station.getLineNumber())
-					.stationCode(station.getStationCode())
-					.latitude(station.getLatitude())
-					.longitude(station.getLongitude())
-					.maxTravelTime(result.getMaxTime())
-					.minTravelTime(result.getMinTime())
-					.timeDifference(result.getTimeDifference())
-					.participantTravelInfos(travelInfos)
-					.build();
+			// 🆕 최선의 역 기록
+			if (result.getTimeDifference() < minTimeDifference) {
+				minTimeDifference = result.getTimeDifference();
+				bestStation = station;
+				bestResult = result;
 			}
 		}
 
-		// 8. 적합한 역 없으면 가장 가까운 역의 상세 정보 반환
-		log.warn("5분 이내 역을 찾지 못함. 가장 가까운 역 반환");
+		// 🆕 15분 이내 역은 없지만 최선의 역 반환
+		if (bestStation != null && bestResult != null) {
+			log.warn("⚠️ 10분 이내 역 없음. 최선의 역 선택: {} ({}호선), 차이: {}분",
+				bestStation.getStationName(),
+				bestStation.getLineNumber(),
+				minTimeDifference);
+
+			return buildOptimalStationResponse(bestStation, bestResult);
+		}
+
+		// fallback
+		log.error("❌ 역 선택 실패. 가장 가까운 역 반환");
 		SubwayStation nearestStation = nearbyStations.get(0);
 		StationWithTravelTimes fallbackResult = calculateTravelTimesForStation(
 			participantsWithOrigin, nearestStation
 		);
 
+		return buildOptimalStationResponse(nearestStation, fallbackResult);
+	}
+
+	// 🆕 Helper 메서드 추가 (중복 제거)
+	private OptimalStationDetailResponse buildOptimalStationResponse(
+		SubwayStation station,
+		StationWithTravelTimes result) {
+
 		List<OptimalStationDetailResponse.ParticipantTravelInfo> travelInfos =
-			fallbackResult.getTravelTimes().stream()
+			result.getTravelTimes().stream()
 				.map(tt -> OptimalStationDetailResponse.ParticipantTravelInfo.builder()
 					.nickName(tt.getParticipantName())
 					.originLatitude(tt.getOrigin().getLatitude())
@@ -214,14 +215,14 @@ public class MidpointCalculationService {
 				.toList();
 
 		return OptimalStationDetailResponse.builder()
-			.stationName(nearestStation.getStationName())
-			.lineNumber(nearestStation.getLineNumber())
-			.stationCode(nearestStation.getStationCode())
-			.latitude(nearestStation.getLatitude())
-			.longitude(nearestStation.getLongitude())
-			.maxTravelTime(fallbackResult.getMaxTime())
-			.minTravelTime(fallbackResult.getMinTime())
-			.timeDifference(fallbackResult.getTimeDifference())
+			.stationName(station.getStationName())
+			.lineNumber(station.getLineNumber())
+			.stationCode(station.getStationCode())
+			.latitude(station.getLatitude())
+			.longitude(station.getLongitude())
+			.maxTravelTime(result.getMaxTime())
+			.minTravelTime(result.getMinTime())
+			.timeDifference(result.getTimeDifference())
 			.participantTravelInfos(travelInfos)
 			.build();
 	}
@@ -404,6 +405,13 @@ public class MidpointCalculationService {
 				participant.getOrigin().getLatitude(),
 				participant.getOrigin().getLongitude()
 			);
+
+			// 🆕 API 호출 사이에 딜레이 추가
+			try {
+				Thread.sleep(200);  // 0.2초 대기
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 
 			// Odsay API 호출
 			Integer travelTime = odsayService.getTravelTime(origin, stationCoord);
