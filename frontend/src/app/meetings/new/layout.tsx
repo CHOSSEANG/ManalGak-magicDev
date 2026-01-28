@@ -1,13 +1,52 @@
 "use client";
 
-import { StepProgress } from "@/components/ui/StepProgress";
+import { Breadcrumb } from "@/components/ui/step-breadcrumb";
 import { usePathname } from "next/navigation";
 
 const stepMap: Record<string, number> = {
-  "/meetings/new/step1-basic": 33,
-  "/meetings/new/step2-meetingmembers": 67,
-  "/meetings/new/step3-result": 100,
+  "/meetings/new/step1-basic": 1,
+  "/meetings/new/step2-meetingmembers": 2,
+  "/meetings/new/step3-result": 3,
 };
+
+const breadcrumbSteps = (
+  pathname: string,
+): {
+  id: string;
+  name: string;
+  status: "current" | "complete" | "upcoming";
+}[] => [
+  {
+    id: "01",
+    name: "모임생성",
+    status:
+      pathname === "/meetings/new/step1-basic"
+        ? "current"
+        : stepMap[pathname] > stepMap["/meetings/new/step1-basic"]
+          ? "complete"
+          : "upcoming",
+  },
+  {
+    id: "02",
+    name: "참여자",
+    status:
+      pathname === "/meetings/new/step2-meetingmembers"
+        ? "current"
+        : stepMap[pathname] > stepMap["/meetings/new/step2-meetingmembers"]
+          ? "complete"
+          : "upcoming",
+  },
+  {
+    id: "03",
+    name: "추천장소",
+    status:
+      pathname === "/meetings/new/step3-result"
+        ? "current"
+        : stepMap[pathname] >= stepMap["/meetings/new/step3-result"]
+          ? "complete"
+          : "upcoming",
+  },
+];
 
 export default function MeetingsNewLayout({
   children,
@@ -15,44 +54,13 @@ export default function MeetingsNewLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const progress = stepMap[pathname] ?? 0;
   const hideProgressBar = pathname === "/meetings/new";
 
   return (
     <div className="">
       {!hideProgressBar && (
-        <div className="mb-6">
-          <div className="relative">
-            <div className="flex justify-between text-xs">
-              {[
-                ["", "모임생성", "/meetings/new/step1-basic"],
-                ["", "참여자", "/meetings/new/step2-meetingmembers"],
-                ["", "추천장소", "/meetings/new/step3-result"],
-              ].map(([step, label, path]) => {
-                const isActive = pathname === path;
-                return (
-                  <div key={path} className="flex-1 text-center">
-                    <span
-                      className={
-                        isActive ? "text-black font-semibold" : "text-black"
-                      }
-                    >
-                      {step}
-                    </span>
-                    <span className="ml-1 text-[var(--wf-subtle)]">
-                      {label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <StepProgress
-            value={progress}
-            className="h-2 bg-[#E6E1D9]"
-            indicatorClassName="bg-[var(--wf-highlight)]"
-          />
+        <div className="mb-8">
+          <Breadcrumb steps={breadcrumbSteps(pathname)} />
         </div>
       )}
       {children}
