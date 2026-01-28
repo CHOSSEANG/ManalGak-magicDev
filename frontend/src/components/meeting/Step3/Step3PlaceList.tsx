@@ -217,10 +217,6 @@ export default function Step5PlaceList() {
   const [middlePoint, setMiddlePoint] = useState<MiddlePoint | null>(null)
   const [placeSource, setPlaceSource] = useState<Omit<RecommendedPlace, 'icon'>[]>(rawPlaces)
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
-  const [expandedSearchInfo, setExpandedSearchInfo] = useState<{
-    expandedSearch: boolean
-    searchRadius?: number
-  } | null>(null)
   const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
   const [isCreatingVote, setIsCreatingVote] = useState(false)
@@ -323,7 +319,6 @@ const isHost =organizerId != null && user?.id != null && organizerId === user.id
 
     const fetchPlacesAndMidpoint = async () => {
       setIsLoadingPlaces(true)
-      setExpandedSearchInfo(null)
 
       try {
         const res = await axios.get(
@@ -334,8 +329,6 @@ const isHost =organizerId != null && user?.id != null && organizerId === user.id
         const data = res.data?.data
         const apiPlaces: unknown[] = Array.isArray(data?.places) ? data.places : []
         const apiMidpoint = data?.midpoint
-        const expandedSearch = Boolean(data?.expandedSearch)
-        const searchRadius = toNumber(data?.searchRadius)
 
         // 중간지점 설정
         if (apiMidpoint?.latitude && apiMidpoint?.longitude) {
@@ -345,8 +338,6 @@ const isHost =organizerId != null && user?.id != null && organizerId === user.id
             stationName: apiMidpoint.stationName,
           })
         }
-
-        setExpandedSearchInfo({ expandedSearch, searchRadius })
 
         // 추천장소 설정 (6개 이상일 때만 교체)
         if (apiPlaces.length >= 6) {
