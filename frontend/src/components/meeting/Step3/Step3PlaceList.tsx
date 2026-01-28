@@ -697,12 +697,6 @@ useEffect(() => {
           </div>
         ) : (
           <>
-            {expandedSearchInfo?.expandedSearch && expandedSearchInfo.searchRadius != null && (
-              <div className="text-xs text-gray-500 mb-2">
-                더 넓은 범위에서 찾았어요 ({expandedSearchInfo.searchRadius}m)
-              </div>
-            )}
-
             <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
               {recommendedPlaces.map((place) => {
                 const Icon = place.icon
