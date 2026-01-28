@@ -66,63 +66,14 @@ public class MidpointCalculationService {
 	}
 
 	public Coordinate findOptimalStationByMeetingID(String meetingUuid) {
-		// 1. 참여자 출발지 조회
-		List<ParticipantResponse> participants = participantService.getAllParticipants(meetingUuid);
+		// 🔄 상세 정보 메서드를 호출한 후 좌표만 추출
+		OptimalStationDetailResponse detail = findOptimalStationWithDetails(meetingUuid);
 
-		// 2. 출발지가 설정된 참여자만 필터링
-		List<ParticipantResponse> participantsWithOrigin = participants.stream()
-			.filter(participant -> participant.getOrigin() != null)
-			.filter(participant -> participant.getOrigin().getLatitude() != null)
-			.filter(participant -> participant.getOrigin().getLongitude() != null)
-			.toList();
-
-		// 3. 유효한 참여자가 없으면 예외
-		if (participantsWithOrigin.isEmpty()) {
-			throw new BusinessException(ErrorCode.ADDRESS_NO_ORIGIN);
-		}
-
-		// 4. Location을 Coordinate로 변환
-		List<Coordinate> coordinates = participantsWithOrigin.stream()
-			.map(participant -> new Coordinate(
-				participant.getOrigin().getLatitude(),
-				participant.getOrigin().getLongitude()
-			))
-			.collect(Collectors.toList());
-
-		// 5. 기하학적 중간지점 계산
-		Coordinate midpoint = calculateGeometricCenter(coordinates);
-
-		// 3. 중간지점 기준 가까운 역들 정렬
-		List<SubwayStation> nearbyStations = findNearbyStationsOrderByDistance(midpoint);
-		// 4. 각 역에 대해 소요시간 차이 검증
-		for (SubwayStation station : nearbyStations) {
-			StationWithTravelTimes result = calculateTravelTimesForStation(
-				participants, station
-			);
-
-			if (result.getTimeDifference() <= 15) {
-				// 조건 만족하는 역 찾음!
-				log.info("최적 역 발견: {} ({}호선), 소요시간 차이: {}분",
-					station.getStationName(),
-					station.getLineNumber(),
-					result.getTimeDifference());
-				return new Coordinate(
-					station.getLatitude(),
-					station.getLongitude()
-				);
-			}
-		}
-
-		// 8. 적합한 역 없으면 가장 가까운 역 반환 (fallback)
-		log.warn("5분 이내 역을 찾지 못함. 가장 가까운 역 반환");
-		SubwayStation nearestStation = nearbyStations.get(0);
 		return new Coordinate(
-			nearestStation.getLatitude(),
-			nearestStation.getLongitude()
+			detail.getLatitude(),
+			detail.getLongitude()
 		);
 	}
-
-	// MidpointCalculationService.java
 
 	/**
 	 * 최적 역 찾기 + 상세 정보 반환 (테스트용)
