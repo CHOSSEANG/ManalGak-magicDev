@@ -1,12 +1,25 @@
 // src/app/meetings/new/step1-basic/page.tsx
 "use client";
 
-import { useRef, Suspense } from "react";
+import { useRef, Suspense, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import StepNavigation from "@/components/layout/StepNavigation";
 import Step1Form, { Step1FormRef } from "@/components/meeting/Step1/Step1Form";
 import { useUser } from "@/context/UserContext";
 import LoginRequired from "@/components/common/LoginRequired";
+
+// shadcn/ui
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 // useSearchParams를 사용하는 컴포넌트를 분리
 function Step1Content() {
   const { user, loading } = useUser();
@@ -16,14 +29,33 @@ function Step1Content() {
 
   const meetingUuid = searchParams.get("meetingUuid") || undefined;
 
-    // ✅ 로딩 중일 때
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-sm text-gray-500">로딩 중...</div>
-        </div>
-      )
-}
+  let loadingBlock: ReactNode = null;
+  if (loading) {
+    loadingBlock = (
+      <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
+        <CardHeader className="space-y-2">
+          <CardTitle className="text-base text-[var(--text)]">기본 정보 불러오기</CardTitle>
+          <CardDescription className="text-[var(--text-subtle)]">
+            데이터를 준비 중입니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-4 w-40 bg-[var(--neutral-soft)]" />
+          <Skeleton className="h-6 w-72 bg-[var(--neutral-soft)]" />
+          <Skeleton className="h-10 w-full bg-[var(--neutral-soft)]" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6">
+        <div className="mx-auto w-full max-w-3xl space-y-4">{loadingBlock}</div>
+      </main>
+    );
+  }
+
   if (!user) {
     return <LoginRequired />;
   }
@@ -52,39 +84,86 @@ function Step1Content() {
   };
 
   return (
-    <>
-      <main className="space-y-6 pb-24">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">
-            Step 1. 기본 정보
-          </h1>
-          <p className="text-sm text-[var(--wf-subtle)]">
-            모임의 기본 정보와 목적, 일정을 한 번에 설정해 주세요. 선택한 정보에
-            맞춰 최적의 장소를 추천해 드립니다.
-          </p>
-        </div>
+    <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6">
+      <div className="mx-auto w-full max-w-3xl space-y-4">
+        <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-[var(--text)]">
+              Step 1. 기본 정보
+            </CardTitle>
+            <CardDescription className="text-[var(--text-subtle)]">
+              모임의 기본 정보와 목적, 일정을 한 번에 설정해 주세요. 선택한 정보에
+              맞춰 최적의 장소를 추천해 드립니다.
+            </CardDescription>
+          </CardHeader>
+        </Card>
 
-        <Step1Form ref={formRef} meetingUuid={meetingUuid} readonly={readonly} />
-        <StepNavigation
-        prevHref="/meetings/new"
-        nextHref="#"
-        onNext={handleNext}
-      />
-      </main>
+        <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base text-[var(--text)]">입력</CardTitle>
+            <CardDescription className="text-[var(--text-subtle)]">
+              아래 폼에서 기본 정보를 입력합니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ScrollArea className="max-h-[60vh] pr-1">
+              <div className="space-y-4">
+                <Step1Form ref={formRef} meetingUuid={meetingUuid} readonly={readonly} />
+              </div>
+            </ScrollArea>
+            <Separator className="bg-[var(--border)]" />
+            <div className="text-sm text-[var(--text-subtle)]">
+              입력 완료 후 다음 단계로 이동하세요.
+            </div>
+          </CardContent>
+        </Card>
 
-      
-    </>
+        <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base text-[var(--text)]">다음 단계</CardTitle>
+            <CardDescription className="text-[var(--text-subtle)]">
+              Step 2에서 참여자 정보를 입력합니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <StepNavigation
+              prevHref="/meetings/new"
+              nextHref="#"
+              onNext={handleNext}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </main>
   );
 }
 
 // Suspense로 감싸서 export
 export default function Step1BasicPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center py-20">
-        <div className="text-sm text-gray-500">로딩 중...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6">
+          <div className="mx-auto w-full max-w-3xl space-y-4">
+            <Card className="border-[var(--border)] bg-[var(--bg-soft)]">
+              <CardHeader className="space-y-2">
+                <CardTitle className="text-base text-[var(--text)]">
+                  기본 정보 불러오기
+                </CardTitle>
+                <CardDescription className="text-[var(--text-subtle)]">
+                  화면을 준비 중입니다.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Skeleton className="h-4 w-40 bg-[var(--neutral-soft)]" />
+                <Skeleton className="h-6 w-72 bg-[var(--neutral-soft)]" />
+                <Skeleton className="h-10 w-full bg-[var(--neutral-soft)]" />
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      }
+    >
       <Step1Content />
     </Suspense>
   );

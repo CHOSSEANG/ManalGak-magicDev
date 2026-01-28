@@ -3,7 +3,7 @@
 
 import { usePathname } from "next/navigation";
 import { StepProgress } from "@/components/ui/StepProgress";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const stepMap: Record<string, number> = {
   "/meetings/new/step1-basic": 33,
@@ -27,41 +27,48 @@ export default function MeetingsNewLayout({
   const progress = stepMap[pathname] ?? 0;
   const hideProgressBar = pathname === "/meetings/new";
 
+  let progressSection: React.ReactNode = null;
+  if (!hideProgressBar) {
+    progressSection = (
+      <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base text-[var(--text)]">
+            모임 생성 진행 단계
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Step Labels */}
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            {STEPS.map((step) => {
+              const isActive = pathname === step.path;
+
+              let labelClass = "text-[var(--text-subtle)]";
+              if (isActive) {
+                labelClass = "font-semibold text-[var(--text)]";
+              }
+
+              return (
+                <div key={step.path} className="text-center">
+                  <span className={labelClass}>{step.label}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Progress Bar */}
+          <StepProgress
+            value={progress}
+            className="h-2 bg-[var(--neutral-soft)]"
+            indicatorClassName="bg-[var(--primary)]"
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {!hideProgressBar && (
-        <Card className="border border-[var(--border)] bg-[var(--bg)]">
-          <div className="space-y-4 p-4">
-            {/* Step Labels */}
-            <div className="flex justify-between text-xs">
-              {STEPS.map((step) => {
-                const isActive = pathname === step.path;
-
-                return (
-                  <div key={step.path} className="flex-1 text-center">
-                    <span
-                      className={
-                        isActive
-                          ? "font-semibold text-[var(--text)]"
-                          : "text-[var(--text-subtle)]"
-                      }
-                    >
-                      {step.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Progress Bar */}
-            <StepProgress
-              value={progress}
-              className="h-2 bg-[var(--neutral-soft)]"
-              indicatorClassName="bg-[var(--primary)]"
-            />
-          </div>
-        </Card>
-      )}
+      {progressSection}
 
       {/* Page Content */}
       <div>{children}</div>

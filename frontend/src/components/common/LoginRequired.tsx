@@ -3,23 +3,48 @@
 
 import { useRouter } from "next/navigation";
 
-export default function LoginRequired() {
+// shadcn/ui
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+export default function LoginRequired(): JSX.Element {
   const router = useRouter();
 
+  const handleGoLogin = (): void => {
+    router.push("/");
+  };
+
   return (
-    <main className="flex flex-col items-center justify-center min-h-[60vh] p-6">
-      <div className="max-w-md w-full bg-white border rounded-2xl shadow-md p-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">🔒 로그인이 필요해요</h1>
-        <p className="text-gray-600 mb-6">
-          서비스를 이용하기 위해 먼저 로그인해야 합니다.
-        </p>
-        <button
-          onClick={() => router.push("/")}
-          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-500"
-        >
-          로그인하러 가기
-        </button>
-      </div>
+    <main className="flex min-h-[60vh] items-center justify-center px-6">
+      <Card className="w-full max-w-md border-[var(--border)] bg-[var(--bg-soft)]">
+        {/* Header */}
+        <CardHeader className="text-center">
+          <CardTitle className="text-[var(--text)]">
+            로그인이 필요해요
+          </CardTitle>
+          <CardDescription className="text-[var(--text-subtle)]">
+            서비스를 이용하려면 <br />
+            먼저 로그인해야 합니다.
+          </CardDescription>
+        </CardHeader>
+
+        {/* CTA */}
+        <CardContent>
+          <Button
+            type="button"
+            onClick={handleGoLogin}
+            className="w-full bg-[var(--primary)] text-[var(--primary-foreground)]"
+          >
+            로그인하러 가기
+          </Button>
+        </CardContent>
+      </Card>
     </main>
   );
 }
