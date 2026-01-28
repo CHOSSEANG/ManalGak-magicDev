@@ -112,10 +112,11 @@ function Step2Content(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [myParticipantId, setMyParticipantId] = useState<number | null>(null);
   const [meetingData, setMeetingData] = useState<MeetingData | null>(null);
+  const [isExpired, setIsExpired] = useState<boolean>(false); // ⭐ 만료 상태 추가
   const joinedRef = useRef<boolean>(false);
 
   const isReadonly = meetingData?.status === 'COMPLETED';
-  const isOrganizer = meetingData?.organizerId === user?.id; // ⭐ 모임장 여부 체크
+  const isOrganizer = meetingData?.organizerId === user?.id;
 
   /** 모임 조회 + 없으면 participant 생성 */
   useEffect(() => {
@@ -138,12 +139,14 @@ function Step2Content(): JSX.Element {
         );
 
         if (myParticipant) {
+          // ⭐ 이미 참여한 사람은 만료 여부와 관계없이 접근 가능
           setMyParticipantId(myParticipant.participantId);
           if (myParticipant.origin?.address)
             setOriginAddress(myParticipant.origin.address);
           if (myParticipant.transportType)
             setTransport(myParticipant.transportType);
         } else {
+          // ⭐ 새로운 참여자의 경우에만 만료 체크
           try {
             await axios.post(
               `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants`,
@@ -163,8 +166,16 @@ function Step2Content(): JSX.Element {
               (p) => p.userId === user.id
             );
             if (newParticipant) setMyParticipantId(newParticipant.participantId);
-          } catch (err) {
+          } catch (err: unknown) {
             console.error("참여 생성 실패", err);
+
+            if (axios.isAxiosError(err) && err.response?.status === 400) {
+              const errorCode = err.response?.data?.error?.code;
+
+              if (errorCode === "MEETING_EXPIRED") {
+                setIsExpired(true);
+              }
+            }
           }
         }
       } catch (e) {
@@ -199,7 +210,7 @@ function Step2Content(): JSX.Element {
     );
   }
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-sm text-gray-500">로딩 중...</div>
@@ -212,6 +223,29 @@ function Step2Content(): JSX.Element {
     const currentUrl = `/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}&readonly=true`;
     localStorage.setItem("loginRedirect", currentUrl);
     return <LoginRequired />;
+  }
+
+  // ⭐ 만료된 모임 카드 UI
+  if (isExpired) {
+    return (
+      <main className="flex flex-col items-center justify-center min-h-[60vh] p-6">
+        <div className="max-w-md w-full bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-2xl shadow-md p-8 text-center">
+          <h1 className="text-2xl font-bold mb-4 text-red-600 dark:text-red-400">
+            ⏰ 이미 만료된 모임입니다
+          </h1>
+          <p className="text-gray-700 dark:text-gray-300 mb-6">
+            이 모임은 참여 기한이 지나 <br />
+            새로운 참여자를 받을 수 없습니다.
+          </p>
+          <button
+            onClick={() => router.push("/meetings/new")}
+            className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-500 transition-colors"
+          >
+            모임 리스트로 이동
+          </button>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -277,10 +311,10 @@ function Step2Content(): JSX.Element {
 
       <StepNavigation
         prevHref={prevHref}
-        nextHref={`/meetings/new/step3-result?meetingUuid=${meetingUuid}`}
+        nextHref={`/meetings/new/step3-result?meetingUuid=${meetingUuid}${readonlyParam ? "&readonly=true" : ""}`}
         onNext={async () => {
           if (meetingData?.status === 'COMPLETED') {
-            return `/meetings/new/step3-result?meetingUuid=${meetingUuid}`;
+            return `/meetings/new/step3-result?meetingUuid=${meetingUuid}${readonlyParam ? "&readonly=true" : ""}`;
           }
 
           if (!myParticipantId) {
@@ -302,7 +336,7 @@ function Step2Content(): JSX.Element {
             { withCredentials: true }
           );
 
-          return `/meetings/new/step3-result?meetingUuid=${meetingUuid}`;
+          return `/meetings/new/step3-result?meetingUuid=${meetingUuid}${readonlyParam ? "&readonly=true" : ""}`;
         }}
       />
     </>
