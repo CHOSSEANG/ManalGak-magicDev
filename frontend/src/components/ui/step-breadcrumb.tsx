@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface StepBreadcrumbProps {
   className?: string;
@@ -24,6 +24,8 @@ export function Breadcrumb({
 }: StepBreadcrumbProps) {
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryString = searchParams.toString();
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -74,15 +76,16 @@ export function Breadcrumb({
             <button
               type="button"
               onClick={() => {
-                if (step.status !== "upcoming") {
-                  router.push(
-                    step.id === "01"
-                      ? "/meetings/new/step1-basic"
-                      : step.id === "02"
-                        ? "/meetings/new/step2-meetingmembers"
-                        : "/meetings/new/step3-result",
-                  );
-                }
+                const basePath =
+                  step.id === "01"
+                    ? "/meetings/new/step1-basic"
+                    : step.id === "02"
+                      ? "/meetings/new/step2-meetingmembers"
+                      : "/meetings/new/step3-result";
+
+                router.push(
+                  queryString ? `${basePath}?${queryString}` : basePath,
+                );
               }}
               className={cn(
                 "group flex text-left",
