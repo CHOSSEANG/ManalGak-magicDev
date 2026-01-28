@@ -5,7 +5,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import StepCard from "@/components/meeting/StepCard";
 import { useUser } from "@/context/UserContext";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/button";
 import { CalendarPlus, ChevronDown } from "lucide-react";
 
 

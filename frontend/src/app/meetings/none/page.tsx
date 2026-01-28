@@ -1,7 +1,7 @@
 'use client'; // 반드시 붙이기
 
 import { useRouter } from 'next/navigation';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 
 export default function MeetingCompleteFallbackPage() {
   const router = useRouter();

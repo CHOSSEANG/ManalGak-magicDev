@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/button";
 import JoinMeetingSummary from "@/components/meeting/summary/JoinMeetingSummary";
 
 export default function JoinMeetingPage() {

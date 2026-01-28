@@ -6,7 +6,7 @@ import axios from 'axios'
 import { useParams } from 'next/navigation'
 import StepCard from '@/components/meeting/StepCard'
 import { Badge } from "@/components/ui/badge"
-import Button from '@/components/ui/Button'
+import Button from '@/components/ui/button'
 
 import {
   Users,
