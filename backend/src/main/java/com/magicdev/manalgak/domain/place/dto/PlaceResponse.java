@@ -17,6 +17,8 @@ public class PlaceResponse {
     private Integer totalCount;
     private Coordinate midpoint;
     private boolean fromCache;
+    private boolean expandedSearch;
+    private Integer searchRadius;
 
     @Data
     @Builder
