@@ -693,12 +693,12 @@ useEffect(() => {
 
         {isLoadingPlaces ? (
           <div className="flex items-center justify-center py-20">
-            <div className="text-sm text-[var(--wf-subtle)]">추천 장소를 찾고 있어요...</div>
+            <div className="text-sm text-gray-500">추천 장소를 찾고 있어요...</div>
           </div>
         ) : (
           <>
             {expandedSearchInfo?.expandedSearch && expandedSearchInfo.searchRadius != null && (
-              <div className="text-xs text-[var(--wf-subtle)]">
+              <div className="text-xs text-gray-500 mb-2">
                 더 넓은 범위에서 찾았어요 ({expandedSearchInfo.searchRadius}m)
               </div>
             )}
