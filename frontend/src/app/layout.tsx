@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import Script from "next/script";
 
 import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
 import BottomCTA from "@/components/layout/BottomCTA";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -50,8 +49,7 @@ export default function RootLayout({
                 {children}
               </main>
 
-              {/* Global Footer */}
-              <Footer />
+             
             </div>
           </TooltipProvider>
         </UserProvider>

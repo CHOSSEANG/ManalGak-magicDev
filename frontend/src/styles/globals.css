@@ -38,7 +38,7 @@
   --kakao-yellow-soft: #FFF7CC;
 
   /* ===== Layout ===== */
-  --bottom-cta-height: calc(72px + env(safe-area-inset-bottom));
+  --bottom-cta-height: calc(0px + env(safe-area-inset-bottom));
 
   /* ===== Font ===== */
   --font-sans: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
