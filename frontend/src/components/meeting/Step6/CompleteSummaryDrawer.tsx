@@ -24,7 +24,7 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
     <Drawer open>
       <DrawerContent
         style={{ bottom: `${BOTTOM_NAV_HEIGHT - DRAWER_HANDLE_HEIGHT}px`,}}
-        className="rounded-t-3xl bg-[var(--wf-surface)] z-40">
+        className="rounded-t-3xl bg-[var(--wf-surface)] z-30">
 
         <DrawerHeader className="pb-2">
           <DrawerTitle className="text-left text-base font-semibold">
