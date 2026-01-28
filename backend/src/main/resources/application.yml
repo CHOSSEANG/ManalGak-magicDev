@@ -14,7 +14,7 @@ server:
 api:
   odsay:
     key: ${ODSAY_API_KEY}
-    url: https://api.odsay.com
+    url: https://api.odsay.com/v1/api
   kakao:
     key: ${KAKAO_API_KEY}
     client-secret: ${KAKAO_CLIENT_SECRET}

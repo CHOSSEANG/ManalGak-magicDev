@@ -1,5 +1,6 @@
 package com.magicdev.manalgak.domain.algorithm.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,16 +11,26 @@ import com.magicdev.manalgak.common.exception.ErrorCode;
 import com.magicdev.manalgak.domain.algorithm.Model.Coordinate;
 import com.magicdev.manalgak.domain.algorithm.Model.DistanceInfo;
 import com.magicdev.manalgak.domain.algorithm.Model.WeightedCoordinate;
+import com.magicdev.manalgak.domain.algorithm.dto.OptimalStationDetailResponse;
+import com.magicdev.manalgak.domain.algorithm.dto.StationWithTravelTimes;
+import com.magicdev.manalgak.domain.algorithm.dto.TravelTimeInfo;
+import com.magicdev.manalgak.domain.odsay.service.OdsayService;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantResponse;
 import com.magicdev.manalgak.domain.participant.service.ParticipantService;
+import com.magicdev.manalgak.domain.station.entity.SubwayStation;
+import com.magicdev.manalgak.domain.station.repository.SubwayStationRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MidpointCalculationService {
 
 	private final ParticipantService participantService;
+	private final SubwayStationRepository stationRepository;
+	private final OdsayService odsayService;
 
 	/**
 	 * 미팅 UUID로 참여자들의 중간지점 계산
@@ -52,6 +63,119 @@ public class MidpointCalculationService {
 
 		// 5. 기하학적 중심점 계산
 		return calculateGeometricCenter(coordinates);
+	}
+
+	public Coordinate findOptimalStationByMeetingID(String meetingUuid) {
+		// 🔄 상세 정보 메서드를 호출한 후 좌표만 추출
+		OptimalStationDetailResponse detail = findOptimalStationWithDetails(meetingUuid);
+
+		return new Coordinate(
+			detail.getLatitude(),
+			detail.getLongitude()
+		);
+	}
+
+	/**
+	 * 최적 역 찾기 + 상세 정보 반환 (테스트용)
+	 */
+	public OptimalStationDetailResponse findOptimalStationWithDetails(String meetingUuid) {
+		// 1~5번 기존 코드 동일
+		List<ParticipantResponse> participants = participantService.getAllParticipants(meetingUuid);
+
+		List<ParticipantResponse> participantsWithOrigin = participants.stream()
+			.filter(participant -> participant.getOrigin() != null)
+			.filter(participant -> participant.getOrigin().getLatitude() != null)
+			.filter(participant -> participant.getOrigin().getLongitude() != null)
+			.toList();
+
+		if (participantsWithOrigin.isEmpty()) {
+			throw new BusinessException(ErrorCode.ADDRESS_NO_ORIGIN);
+		}
+
+		List<Coordinate> coordinates = participantsWithOrigin.stream()
+			.map(participant -> new Coordinate(
+				participant.getOrigin().getLatitude(),
+				participant.getOrigin().getLongitude()
+			))
+			.collect(Collectors.toList());
+
+		Coordinate midpoint = calculateGeometricCenter(coordinates);
+		List<SubwayStation> nearbyStations = findNearbyStationsOrderByDistance(midpoint);
+
+		// 🆕 최선의 역 추적
+		SubwayStation bestStation = null;
+		StationWithTravelTimes bestResult = null;
+		int minTimeDifference = Integer.MAX_VALUE;
+
+		for (SubwayStation station : nearbyStations) {
+			StationWithTravelTimes result = calculateTravelTimesForStation(
+				participantsWithOrigin, station
+			);
+
+			// 15분 이내면 바로 채택
+			if (result.getTimeDifference() <= 10) {
+				log.info("✅ 최적 역 발견: {} ({}호선), 소요시간 차이: {}분",
+					station.getStationName(),
+					station.getLineNumber(),
+					result.getTimeDifference());
+
+				return buildOptimalStationResponse(station, result);
+			}
+
+			// 🆕 최선의 역 기록
+			if (result.getTimeDifference() < minTimeDifference) {
+				minTimeDifference = result.getTimeDifference();
+				bestStation = station;
+				bestResult = result;
+			}
+		}
+
+		// 🆕 15분 이내 역은 없지만 최선의 역 반환
+		if (bestStation != null && bestResult != null) {
+			log.warn("⚠️ 10분 이내 역 없음. 최선의 역 선택: {} ({}호선), 차이: {}분",
+				bestStation.getStationName(),
+				bestStation.getLineNumber(),
+				minTimeDifference);
+
+			return buildOptimalStationResponse(bestStation, bestResult);
+		}
+
+		// fallback
+		log.error("❌ 역 선택 실패. 가장 가까운 역 반환");
+		SubwayStation nearestStation = nearbyStations.get(0);
+		StationWithTravelTimes fallbackResult = calculateTravelTimesForStation(
+			participantsWithOrigin, nearestStation
+		);
+
+		return buildOptimalStationResponse(nearestStation, fallbackResult);
+	}
+
+	// 🆕 Helper 메서드 추가 (중복 제거)
+	private OptimalStationDetailResponse buildOptimalStationResponse(
+		SubwayStation station,
+		StationWithTravelTimes result) {
+
+		List<OptimalStationDetailResponse.ParticipantTravelInfo> travelInfos =
+			result.getTravelTimes().stream()
+				.map(tt -> OptimalStationDetailResponse.ParticipantTravelInfo.builder()
+					.nickName(tt.getParticipantName())
+					.originLatitude(tt.getOrigin().getLatitude())
+					.originLongitude(tt.getOrigin().getLongitude())
+					.travelTimeMinutes(tt.getTravelTimeMinutes())
+					.build())
+				.toList();
+
+		return OptimalStationDetailResponse.builder()
+			.stationName(station.getStationName())
+			.lineNumber(station.getLineNumber())
+			.stationCode(station.getStationCode())
+			.latitude(station.getLatitude())
+			.longitude(station.getLongitude())
+			.maxTravelTime(result.getMaxTime())
+			.minTravelTime(result.getMinTime())
+			.timeDifference(result.getTimeDifference())
+			.participantTravelInfos(travelInfos)
+			.build();
 	}
 
 	/**
@@ -196,6 +320,83 @@ public class MidpointCalculationService {
 		}
 
 		return optimalPoint;
+	}
+
+	private List<SubwayStation> findNearbyStationsOrderByDistance(
+		Coordinate midpoint) {
+
+		List<SubwayStation> allStations = stationRepository.findAll();
+
+		// 거리 계산 후 정렬
+		return allStations.stream()
+			.sorted((s1, s2) -> {
+				double d1 = calculateDistance(midpoint,
+					new Coordinate(s1.getLatitude(), s1.getLongitude()));
+				double d2 = calculateDistance(midpoint,
+					new Coordinate(s2.getLatitude(), s2.getLongitude()));
+				return Double.compare(d1, d2);
+			})
+			.limit(20)  // 상위 20개만 (너무 많으면 API 호출 과다)
+			.toList();
+	}
+
+	private StationWithTravelTimes calculateTravelTimesForStation(
+		List<ParticipantResponse> participants,
+		SubwayStation station) {
+
+		Coordinate stationCoord = new Coordinate(
+			station.getLatitude(),
+			station.getLongitude()
+		);
+
+		List<TravelTimeInfo> travelTimes = new ArrayList<>();
+
+		for (ParticipantResponse participant : participants) {
+			Coordinate origin = new Coordinate(
+				participant.getOrigin().getLatitude(),
+				participant.getOrigin().getLongitude()
+			);
+
+			// 🆕 API 호출 사이에 딜레이 추가
+			try {
+				Thread.sleep(200);  // 0.2초 대기
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+
+			// Odsay API 호출
+			Integer travelTime = odsayService.getTravelTime(origin, stationCoord);
+
+			// null이면 경로 없음 -> 큰 값으로 처리하거나 스킵
+			if (travelTime == null) {
+				travelTime = 999; // 경로 없음 표시
+			}
+
+			travelTimes.add(new TravelTimeInfo(
+				participant.getNickName(),
+				origin,
+				travelTime
+			));
+		}
+
+		// 최대/최소 시간 계산
+		Integer maxTime = travelTimes.stream()
+			.mapToInt(TravelTimeInfo::getTravelTimeMinutes)
+			.max()
+			.orElse(0);
+
+		Integer minTime = travelTimes.stream()
+			.mapToInt(TravelTimeInfo::getTravelTimeMinutes)
+			.min()
+			.orElse(0);
+
+		return StationWithTravelTimes.builder()
+			.station(station)
+			.travelTimes(travelTimes)
+			.maxTime(maxTime)
+			.minTime(minTime)
+			.timeDifference(maxTime - minTime)
+			.build();
 	}
 
 }
