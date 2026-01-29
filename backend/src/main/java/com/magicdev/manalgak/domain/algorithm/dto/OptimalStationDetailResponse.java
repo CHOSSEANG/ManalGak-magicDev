@@ -2,6 +2,8 @@ package com.magicdev.manalgak.domain.algorithm.dto;
 
 import java.util.List;
 
+import com.magicdev.manalgak.domain.odsay.dto.OdsayRouteResponse;
+
 import lombok.Builder;
 import lombok.Getter;
 
@@ -25,5 +27,6 @@ public class OptimalStationDetailResponse {
 		private Double originLatitude;
 		private Double originLongitude;
 		private Integer travelTimeMinutes;
+		private List<OdsayRouteResponse.Path> paths;  // 🆕 경로 정보 추가
 	}
 }

@@ -14,6 +14,7 @@ import com.magicdev.manalgak.domain.algorithm.Model.WeightedCoordinate;
 import com.magicdev.manalgak.domain.algorithm.dto.OptimalStationDetailResponse;
 import com.magicdev.manalgak.domain.algorithm.dto.StationWithTravelTimes;
 import com.magicdev.manalgak.domain.algorithm.dto.TravelTimeInfo;
+import com.magicdev.manalgak.domain.odsay.dto.OdsayRouteResponse;
 import com.magicdev.manalgak.domain.odsay.service.OdsayService;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantResponse;
 import com.magicdev.manalgak.domain.participant.service.ParticipantService;
@@ -162,6 +163,7 @@ public class MidpointCalculationService {
 					.originLatitude(tt.getOrigin().getLatitude())
 					.originLongitude(tt.getOrigin().getLongitude())
 					.travelTimeMinutes(tt.getTravelTimeMinutes())
+					.paths(tt.getPaths())  // 🆕 경로 정보 추가
 					.build())
 				.toList();
 
@@ -364,18 +366,26 @@ public class MidpointCalculationService {
 				Thread.currentThread().interrupt();
 			}
 
-			// Odsay API 호출
-			Integer travelTime = odsayService.getTravelTime(origin, stationCoord);
+			// 🔄 경로 정보 포함해서 조회
+			OdsayRouteResponse routeResponse = odsayService.getRouteWithPath(origin, stationCoord);
 
-			// null이면 경로 없음 -> 큰 값으로 처리하거나 스킵
-			if (travelTime == null) {
-				travelTime = 999; // 경로 없음 표시
+			Integer travelTime;
+			List<OdsayRouteResponse.Path> paths;
+
+			if (routeResponse == null || routeResponse.getResult() == null ||
+				routeResponse.getResult().getPath() == null) {
+				travelTime = 999;
+				paths = null;  // 경로 없음
+			} else {
+				travelTime = routeResponse.getResult().getPath().get(0).getInfo().getTotalTime();
+				paths = routeResponse.getResult().getPath();  // 🆕 경로 정보 저장
 			}
 
 			travelTimes.add(new TravelTimeInfo(
 				participant.getNickName(),
 				origin,
-				travelTime
+				travelTime,
+				paths  // 🆕 경로 정보 추가
 			));
 		}
 
