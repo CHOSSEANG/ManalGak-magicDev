@@ -110,7 +110,7 @@ const lng = typeof place?.longitude === 'number' ? place.longitude : null
     }
 
     fetchPlace()
-  }, [meetingUuid, API_BASE_URL])
+  }, [meetingUuid])
 
 
   const updateMeetingStatus = async () => {
