@@ -8,6 +8,7 @@ import axios from "axios";
 import StepNavigation from "@/components/layout/StepNavigation";
 import Address, { TransportMode } from "@/components/meeting/Step2/Step2Address";
 import LoginRequired from "@/components/common/LoginRequired";
+import CompletedMeetingNotice from "@/components/common/CompletedMeetingNotice";
 import { useUser } from "@/context/UserContext";
 
 
@@ -248,6 +249,10 @@ const isOrganizer = meetingData?.organizerId === user?.id;
     const currentUrl = `/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}&readonly=true`;
     localStorage.setItem("loginRedirect", currentUrl);
     return <LoginRequired />;
+  }
+
+  if (meetingData?.status === 'COMPLETED') {
+    return <CompletedMeetingNotice meetingUuid={meetingUuid} />;
   }
 
   // =====================
