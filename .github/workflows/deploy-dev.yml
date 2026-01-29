@@ -189,6 +189,7 @@ jobs:
           
           ODSAY_API_KEY=${{secrets.DEV_ODSAY_API_KEY}}
           OPEN_API_KEY=${{secrets.DEV_OPEN_API_KEY}}
+          OPENWEATHER_API_KEY=${{secrets.DEV_OPENWEATHER_API_KEY}}
           
           JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}
           
