@@ -1,7 +1,7 @@
 // src/app/meetings/new/step4-result/page.tsx
 "use client";
 
-import { Suspense } from "react";
+import { useState,Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 // 기존 로직 컴포넌트 (변경 없음)
@@ -18,12 +18,13 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import CompletedMeetingNotice from "@/components/common/CompletedMeetingNotice";
 
 function Step3Content(): JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const meetingUuid = searchParams.get("meetingUuid");
-
+  const [meetingStatus, setMeetingStatus] = useState<string | null>(null);
   // =====================
   // meetingUuid 없음 (Empty State)
   // =====================
@@ -55,7 +56,9 @@ function Step3Content(): JSX.Element {
       </main>
     );
   }
-
+  if (meetingStatus === 'COMPLETED' && meetingUuid) {
+    return <CompletedMeetingNotice meetingUuid={meetingUuid} />
+  }
   // =====================
   // 정상 화면
   // =====================
@@ -87,7 +90,7 @@ function Step3Content(): JSX.Element {
                 </div>
               }
             >
-              <Step3PlaceList />
+             <Step3PlaceList onStatusLoaded={setMeetingStatus} />
             </Suspense>
           </CardContent>
         </Card>
