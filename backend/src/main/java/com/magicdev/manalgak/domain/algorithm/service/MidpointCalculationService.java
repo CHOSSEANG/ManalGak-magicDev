@@ -1,6 +1,7 @@
 package com.magicdev.manalgak.domain.algorithm.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,8 +13,10 @@ import com.magicdev.manalgak.domain.algorithm.Model.Coordinate;
 import com.magicdev.manalgak.domain.algorithm.Model.DistanceInfo;
 import com.magicdev.manalgak.domain.algorithm.Model.WeightedCoordinate;
 import com.magicdev.manalgak.domain.algorithm.dto.OptimalStationDetailResponse;
+import com.magicdev.manalgak.domain.algorithm.dto.RouteSegment;
 import com.magicdev.manalgak.domain.algorithm.dto.StationWithTravelTimes;
 import com.magicdev.manalgak.domain.algorithm.dto.TravelTimeInfo;
+import com.magicdev.manalgak.domain.odsay.dto.OdsayRouteResponse;
 import com.magicdev.manalgak.domain.odsay.service.OdsayService;
 import com.magicdev.manalgak.domain.participant.dto.ParticipantResponse;
 import com.magicdev.manalgak.domain.participant.service.ParticipantService;
@@ -162,6 +165,8 @@ public class MidpointCalculationService {
 					.originLatitude(tt.getOrigin().getLatitude())
 					.originLongitude(tt.getOrigin().getLongitude())
 					.travelTimeMinutes(tt.getTravelTimeMinutes())
+					// .paths(tt.getPaths())  // 🆕 경로 정보 추가
+					.routeSegments(convertToRouteSegments(tt.getPaths()))
 					.build())
 				.toList();
 
@@ -364,18 +369,26 @@ public class MidpointCalculationService {
 				Thread.currentThread().interrupt();
 			}
 
-			// Odsay API 호출
-			Integer travelTime = odsayService.getTravelTime(origin, stationCoord);
+			// 🔄 경로 정보 포함해서 조회
+			OdsayRouteResponse routeResponse = odsayService.getRouteWithPath(origin, stationCoord);
 
-			// null이면 경로 없음 -> 큰 값으로 처리하거나 스킵
-			if (travelTime == null) {
-				travelTime = 999; // 경로 없음 표시
+			Integer travelTime;
+			List<OdsayRouteResponse.Path> paths;
+
+			if (routeResponse == null || routeResponse.getResult() == null ||
+				routeResponse.getResult().getPath() == null) {
+				travelTime = 999;
+				paths = null;  // 경로 없음
+			} else {
+				travelTime = routeResponse.getResult().getPath().get(0).getInfo().getTotalTime();
+				paths = routeResponse.getResult().getPath();  // 🆕 경로 정보 저장
 			}
 
 			travelTimes.add(new TravelTimeInfo(
 				participant.getNickName(),
 				origin,
-				travelTime
+				travelTime,
+				paths  // 🆕 경로 정보 추가
 			));
 		}
 
@@ -399,4 +412,70 @@ public class MidpointCalculationService {
 			.build();
 	}
 
+	/**
+	 * ODsay Path를 RouteSegment로 변환
+	 */
+	private List<RouteSegment> convertToRouteSegments(List<OdsayRouteResponse.Path> paths) {
+		if (paths == null || paths.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		List<RouteSegment> segments = new ArrayList<>();
+
+		// 첫 번째 경로만 사용 (가장 최적)
+		OdsayRouteResponse.Path optimalPath = paths.get(0);
+
+		if (optimalPath.getSubPath() == null) {
+			return Collections.emptyList();
+		}
+
+		for (OdsayRouteResponse.SubPath subPath : optimalPath.getSubPath()) {
+			String type;
+			List<Coordinate> coordinates = new ArrayList<>();
+			String lineName = null;
+			Integer lineNumber = null;
+
+			// 교통수단 타입 결정
+			switch (subPath.getTrafficType()) {
+				case 1: // 지하철
+					type = "SUBWAY";
+					if (subPath.getLane() != null && !subPath.getLane().isEmpty()) {
+						lineName = subPath.getLane().get(0).getName();
+						lineNumber = subPath.getLane().get(0).getSubwayCode();
+					}
+					break;
+				case 2: // 버스
+					type = "BUS";
+					if (subPath.getLane() != null && !subPath.getLane().isEmpty()) {
+						lineName = subPath.getLane().get(0).getBusNo();
+					}
+					break;
+				case 3: // 도보
+					type = "WALK";
+					break;
+				default:
+					continue; // 알 수 없는 타입은 스킵
+			}
+
+			// 좌표 추출
+			if (subPath.getPassStopList() != null &&
+				subPath.getPassStopList().getStations() != null) {
+				for (OdsayRouteResponse.Station station : subPath.getPassStopList().getStations()) {
+					coordinates.add(new Coordinate(station.getY(), station.getX()));
+				}
+			}
+
+			// RouteSegment 생성
+			segments.add(RouteSegment.builder()
+				.type(type)
+				.coordinates(coordinates)
+				.lineName(lineName)
+				.lineNumber(lineNumber)
+				.distance(subPath.getDistance())
+				.sectionTime(subPath.getSectionTime())
+				.build());
+		}
+
+		return segments;
+	}
 }

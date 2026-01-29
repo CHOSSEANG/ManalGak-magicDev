@@ -165,4 +165,53 @@ public class OdsayService {
 			return null;
 		}
 	}
+
+	/**
+	 * 출발지 좌표 -> 도착지 좌표 경로 전체 정보 조회
+	 * @param origin 출발지 좌표
+	 * @param destination 도착지 좌표
+	 * @return 경로 응답 (경로 없으면 null)
+	 */
+	public OdsayRouteResponse getRouteWithPath(Coordinate origin, Coordinate destination) {
+		try {
+			GetRouteRequest request = GetRouteRequest.builder()
+				.startX(origin.getLongitude())
+				.startY(origin.getLatitude())
+				.endX(destination.getLongitude())
+				.endY(destination.getLatitude())
+				.build();
+
+			OdsayRouteResponse response = searchRoute(request);
+
+			// 에러 체크
+			if (response.getError() != null) {
+				log.warn("⚠️ ODsay API 에러 - code: {}, msg: {}",
+					response.getError().getCode(),
+					response.getError().getMsg());
+				return null;
+			}
+
+			// 응답 검증
+			if (response == null || response.getResult() == null) {
+				log.warn("ODsay API 응답이 null입니다.");
+				return null;
+			}
+
+			if (response.getResult().getPath() == null ||
+				response.getResult().getPath().isEmpty()) {
+				log.warn("경로를 찾을 수 없습니다. origin: {}, destination: {}",
+					origin, destination);
+				return null;
+			}
+
+			log.info("경로 조회 성공 (출발: {}, 도착: {})", origin, destination);
+
+			return response;
+
+		} catch (Exception e) {
+			log.error("경로 조회 중 오류 발생. origin: {}, destination: {}",
+				origin, destination, e);
+			return null;
+		}
+	}
 }
