@@ -457,13 +457,12 @@ public class PlaceService {
      */
     @Transactional
     public void invalidatePlaceCache(String meetingUuid) {
-        // 1. Redis 캐시 삭제 (모든 purpose/limit 조합)
+        // 1. Redis 캐시 삭제 (SCAN 사용 - 논블로킹 방식)
         String pattern = CacheKeys.meetingPlacesPattern(meetingUuid);
         try {
-            var keys = redisTemplate.keys(pattern);
-            if (keys != null && !keys.isEmpty()) {
-                redisTemplate.delete(keys);
-                log.info("Redis 캐시 삭제: meetingUuid={}, 삭제된 키 수={}", meetingUuid, keys.size());
+            int deletedCount = scanAndDelete(pattern);
+            if (deletedCount > 0) {
+                log.info("Redis 캐시 삭제: meetingUuid={}, 삭제된 키 수={}", meetingUuid, deletedCount);
             }
         } catch (Exception e) {
             log.warn("Redis 캐시 삭제 실패: meetingUuid={}, error={}", meetingUuid, e.getMessage());
@@ -472,5 +471,25 @@ public class PlaceService {
         // 2. DB 캐시 삭제 (PlaceCandidate)
         placeCandidateRepository.deleteByMeetingMeetingUuid(meetingUuid);
         log.info("PlaceCandidate 삭제: meetingUuid={}", meetingUuid);
+    }
+
+    /**
+     * SCAN 명령을 사용하여 패턴에 맞는 키 삭제 (논블로킹)
+     */
+    private int scanAndDelete(String pattern) {
+        int deletedCount = 0;
+        var scanOptions = org.springframework.data.redis.core.ScanOptions.scanOptions()
+                .match(pattern)
+                .count(100)
+                .build();
+
+        try (var cursor = redisTemplate.scan(scanOptions)) {
+            while (cursor.hasNext()) {
+                String key = (String) cursor.next();
+                redisTemplate.delete(key);
+                deletedCount++;
+            }
+        }
+        return deletedCount;
     }
 }
