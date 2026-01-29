@@ -18,16 +18,17 @@ interface Props {
 
 export default function CompleteSummaryDrawer({ meeting }: Props) {
   const BOTTOM_NAV_HEIGHT = 72
-  const DRAWER_HANDLE_HEIGHT = 15
+  const DRAWER_HANDLE_HEIGHT = 28
   
   return (
     <Drawer open>
       <DrawerContent
-        style={{ bottom: `${BOTTOM_NAV_HEIGHT - DRAWER_HANDLE_HEIGHT}px`,}}
-        className="rounded-t-3xl bg-[var(--wf-surface)] z-40">
+        // 하단 네비와 겹치지 않도록 바닥 여백 확보
+        style={{ bottom: `${BOTTOM_NAV_HEIGHT - DRAWER_HANDLE_HEIGHT}px` }}
+        className="z-20 rounded-t-3xl bg-[var(--bg)]">
 
         <DrawerHeader className="pb-2">
-          <DrawerTitle className="text-left text-base font-semibold">
+          <DrawerTitle className="text-left text-base font-semibold text-[var(--text)]">
             확정 장소 정보
           </DrawerTitle>
           {/* 🔑 접근성용 설명 (화면에는 안 보임) */}
@@ -37,7 +38,7 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
         </DrawerHeader>
 
         {/* 실제 카드 내용 */}
-        <div className="overflow-y-auto px-4 pb-6">
+        <div className="overflow-y-auto px-4 pb-[calc(24px+env(safe-area-inset-bottom))]">
           <CompleteSummaryCard meeting={meeting} />
         </div>
       </DrawerContent>

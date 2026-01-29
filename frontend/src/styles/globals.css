@@ -4,10 +4,55 @@
 @tailwind components;
 @tailwind utilities;
 
+
+:root {
+
+/* ===============================
+   Global Semantic Design Tokens
+   =============================== */
+  /* ===== Background ===== */
+  --bg: #ffffff;                 /* 기존 --wf-bg */
+  --bg-soft: #F9FAFB;            /* 기존 --background */
+
+  /* ===== Border ===== */
+  --border: #E5E7EB;             /* 기존 --border */
+
+  /* ===== Text ===== */
+  --text: #1F2937;               /* 기존 --text-primary */
+  --text-subtle: #6B7280;        /* 기존 --text-secondary */
+
+  /* ===== Primary (Brand) ===== */
+  --primary: #3B6FD8;            /* 기존 --primary */
+  --primary-base: #a1cff4;
+  --primary-soft: #e9f1f8;  
+  --primary-foreground: #FFFFFF;/* 기존 --text-inverse */
+
+  /* ===== Neutral ===== */
+  --neutral: #6B7280;            /* 기존 --neutral */
+  --neutral-soft: #e9eff0;       /* 기존 --neutral-soft */
+
+  /* ===== Danger ===== */
+  --danger: #DC2626;             /* 기존 --danger */
+  --danger-soft: #FEE2E2;        /* 기존 --danger-soft */
+
+  /* ===== Brand Extension (유지) ===== */
+  --kakao-yellow: #FEE500;
+  --kakao-yellow-soft: #FFF7CC;
+
+  /* ===== Layout ===== */
+  --bottom-cta-height: calc(0px + env(safe-area-inset-bottom));
+
+  /* ===== Font ===== */
+  --font-sans: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
+
+
+
+
+
+
 /* ===============================
    Wireframe Design Tokens
    =============================== */
-:root {
   --wf-font: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
 
   /* Backgrounds */
@@ -21,15 +66,18 @@
 --wf-highlight: #FEE500; /* Kakao Yellow (Primary) */
 --wf-accent: #377eea;    /* Kakao Brown (Text/Icon/Active) */
 --wf-overlay: rgba(219, 93, 93, 0.35);  /* 선택/hover용 연톤 배경 (카카오 옐로우를 연하게) */
---wf-highlight-soft: rgba(31, 114, 247, 0.22);
+
+--wf-highlight-soft: #f5e559;
+--wf-accent-soft: #a1cff4;    /* Kakao Brown (Text/Icon/Active) */
 
 --wf-highlight-strong: #20469f;
 --wf-highlight-strong2: #511a6e;
 
 /* Warning */
-  --wf-warning: #cf4a22;            /* 기본 */
-  --wf-warning-foreground: 38 90% 20%; /* 텍스트 */
-  --wf-warning-soft: 38 100% 96%;      /* 배경 */
+  --warning: #e2704d;            /* 기본 */
+  --warning-soft: #e9a48e;       /* 연함 */
+  --warning-foreground: 38 90% 20%; /* 텍스트 */
+  --warning-soft: 38 100% 96%;      /* 배경 */
 
   /* Destructive */
   --wf-danger: 0 84% 60%;
@@ -41,10 +89,15 @@
   --wf-text: #212121;       /* 거의 블랙 */
   --wf-subtle: #6f6f6f;     /* 보조 텍스트 */
 
-  /* Status */
-  --bottom-cta-height: calc(72px + env(safe-area-inset-bottom));
+
 }
- 
+
+/* 
+.dark {
+} */
+
+
+
 /* ===============================
    Base Layout
    =============================== */
@@ -69,24 +122,12 @@ body {
   :root {
     --background: 0 0% 100%;
     --foreground: 20 14.3% 4.1%;
-
     --border: 20 5.9% 90%;
     --input: 20 5.9% 90%;
     --ring: 20 14.3% 4.1%;
-
-    --muted: 60 4.8% 95.9%;
-    --muted-foreground: 25 5.3% 44.7%;
-  }
-
-  .dark {
-    --background: 20 14.3% 4.1%;
-    --foreground: 60 9.1% 97.8%;
-
-    --border: 12 6.5% 15.1%;
-    --input: 12 6.5% 15.1%;
-    --ring: 24 5.7% 82.9%;
   }
 }
+
 
 
 /* ===== Global Layout Container ===== */

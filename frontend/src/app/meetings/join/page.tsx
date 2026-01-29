@@ -1,7 +1,10 @@
+// src/app/meetings/[meetingId]/join/page.tsx
 "use client";
 
 import { useParams } from "next/navigation";
-import Button from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import JoinMeetingSummary from "@/components/meeting/summary/JoinMeetingSummary";
 
 export default function JoinMeetingPage() {
@@ -24,28 +27,46 @@ export default function JoinMeetingPage() {
 
   return (
     <>
-      <main className="space-y-6 pb-28">
-        {/* 상단 타이틀 영역 */}
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">모임 참여하기</h1>
-          <p className="text-sm text-[var(--wf-subtle)]">
+      {/* Main Content */}
+      <main className="mx-auto w-full max-w-md space-y-6 px-4 pb-36">
+        {/* Page Header */}
+        <section className="space-y-2">
+          <h1 className="text-2xl font-semibold text-[var(--text)]">
+            모임 참여하기
+          </h1>
+          <p className="text-sm text-[var(--text-subtle)]">
             초대받은 모임의 정보를 확인하고 참여를 진행해 주세요.
           </p>
-        </div>
+        </section>
 
-        <JoinMeetingSummary meetingId={meetingId} />
+        {/* Meeting Summary */}
+        <Card className="border-[var(--border)] bg-[var(--bg)]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base text-[var(--text)]">
+              모임 정보
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <JoinMeetingSummary meetingId={meetingId} />
+          </CardContent>
+        </Card>
       </main>
 
-      {/* 하단 고정 CTA */}
-      {/* 로그인 */}
-      <div className="flex flex-col gap-3">
-        <Button type="button" onClick={handleKakaoLogin}>
-          카카오 로그인
-        </Button>
+      {/* Bottom Fixed CTA */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--border)] bg-[var(--bg)] px-4 py-4">
+        <div className="mx-auto w-full max-w-md space-y-2">
+          <Button
+            type="button"
+            onClick={handleKakaoLogin}
+            className="w-full"
+          >
+            카카오 로그인
+          </Button>
 
-        <p className="text-xs text-[var(--wf-subtle)]">
-          카카오 계정으로 로그인
-        </p>
+          <p className="text-center text-xs text-[var(--text-subtle)]">
+            카카오 계정으로 로그인 후 모임에 참여할 수 있습니다.
+          </p>
+        </div>
       </div>
     </>
   );

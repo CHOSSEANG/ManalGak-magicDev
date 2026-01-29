@@ -7,34 +7,37 @@ import StepNavigation from "@/components/layout/StepNavigation";
 import Step1Form, { Step1FormRef } from "@/components/meeting/Step1/Step1Form";
 import { useUser } from "@/context/UserContext";
 import LoginRequired from "@/components/common/LoginRequired";
-// useSearchParams를 사용하는 컴포넌트를 분리
+import { Skeleton } from "@/components/ui/skeleton";
+
 function Step1Content() {
   const { user, loading } = useUser();
   const formRef = useRef<Step1FormRef>(null);
   const searchParams = useSearchParams();
   const readonly = searchParams.get("readonly") === "true";
-
   const meetingUuid = searchParams.get("meetingUuid") || undefined;
 
-    // ✅ 로딩 중일 때
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-sm text-gray-500">로딩 중...</div>
+  if (loading) {
+    return (
+      <main className="min-h-[100dvh] bg-[var(--bg)] ">
+        <div className="mx-auto max-w-3xl space-y-4">
+          <Skeleton className="h-6 w-40 bg-[var(--neutral-soft)]" />
+          <Skeleton className="h-4 w-72 bg-[var(--neutral-soft)]" />
+          <Skeleton className="h-10 w-full bg-[var(--neutral-soft)]" />
+          <Skeleton className="h-40 w-full bg-[var(--neutral-soft)]" />
         </div>
-      )
-}
+      </main>
+    );
+  }
+
   if (!user) {
     return <LoginRequired />;
   }
 
   const handleNext = async () => {
     if (readonly) {
-      // 참여자: 수정 API 호출 X
-      return `/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}&readonly=true`;
+      return `/meetings/new/step2-members?meetingUuid=${meetingUuid}&readonly=true`;
     }
 
-    // 모임장: 기존 로직 그대로
     if (!formRef.current) throw new Error("Form ref not found");
 
     if (!formRef.current.isValid()) {
@@ -43,48 +46,57 @@ function Step1Content() {
     }
 
     const resultMeetingUuid = await formRef.current.createOrUpdateMeeting();
-
     if (!resultMeetingUuid) {
       throw new Error("Meeting creation/update failed");
     }
 
-    return `/meetings/new/step2-meetingmembers?meetingUuid=${resultMeetingUuid}`;
+    return `/meetings/new/step2-members?meetingUuid=${resultMeetingUuid}`;
   };
 
-  return (
-    <>
-      <main className="space-y-6 pb-24">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">
-            Step 1. 기본 정보
-          </h1>
-          <p className="text-sm text-[var(--wf-subtle)]">
-            모임의 기본 정보와 목적, 일정을 한 번에 설정해 주세요. 선택한 정보에
-            맞춰 최적의 장소를 추천해 드립니다.
+
+    return (
+  <>
+    <main className="bg-[var(--bg)]">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <section className="space-y-4 pb-24">
+          <Step1Form
+            ref={formRef}
+            meetingUuid={meetingUuid}
+            readonly={readonly}
+          />
+
+          <p className="text-sm text-[var(--text-subtle)] text-center">
+            입력 완료 후 다음 단계로 이동하세요.
           </p>
-        </div>
+        </section>
+      </div>
+    </main>
 
-        <Step1Form ref={formRef} meetingUuid={meetingUuid} readonly={readonly} />
-        <StepNavigation
-        prevHref="/meetings/new"
-        nextHref="#"
-        onNext={handleNext}
-      />
-      </main>
+    <StepNavigation
+      prevHref="/meetings/new"
+      nextHref="/meetings/new/step2-members"
+      onNext={handleNext}
+    />
+  </>
+);
 
-      
-    </>
-  );
+      {/* ===== Step Navigation ===== */}
+
 }
 
-// Suspense로 감싸서 export
 export default function Step1BasicPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center py-20">
-        <div className="text-sm text-gray-500">로딩 중...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <main className="bg-[var(--bg)] px-0 py-6">
+          <div className="mx-auto max-w-3xl space-y-4">
+            <Skeleton className="h-6 w-40 bg-[var(--neutral-soft)]" />
+            <Skeleton className="h-4 w-72 bg-[var(--neutral-soft)]" />
+            <Skeleton className="h-10 w-full bg-[var(--neutral-soft)]" />
+          </div>
+        </main>
+      }
+    >
       <Step1Content />
     </Suspense>
   );

@@ -13,6 +13,10 @@ import {
   Share2,
 } from "lucide-react";
 
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+
 export default function HomeClient() {
   const router = useRouter();
 
@@ -41,72 +45,73 @@ export default function HomeClient() {
     router.push("/meetings/new");
   };
 
-
   return (
-    <div className="relative min-h-screen bg-white">
-      <main className="pb-32">
-        {/* ================= Hero ================= */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#265AFC] via-[#4B7BFF] to-[#265AFC] px-6 py-20 text-white md:py-32">
-          <div className="pointer-events-none absolute inset-0 opacity-10">
-            <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[--wf-highlight] blur-3xl" />
-            <div className="absolute -bottom-12 -left-12 h-64 w-64 rounded-full bg-[#FFDA38] blur-3xl" />
-          </div>
+    <div className="relative min-h-screen bg-[var(--bg)] text-[var(--text)]">
+      <main className="pb-32 space-y-24">
 
+        {/* ================= Hero ================= */}
+        <section className="relative overflow-hidden px-6 py-20 md:py-32">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="relative mx-auto max-w-4xl text-center"
+            className="mx-auto max-w-4xl text-center space-y-8"
           >
-            <div className="mb-6 inline-block rounded-full bg-white/20 px-4 py-2 backdrop-blur-sm">
+            <span className="inline-block rounded-full bg-[var(--neutral-soft)] px-4 py-2 text-sm text-[var(--text-subtle)]">
               📍 스마트한 약속 장소 추천
-            </div>
+            </span>
 
-            <h1 className="mb-6 text-4xl font-bold md:text-6xl">
+            <h1 className="text-4xl font-bold md:text-6xl">
               어디서 만날지,
               <br />
-              <span className="text-[#FFDA38]">아직도 고민해?</span>
+              <span className="text-[var(--primary)]">
+                아직도 고민해?
+              </span>
             </h1>
 
-            <p className="mb-10 text-lg text-white/90 md:text-xl">
+            <p className="text-lg text-[var(--text-subtle)] md:text-xl">
               만날각이 모두에게 공평한
               <br className="md:hidden" /> 중간장소를 추천해드립니다
             </p>
 
-            <motion.button
-              onClick={handleStartClick}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 rounded-full bg-[#FFDA38] px-8 py-4 font-semibold text-[#00006A] shadow-lg"
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
             >
-              중간장소 찾기
-              <ArrowRight size={20} />
-            </motion.button>
+              <Button
+                onClick={handleStartClick}
+                size="lg"
+                className="rounded-full px-8"
+              >
+                중간장소 찾기
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </motion.div>
           </motion.div>
         </section>
 
         {/* ================= Problem ================= */}
-        <section className="px-6 py-16 md:py-24">
-          <div className="mx-auto max-w-6xl">
-            <h2 className="mb-12 text-center text-3xl font-bold text-[#00006A]">
+        <section className="px-6">
+          <div className="mx-auto max-w-6xl space-y-12">
+            <h2 className="text-center text-3xl font-bold">
               약속 잡기, 왜 이렇게 힘들까요?
             </h2>
 
             <div className="grid gap-6 md:grid-cols-3">
               {[
                 {
-                  icon: <Users size={32} />,
+                  icon: <Users size={28} />,
                   title: "항상 누군가는 멀어요",
                   desc: "각자 사는 곳이 다 달라서",
                 },
                 {
-                  icon: <Clock size={32} />,
+                  icon: <Clock size={28} />,
                   title: "장소 정하다 시간 다 가요",
                   desc: "단톡방은 계속 울리고",
                 },
                 {
-                  icon: <Frown size={32} />,
+                  icon: <Frown size={28} />,
                   title: "결국 늘 같은 곳…",
                   desc: "새로운 곳을 찾기 어려워요",
                 },
@@ -117,11 +122,18 @@ export default function HomeClient() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="rounded-3xl border bg-white p-8 shadow-sm"
                 >
-                  <div className="mb-4 text-[#265AFC]">{item.icon}</div>
-                  <h3 className="mb-2 text-xl font-semibold">{item.title}</h3>
-                  <p className="text-gray-500">{item.desc}</p>
+                  <Card className="h-full p-8 space-y-3">
+                    <div className="text-[var(--primary)]">
+                      {item.icon}
+                    </div>
+                    <h3 className="text-xl font-semibold">
+                      {item.title}
+                    </h3>
+                    <p className="text-[var(--text-subtle)]">
+                      {item.desc}
+                    </p>
+                  </Card>
                 </motion.div>
               ))}
             </div>
@@ -129,9 +141,9 @@ export default function HomeClient() {
         </section>
 
         {/* ================= Solution ================= */}
-        <section className="bg-[#FFFBF0] px-6 py-16 md:py-24">
-          <div className="mx-auto max-w-6xl text-center">
-            <h2 className="mb-12 text-3xl font-bold text-[#00006A]">
+        <section className="px-6 bg-[var(--bg-soft)] py-20">
+          <div className="mx-auto max-w-6xl text-center space-y-12">
+            <h2 className="text-3xl font-bold">
               만날각은 이렇게 해결합니다
             </h2>
 
@@ -153,70 +165,83 @@ export default function HomeClient() {
                   desc: "카카오톡으로 바로 공유",
                 },
               ].map((item, i) => (
-                <div
-                  key={i}
-                  className="rounded-3xl bg-white p-8 shadow-sm"
-                >
-                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#265AFC]/10 text-[#265AFC]">
+                <Card key={i} className="p-8 space-y-3">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--neutral-soft)] text-[var(--primary)]">
                     {item.icon}
                   </div>
-                  <h3 className="mb-2 text-xl font-semibold">{item.title}</h3>
-                  <p className="text-gray-600">{item.desc}</p>
-                </div>
+                  <h3 className="text-xl font-semibold">
+                    {item.title}
+                  </h3>
+                  <p className="text-[var(--text-subtle)]">
+                    {item.desc}
+                  </p>
+                </Card>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="px-6 py-20 bg-gray-50">
-          <div className="mx-auto max-w-5xl text-center space-y-12">
-            <h2 className="text-3xl font-bold">이럴 때 특히 좋아요</h2>
+        {/* ================= Use Cases ================= */}
+        <section className="px-6">
+          <div className="mx-auto max-w-5xl space-y-12 text-center">
+            <h2 className="text-3xl font-bold">
+              이럴 때 특히 좋아요
+            </h2>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="rounded-2xl bg-white p-6 shadow-sm">
-                👩‍👩‍👧‍👦<br/>
-                친구 모임
-              </div>
-              <div className="rounded-2xl bg-white p-6 shadow-sm">
-                💼<br/>
-                팀 회식
-              </div>
-              <div className="rounded-2xl bg-white p-6 shadow-sm">
-                💑<br/>
-                데이트
-              </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              {["친구 모임", "팀 회식", "데이트"].map((label) => (
+                <Card key={label} className="p-6">
+                  <span className="text-lg font-semibold">
+                    {label}
+                  </span>
+                </Card>
+              ))}
             </div>
           </div>
         </section>
-        
-        <section className="px-6 py-20">
-          <div className="mx-auto max-w-4xl space-y-6">
-            <h2 className="text-3xl font-bold text-center">자주 묻는 질문</h2>
 
-            <details className="rounded-xl border p-4">
-              <summary className="font-semibold">회원가입이 필요한가요?</summary>
-              <p className="mt-2 text-gray-600">카카오 로그인으로 바로 사용 가능합니다.</p>
-            </details>
-            
-          </div>
-        </section>
-        {/* ================= Final CTA ================= */}
-        <section className="px-6 py-16">
-          <div className="mx-auto max-w-3xl rounded-3xl bg-gradient-to-br from-[#265AFC] to-[#4B7BFF] p-12 text-center text-white">
-            <h2 className="mb-4 text-3xl font-bold">
-              지금 바로 시작해보세요
+        {/* ================= FAQ ================= */}
+        <section className="px-6">
+          <div className="mx-auto max-w-4xl space-y-6">
+            <h2 className="text-center text-3xl font-bold">
+              자주 묻는 질문
             </h2>
-            <p className="mb-8 text-white/90">
-              더 이상 약속 장소로 고민하지 마세요
-            </p>
-            <button
-              onClick={handleKakaoLogin}
-              className="rounded-full bg-[#FFDA38] px-8 py-4 font-semibold text-[#00006A]"
-            >
-              카카오로 3초만에 시작하기
-            </button>
+
+            <Card className="p-4">
+              <details>
+                <summary className="cursor-pointer font-semibold">
+                  회원가입이 필요한가요?
+                </summary>
+                <Separator className="my-2" />
+                <p className="text-[var(--text-subtle)]">
+                  카카오 로그인으로 바로 사용 가능합니다.
+                </p>
+              </details>
+            </Card>
           </div>
         </section>
+
+        {/* ================= Final CTA ================= */}
+        <section className="px-6">
+          <div className="mx-auto max-w-3xl">
+            <Card className="p-12 text-center space-y-6">
+              <h2 className="text-3xl font-bold">
+                지금 바로 시작해보세요
+              </h2>
+              <p className="text-[var(--text-subtle)]">
+                더 이상 약속 장소로 고민하지 마세요
+              </p>
+              <Button
+                size="lg"
+                className="rounded-full"
+                onClick={handleKakaoLogin}
+              >
+                카카오로 3초만에 시작하기
+              </Button>
+            </Card>
+          </div>
+        </section>
+
       </main>
     </div>
   );

@@ -1,22 +1,22 @@
 // src/components/layout/BottomTabNav.tsx
-'use client'
+"use client";
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { Home, PlusCircle, MapPin, CheckCircle, Users } from 'lucide-react'
-import clsx from 'clsx'
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Home, PlusCircle, CheckCircle, UserPen, SquareMousePointer } from "lucide-react";
+import clsx from "clsx";
 
 export default function BottomTabNav() {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const readonlyParam = searchParams.get('readonly') === 'true'
 
   let meetingUuid = searchParams.get('meetingUuid')
 
   if (!meetingUuid) {
-    const match = pathname.match(/\/meetings\/([^/]+)\/complete/)
-    meetingUuid = match?.[1] ?? null
+    const match = pathname.match(/\/meetings\/([^/]+)\/complete/);
+    meetingUuid = match?.[1] ?? null;
   }
 
   const buildHref = (basePath: string) => {
@@ -30,22 +30,25 @@ export default function BottomTabNav() {
   }
 
   const TABS = [
-    { label: '모임리스트', href: '/meetings/new', icon: Home },
+    { label: "홈", href: "/", icon: Home },
+    { label: "모임리스트", href: "/meetings/new", icon: SquareMousePointer },
     {
       label: '모임생성',
       href: buildHref('/meetings/new/step1-basic'),
       icon: PlusCircle,
     },
-    {
-      label: '참여자설정',
-      href: buildHref('/meetings/new/step2-meetingmembers'),
-      icon: Users,
-    },
-    {
-      label: '추천장소',
-      href: buildHref('/meetings/new/step3-result'),
-      icon: MapPin,
-    },
+    // {
+    //   label: "확정",
+    //   href: meetingUuid ? `/meetings/${meetingUuid}/complete` : `/meetings/none`,
+    //   label: '참여자설정',
+    //   href: buildHref('/meetings/new/step2-meetingmembers'),
+    //   icon: Users,
+    // },
+    // {
+    //   label: '추천장소',
+    //   href: buildHref('/meetings/new/step3-result'),
+    //   icon: MapPin,
+    // },
     {
       label: '확정내용',
       href: meetingUuid
@@ -53,47 +56,94 @@ export default function BottomTabNav() {
         : `/meetings/none`,
       icon: CheckCircle,
     },
-  ]
+    { label: "마이페이지", href: "/my", icon: UserPen },
+  ];
 
   return (
-      <nav className="flex w-full items-center justify-between bg-[var(--wf-bg-soft)]">
-        {TABS.map(({ label, href, icon: Icon }) => {
-          const isActive = pathname.startsWith(href.split('?')[0])
+    <nav
+      aria-label="하단 탭 네비게이션"
+      className="flex h-12 w-full items-center justify-between bg-[var(--bg)]"
+    >
+      {TABS.map(({ label, href, icon: Icon }) => {
+        const hrefPath = href.split("?")[0];
 
-          return (
-            <button
-              key={label}
-              onClick={() => router.push(href)}
-              className="group flex flex-1 flex-col items-center gap-1 py-2"
+        let isActive = false;
+
+        // ✅ 모임리스트는 정확히 /meetings/new 일 때만 활성
+        if (hrefPath === "/meetings/new") {
+          isActive = pathname === "/meetings/new";
+        } else {
+          isActive = pathname.startsWith(hrefPath);
+        }
+
+        return (
+          <button
+            key={label}
+            type="button"
+            onClick={() => router.push(href)}
+            aria-current={isActive ? "page" : undefined}
+            className="flex flex-1 flex-col items-center justify-center"
+          >
+            <Icon
+              className={clsx(
+                "h-5 w-5",
+                isActive
+                  ? "text-[var(--primary)]"
+                  : "text-[var(--text-subtle)]"
+              )}
+            />
+
+            <span
+              className={clsx(
+                "mt-0.5 text-xs leading-none",
+                isActive
+                 ? "font-bold text-[var(--primary)]"
+                 : "text-[var(--text-subtle)]"
+              )}
             >
-              <div
-                className={clsx(
-                  'flex h-10 w-10 items-center justify-center rounded-full',
-                  isActive && 'bg-[var(--wf-highlight)]'
-                )}
-              >
-                <Icon
-                  className={clsx(
-                    'h-5 w-5',
-                    isActive
-                      ? 'text-[var(--wf-accent)]'
-                      : 'text-[var(--wf-subtle)]'
-                  )}
-                />
-              </div>
-              <span
-                className={clsx(
-                  'text-xs',
-                  isActive
-                    ? 'font-semibold'
-                    : 'text-[var(--wf-subtle)]'
-                )}
-              >
-                {label}
-              </span>
-            </button>
-          )
-        })}
-      </nav>
-  )
+              {label}
+            </span>
+
+            {/* 
+            하단 active indicator 제거
+            {isActive && (
+              <span className="absolute bottom-0 h-[2px] w-6 rounded-full bg-[var(--primary)]" />
+            )} 
+            */}
+          </button>
+        );
+      })}
+    </nav>
+  );
 }
+//               <div
+//                 className={clsx(
+//                   'flex h-10 w-10 items-center justify-center rounded-full',
+//                   isActive && 'bg-[var(--wf-highlight)]'
+//                 )}
+//               >
+//                 <Icon
+//                   className={clsx(
+//                     'h-5 w-5',
+//                     isActive
+//                       ? 'text-[var(--wf-accent)]'
+//                       : 'text-[var(--wf-subtle)]'
+//                   )}
+//                 />
+//               </div>
+//               <span
+//                 className={clsx(
+//                   'text-xs',
+//                   isActive
+//                     ? 'font-semibold'
+//                     : 'text-[var(--wf-subtle)]'
+//                 )}
+//               >
+//                 {label}
+//               </span>
+//             </button>
+//           )
+//         })}
+//       </nav>
+//   )
+// }

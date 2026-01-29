@@ -1,3 +1,4 @@
+// src/components/map/Step2Address.tsx
 "use client";
 
 import { useState } from "react";
@@ -5,6 +6,10 @@ import { Bus, Car, Bookmark } from "lucide-react";
 import WireframeModal from "@/components/ui/WireframeModal";
 import AddressSearch from "@/components/map/AddressSearch";
 import BookmarkAddressModal from "@/components/map/BookmarkAddressModal";
+
+// shadcn/ui
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 type AddressType = "origin" | "return";
 export type TransportMode = "PUBLIC" | "CAR";
@@ -46,82 +51,114 @@ export default function Step2Address({
     setActiveAddressType(null);
   };
 
+  let inputCursor = "";
+  if (readonly) {
+    inputCursor = "cursor-not-allowed";
+  }
+
+  const getTransportCardClass = (key: TransportMode) => {
+    let base =
+      "flex w-full items-center justify-center gap-2 rounded-full border py-4 text-normal transition";
+    if (transport === key) {
+      base += " bg-[var(--neutral-soft)] border-[var(--border)]";
+    } else {
+      base += " border-[var(--border)]";
+    }
+    if (readonly) {
+      base += " cursor-not-allowed opacity-70";
+    }
+    return base;
+  };
+
   return (
     <>
-      <div className="space-y-2">
+      <div className="space-y-4">
         {/* 출발지 */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">나의 출발지 입력</p>
-              {!readonly && ( // ⭐ readonly면 숨김
-                <button
+        <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base text-[var(--text)]">
+              나의 출발지 입력
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {!readonly && (
+              <div className="flex items-center justify-end">
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => {
                     setActiveAddressType("origin");
                     setBookmarkOpen(true);
                   }}
-                  className="flex items-center gap-1 text-xs text-[var(--wf-subtle)]"
+                  className="gap-1 border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
                 >
                   <Bookmark className="h-3 w-3" />
-                  가져오기 &gt;
-                </button>
-              )}
-            </div>
+                  가져오기
+                </Button>
+              </div>
+            )}
 
-            <div className="flex items-center gap-2 rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-3 py-2">
+            <div className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--neutral-soft)] px-3 py-2">
               <input
                 type="text"
                 value={originAddress}
-                onChange={(e) => !readonly && setOriginAddress(e.target.value)}
+                onChange={(e) => {
+                  if (!readonly) setOriginAddress(e.target.value);
+                }}
                 placeholder="출발지를 입력해 주세요"
-                className={`flex-1 bg-transparent text-sm outline-none ${readonly ? "cursor-not-allowed" : ""}`}
+                className={`flex-1 bg-transparent text-sm text-[var(--text)] outline-none ${inputCursor}`}
                 disabled={readonly} // ⭐ readonly면 비활성화
               />
-              {!readonly && ( // ⭐ readonly면 숨김
-                <button
+              {!readonly && (
+                <Button
                   type="button"
                   onClick={() => {
                     setActiveAddressType("origin");
                     setSearchAddressOpen(true);
                   }}
-                  className="shrink-0 rounded-lg border border-[var(--wf-border)] bg-[var(--wf-surface)] px-2 py-1.5 text-xs"
+                  variant="outline"
+                  className="shrink-0 border-[var(--border)] bg-[var(--bg)] text-xs text-[var(--text)]"
                 >
                   주소 검색
-                </button>
+                </Button>
               )}
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* 교통수단 */}
-          <div className="space-y-2">
-            <p className="text-sm font-semibold">나의 교통수단 선택</p>
+        {/* 교통수단 */}
+        <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base text-[var(--text)]">
+              나의 교통수단 선택
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (!readonly) setTransport("CAR");
+              }}
+              disabled={readonly}
+              className={getTransportCardClass("CAR")}
+            >
+              <Car className="h-6 w-6 text-[var(--primary)]" />
+              자동차
+            </button>
 
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { key: "CAR", label: "자동차", icon: Car },
-                { key: "PUBLIC", label: "대중교통", icon: Bus },
-              ].map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() =>
-                    !readonly && setTransport(key as TransportMode)
-                  }
-                  disabled={readonly} // ⭐ readonly면 비활성화
-                  className={`flex w-full items-center justify-center gap-2 rounded-full border py-4 text-normal transition
-                    ${
-                      transport === key
-                        ? "bg-[var(--wf-highlight)] border-[var(--wf-highlight)]"
-                        : "border-[var(--wf-border)]"
-                    }
-                    ${readonly ? "cursor-not-allowed opacity-70" : ""}`} // ⭐ readonly 스타일
-                >
-                  <Icon className="h-6 w-6 text-[var(--wf-accent)]" />
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (!readonly) setTransport("PUBLIC");
+              }}
+              disabled={readonly}
+              className={getTransportCardClass("PUBLIC")}
+            >
+              <Bus className="h-6 w-6 text-[var(--primary)]" />
+              대중교통
+            </button>
+          </CardContent>
+        </Card>
 
         {/* 주소 검색 모달 (readonly면 열리지 않음) */}
         {!readonly && (

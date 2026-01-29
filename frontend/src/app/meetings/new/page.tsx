@@ -1,12 +1,19 @@
 // src/app/meetings/new/page.tsx
+// 모임 리스트 페이지 
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, type ReactNode } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import StepCard from "@/components/meeting/StepCard";
 import { useUser } from "@/context/UserContext";
-import Button from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CalendarPlus, ChevronDown, Users } from "lucide-react";
 
+/* ======================
+ * Types (변경 없음)
+ * ====================== */
 interface PageInfo {
   totalElements: number;
   totalPages: number;
@@ -44,9 +51,34 @@ interface MeetingItem {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 
+function EmptyState() {
+  return (
+    <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--bg-soft)] px-4 py-6 text-center">
+      <p className="text-sm text-[var(--text-subtle)]">
+        아직 생성된 모임이 없습니다.
+      </p>
+      <p className="mt-1 text-xs text-[var(--text-subtle)]">
+        아래 버튼으로 새 모임을 만들어 보세요.
+      </p>
+    </div>
+  );
+}
+
+function LoadingState() {
+  return (
+    <div className="space-y-3">
+      <Skeleton className="h-5 w-40 bg-[var(--neutral-soft)]" />
+      <Skeleton className="h-4 w-64 bg-[var(--neutral-soft)]" />
+      <Skeleton className="h-16 w-full bg-[var(--neutral-soft)]" />
+      <Skeleton className="h-16 w-full bg-[var(--neutral-soft)]" />
+    </div>
+  );
+}
+
 export default function CreateEntryPage() {
   const router = useRouter();
-  const { user } = useUser(); // UserContext에서 사용자 정보 가져오기
+  const { user } = useUser();
+
   const [existingMeetings, setExistingMeetings] = useState<MeetingItem[]>([]);
   const [pageInfo, setPageInfo] = useState<PageInfo | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -54,39 +86,36 @@ export default function CreateEntryPage() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchMeetings = async (page: number, append: boolean = false) => {
+  /* ======================
+   * Data Fetch (변경 없음)
+   * ====================== */
+  const fetchMeetings = async (page: number, append = false) => {
     try {
-      if (append) setIsLoadingMore(true);
-      else setIsLoading(true);
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+      }
 
       const res = await axios.get(
         `${API_BASE_URL}/v1/meetings/user?page=${page}`,
-        {
-          withCredentials: true,
-        },
+        { withCredentials: true }
       );
 
       if (res.data?.data?.content) {
-        if (append)
+        if (append) {
           setExistingMeetings((prev) => [...prev, ...res.data.data.content]);
-        else setExistingMeetings(res.data.data.content);
+        } else {
+          setExistingMeetings(res.data.data.content);
+        }
 
-        setPageInfo({
-          totalElements: res.data.data.totalElements,
-          totalPages: res.data.data.totalPages,
-          size: res.data.data.size,
-          number: res.data.data.number,
-          first: res.data.data.first,
-          last: res.data.data.last,
-          empty: res.data.data.empty,
-        });
+        setPageInfo(res.data.data);
       } else {
         setExistingMeetings([]);
       }
     } catch (err) {
       console.error("모임 불러오기 실패", err);
       setError("모임을 불러오는데 실패했습니다.");
-      setExistingMeetings([]);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
@@ -94,234 +123,247 @@ export default function CreateEntryPage() {
   };
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadMeetings = async () => {
-      if (cancelled) return;
-      await fetchMeetings(0);
-    };
-
-    loadMeetings();
-
-    return () => {
-      cancelled = true;
-    };
+    fetchMeetings(0);
   }, []);
 
   const handleLoadMore = () => {
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    fetchMeetings(nextPage, true);
+    const next = currentPage + 1;
+    setCurrentPage(next);
+    fetchMeetings(next, true);
   };
 
-  const handleEdit = (meetingUuid: string, organizerId: number) => {
-    const url = `/meetings/new/step1-basic?meetingUuid=${meetingUuid}${user?.id !== organizerId ? "&readonly=true" : ""}`;
-    router.push(url);
+  const handleEdit = (uuid: string, organizerId: number) => {
+    const readonly = user?.id !== organizerId ? "&readonly=true" : "";
+    router.push(`/meetings/new/step1-basic?meetingUuid=${uuid}${readonly}`);
   };
 
-  const handleCopy = async (meetingUuid: string) => {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/v1/meetings/${meetingUuid}/copy`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        },
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const copiedMeetingUuid = data.data?.meeting?.meetingUuid;
-
-        if (copiedMeetingUuid) {
-          router.push(
-            `/meetings/new/step1-basic?meetingUuid=${copiedMeetingUuid}`,
-          );
-        } else {
-          router.push("/meetings/new/step1-basic");
-        }
-      } else {
-        alert("모임 복사에 실패했습니다.");
-      }
-    } catch (err) {
-      console.error("모임 복사 실패", err);
-      alert("모임 복사에 실패했습니다.");
-    }
-  };
-
-  const handleDelete = async (meetingUuid: string, organizerId: number) => {
-    if (user?.id !== organizerId) {
-      alert("모임장이 아닙니다.");
-      return;
-    }
-
-    const ok = confirm(
-      "정말 이 모임을 삭제하시겠어요?\n삭제하면 되돌릴 수 없어요.",
+  const handleCopy = async (uuid: string) => {
+    const res = await fetch(`${API_BASE_URL}/v1/meetings/${uuid}/copy`, {
+      method: "POST",
+      credentials: "include",
+    });
+    const data = await res.json();
+    router.push(
+      `/meetings/new/step1-basic?meetingUuid=${data?.data?.meeting?.meetingUuid}`
     );
-    if (!ok) return;
+  };
 
-    try {
-      const res = await axios.delete(
-        `${API_BASE_URL}/v1/meetings/${meetingUuid}`,
-        { withCredentials: true },
-      );
+  const handleDelete = async (uuid: string, organizerId: number) => {
+    if (user?.id !== organizerId) return alert("모임장이 아닙니다.");
 
-      if (res.status === 200) {
-        setExistingMeetings((prev) =>
-          prev.filter((item) => item.meeting.meetingUuid !== meetingUuid),
-        );
+    if (!confirm("정말 이 모임을 삭제하시겠어요?")) return;
 
-        setPageInfo((prev) =>
-          prev
-            ? {
-                ...prev,
-                totalElements: Math.max(prev.totalElements - 1, 0),
-              }
-            : prev,
-        );
-      } else {
-        alert("모임 삭제에 실패했습니다.");
-      }
-    } catch (err) {
-      console.error("모임 삭제 실패", err);
-      alert("모임 삭제에 실패했습니다.");
-    }
+    await axios.delete(`${API_BASE_URL}/v1/meetings/${uuid}`, {
+      withCredentials: true,
+    });
+
+    setExistingMeetings((prev) =>
+      prev.filter((item) => item.meeting.meetingUuid !== uuid)
+    );
   };
 
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    const hh = String(date.getHours()).padStart(2, "0");
-    const mm = String(date.getMinutes()).padStart(2, "0");
-    return `${y}.${m}.${d} ${hh}:${mm}`;
+    const d = new Date(dateString);
+    return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${d
+      .getHours()
+      .toString()
+      .padStart(2, "0")}:${d
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
   };
 
-  return (
-    <>
-      <main className="space-y-6">
-        <section className="">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-semibold">모임 리스트</h1>
-            <p className="text-sm text-[var(--wf-subtle)]">
-              이전 모임을 불러와 빠르게 생성할 수 있어요
-            </p>
-          </div>
+  let listState: ReactNode = null;
+  if (isLoading) {
+    listState = <LoadingState />;
+  } else if (error) {
+    listState = (
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--danger-soft)] px-4 py-6 text-center">
+        <p className="text-sm text-[var(--danger)]">{error}</p>
+      </div>
+    );
+  } else if (existingMeetings.length === 0) {
+    listState = <EmptyState />;
+  }
 
-          <div className="p-2">
+  return (
+    <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6">
+      <div className="mx-auto w-full max-w-3xl space-y-4">
+        {/* ===== Header ===== */}
+        <section className="space-y-1">
+          <h2 className="text-lg font-semibold text-[var(--text)]">
+            모임 리스트
+          </h2>
+          <p className="text-sm text-[var(--text-subtle)]">
+            내 모임을 조회, 수정, 복사할 수 있습니다.
+          </p>
+        </section>
+
+        {/* ===== Primary CTA ===== */}
             <Button
               onClick={() => router.push("/meetings/new/step1-basic")}
-              className="w-full rounded-xl border border-[var(--wf-border)]"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] py-6"
             >
+              <CalendarPlus className="h-5 w-5" />
               모임 생성하기
             </Button>
-          </div>
 
-          <StepCard className="">
-            {isLoading ? (
-              <div className="text-center text-sm text-[var(--wf-subtle)]">
-                불러오는 중...
-              </div>
-            ) : error ? (
-              <div className="text-center text-sm text-red-500">{error}</div>
-            ) : existingMeetings.length === 0 ? (
-              <div className="text-center py-8 text-sm text-[var(--wf-subtle)]">
-                아직 생성된 모임이 없습니다.
-              </div>
-            ) : (
-              <>
-                <div className="">
-                  {existingMeetings.map((item, index) => {
-                    const { meeting } = item;
-                    const place =
-                      meeting.selectedPlace?.placeName || "장소 미정";
-                    const isOrganizer = user?.id === meeting.organizerId;
+       {/* ===== List Section ===== */}
+      <section className="space-y-3">
+        {listState}
 
-                    return (
-                      <div
-                        key={meeting.meetingUuid ?? `meeting-${index}`}
-                        className="border-b border-[var(--wf-border)] py-1 space-y-2"
-                      >
-                        <div className="flex justify-between gap-4">
-                          <div className="space-y-1">
-                            <p className="text-sm font-semibold">
-                              {meeting.meetingName}
-                            </p>
-                            <p className="text-xs text-[var(--wf-subtle)]">
-                              {formatDateTime(meeting.meetingTime)} ·{" "}
-                              {meeting.totalParticipants}명
-                            </p>
-                          </div>
+        {!listState && (
+          <div className="divide-y divide-[var(--border)] bg-[var(--bg)]">
+            {existingMeetings.map(({ meeting }) => {
+              const isOrganizer = user?.id === meeting.organizerId;
+              const primaryLabel = isOrganizer ? "수정" : "조회";
 
-                          <div className="flex gap-2">
+              return (
+                <div
+                  key={meeting.meetingUuid}
+                  className="px-0 py-3"
+                >
+                  <div className="flex items-start gap-4">
+                    {/* ===== 인원수 영역 ===== */}
+                    <div className="relative flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-[var(--primary-soft)]">
+                      <Users className="h-5 w-5 text-[var(--primary)]" />
+                      {meeting.totalParticipants > 0 && (
+                        <span className="absolute -right-1 -bottom-1 min-w-4 h-3 px-1 rounded-full bg-[var(--primary-soft)] text-sm leading-4 text-center font-medium text-[var(--text)]">
+                          {meeting.totalParticipants}
+                        </span>
+                      )}
+                    </div>
+
+
+                    {/* ===== 텍스트 정보 ===== */}
+                    <div className="flex-1 space-y-1">
+                      {/* 1줄: 모임명 */}
+                      <p className="text-base font-semibold text-[var(--text)] truncate">
+                        {meeting.meetingName}
+                      </p>
+
+                      {/* 2줄: 장소 · 날짜 */}
+                      <p className="text-sm text-[var(--text-subtle)]">
+                        {meeting.selectedPlace?.placeName || "장소 미정"}
+                        <span className="mx-2">·</span>
+                        {formatDateTime(meeting.meetingTime)}
+                      </p>
+                    </div>
+
+                    {/* ===== 액션 영역 ===== */}
+                    <div className="shrink-0">
+                      {/* 데스크톱 버튼 */}
+                      <div className="hidden sm:flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            handleEdit(meeting.meetingUuid!, meeting.organizerId)
+                          }
+                          className={
+                            isOrganizer
+                              ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                              : "bg-[var(--neutral-soft)] text-[var(--text)]"
+                          }
+                        >
+                          {primaryLabel}
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleCopy(meeting.meetingUuid!)}
+                        >
+                          복사
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          disabled={!isOrganizer}
+                          onClick={() =>
+                            handleDelete(meeting.meetingUuid!, meeting.organizerId)
+                          }
+                          className="bg-[var(--danger-soft)] text-[var(--danger)]"
+                        >
+                          삭제
+                        </Button>
+                      </div>
+
+                      {/* 모바일 … 메뉴 */}
+                      <div className="sm:hidden">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
                             <button
+                              className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
+                              aria-label="더보기"
+                            >
+                              …
+                            </button>
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
                               onClick={() =>
                                 handleEdit(
                                   meeting.meetingUuid!,
-                                  meeting.organizerId,
+                                  meeting.organizerId
                                 )
                               }
-                              className={`rounded-full px-3 py-0 text-xs font-medium text-white transition-opacity ${
-                                isOrganizer
-                                  ? "bg-[var(--wf-accent)] hover:opacity-90"
-                                  : "bg-[--wf-accent] hover:bg-gray-400"
-                              }`}
                             >
-                              {isOrganizer ? "수정" : "조회"}
-                            </button>
-                            <button
+                              {primaryLabel}
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
                               onClick={() => handleCopy(meeting.meetingUuid!)}
-                              className="rounded-full bg-[var(--wf-accent)] px-3 py-1 text-xs font-medium text-white hover:opacity-90 transition-opacity"
                             >
                               복사
-                            </button>
-                            <button
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              disabled={!isOrganizer}
                               onClick={() =>
                                 handleDelete(
                                   meeting.meetingUuid!,
-                                  meeting.organizerId,
+                                  meeting.organizerId
                                 )
                               }
-                              disabled={!isOrganizer}
-                              className={`rounded-full px-3 py-0 text-xs font-medium text-white transition-opacity ${
-                                isOrganizer
-                                  ? "bg-[--wf-warning]"
-                                  : "bg-gray-400 cursor-not-allowed"
-                              }`}
+                              className="text-destructive"
                             >
                               삭제
-                            </button>
-                          </div>
-                        </div>
-                        <p className="text-xs text-[var(--wf-subtle)]">
-                          {place}
-                        </p>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    );
-                  })}
-                </div>
-
-                {pageInfo && !pageInfo.last && (
-                  <div className="pt-4">
-                    <button
-                      onClick={handleLoadMore}
-                      disabled={isLoadingMore}
-                      className="w-full rounded-xl border border-[var(--wf-border)] bg-white py-3 text-sm font-medium text-[var(--wf-foreground)] hover:bg-[var(--wf-muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {isLoadingMore ? "불러오는 중..." : "더보기"}
-                    </button>
-                    <p className="text-center text-xs text-[var(--wf-subtle)] mt-2">
-                      {existingMeetings.length} / {pageInfo.totalElements}개
-                    </p>
+                    </div>
                   </div>
-                )}
-              </>
-            )}
-          </StepCard>
-        </section>
-      </main>
-    </>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+
+
+       
+        {/* ===== Pagination ===== */}
+        {pageInfo && !pageInfo.last && (
+            <div className="flex flex-col items-center gap-2 py-4">
+              <Button
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                variant="outline"
+                className="w-full max-w-sm border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
+              >
+                {isLoadingMore ? "불러오는 중…" : "더보기"}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+
+              <p className="text-xs text-[var(--text-subtle)]">
+                {existingMeetings.length} 개 / 총 {pageInfo.totalElements} 개
+              </p>
+            </div>
+        )}
+      </div>
+    </main>
   );
 }

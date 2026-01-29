@@ -6,7 +6,7 @@ import axios from 'axios'
 import { useParams } from 'next/navigation'
 import StepCard from '@/components/meeting/StepCard'
 import { Badge } from "@/components/ui/badge"
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 
 import {
   Users,
@@ -59,8 +59,8 @@ export default function CompleteSummaryCard({ meeting }: Props) {
   const placeName = place?.placeName ?? ''
   const address = place?.address ?? ''
   const phoneNumber = place?.phone ?? ''
-  //const { user } = useUser()
-  //const isOrganizer = Number(user?.id) === Number(meeting.organizerId)
+  // const { user } = useUser()
+  // const isOrganizer = Number(user?.id) === Number(meeting.organizerId)
 
 const formatDateTime = (isoString?: string) => {
   if (!isoString) return '-'
@@ -116,10 +116,14 @@ const handleSendKakao = () => {
   if (typeof window === "undefined") return
 
   // Kakao SDK 없음 or 앱 없음
-  if (!window.Kakao || !window.Kakao.isInitialized()) {
-    fallbackShare()
-    return
-  }
+if (!window.Kakao) {
+  alert('카카오 SDK가 로드되지 않았어요.')
+  return
+}
+
+if (!window.Kakao.isInitialized()) {
+  window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
+}
 
   try {
     window.Kakao.Share.sendCustom({
@@ -236,7 +240,7 @@ const handleDirection = () => {
                 variant="secondary"
                 className="
                   cursor-pointer
-                  gap-1 px-3 py-1 rounded-full
+                  gap-1 px-4 py-2 rounded-full
                   bg-[--wf-highlight]
                 "
               >
@@ -259,16 +263,44 @@ const handleDirection = () => {
       </StepCard>
 
       {/* CTA */}
-      <Button
-            onClick={handleSendKakao}
-            className="group flex w-full items-center justify-center gap-2 rounded-2xl
-            bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]
-             text-lg font-bold text-[var(--wf-text)]
-            shadow-xl shadow-yellow-500/20 transition active:scale-[0.99]"
-          >
-            확정 장소 메시지 전송
-            <Send className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
+      {/* CTA */}
+<div className="flex gap-3">
+  {/* 링크 보내기 → 카카오 메시지 */}
+  <Button
+    type="button"
+    onClick={fallbackShare}
+    variant="outline"
+    className="
+      flex items-center gap-2 rounded-xl
+      border-[var(--wf-border)]
+      bg-[var(--wf-surface)]
+      px-4 py-6
+      text-sm font-medium text-[var(--wf-text)]
+    "
+  >
+    <Send className="h-4 w-4" />
+    링크 보내기
+  </Button>
+
+  {/* 확정 장소 메시지 전송 → 링크 공유 */}
+  <Button
+    type="button"
+    onClick={handleSendKakao}
+    className="
+      group flex flex-1 items-center justify-center gap-2
+      rounded-xl 
+      bg-[var(--wf-highlight)]
+      hover:bg-[var(--wf-accent)]
+      py-6
+      text-lg font-bold text-[var(--wf-text)]
+      shadow-xl shadow-yellow-500/20
+      transition active:scale-[0.99]
+    "
+  >
+    확정 장소 메시지 전송
+    <Send className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+  </Button>
+</div>
         {/* {isOrganizer ? (
           <button
             onClick={handleSendKakao}

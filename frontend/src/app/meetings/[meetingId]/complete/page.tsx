@@ -42,26 +42,25 @@ export default function MeetingCompletePage({ params }: PageProps) {
   };
 
   return (
-  <main className="relative h-[100dvh] ">
-      
-    {/* 배경 지도 */}
-    <CompleteMapSection
-      lat={resolvedData?.lat}
-      lng={resolvedData?.lng}
-      />
-      
-      {/* 지도 위 상단 타이틀 */}
-    
-    <div className="-top-6 pointer-events-none absolute inset-x-0 z-20 flex justify-center">
-      <h1 className="text-lg font-semibold tracking-tight text-[var(--wf-text)] drop-shadow-sm">
-        모임 확정
-      </h1>
-    </div>
+    <main className="relative min-h-[100dvh] w-full overflow-visible bg-[var(--bg)]">
+      {/* 배경 지도 */}
+      <CompleteMapSection lat={resolvedData?.lat} lng={resolvedData?.lng} />
 
-    {/* 위에 올라오는 UI */}
-    <div className="relative z-10">
-      <CompleteSummaryDrawer meeting={meeting} />
-    </div>
-  </main>
-)
+      {/* 지도 위 상단 타이틀 */}
+      <section className="pointer-events-none absolute left-0 right-0 top-16 z-20 flex flex-col items-center gap-1 px-4">
+        {/* Header는 카드 대신 타이포로 분리 */}
+        <h1 className="text-lg font-semibold tracking-tight text-[var(--text)] drop-shadow-sm">
+          모임 확정
+        </h1>
+        <p className="text-xs text-[var(--text-subtle)] drop-shadow-sm">
+          확정된 장소와 이동 정보를 확인하세요.
+        </p>
+      </section>
+
+      {/* 위에 올라오는 UI */}
+      <div className="relative z-10 pb-[calc(72px+env(safe-area-inset-bottom))]">
+        <CompleteSummaryDrawer meeting={meeting} />
+      </div>
+    </main>
+  );
 }

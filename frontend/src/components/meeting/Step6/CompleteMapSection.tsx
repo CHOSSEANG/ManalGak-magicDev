@@ -8,7 +8,7 @@ interface Props {
   lng?: number
 }
 
-export default function CompleteMapSection({ lat, lng }: Props) {
+export default function CompleteMapSection({ lat, lng }: Props): JSX.Element {
   const hasCoords =
     typeof lat === "number" &&
     Number.isFinite(lat) &&
@@ -25,11 +25,17 @@ export default function CompleteMapSection({ lat, lng }: Props) {
 
   return (
     <div className="absolute inset-0 z-0">
-      <KakaoMap
-        center={center}
-        markers={markers}
-        level={4}
-      />
+      {/* 지도 영역은 100% 높이를 유지해야 함 */}
+      <div className="absolute inset-0">
+        <KakaoMap center={center} markers={markers} level={4} />
+      </div>
+
+      {/* 좌표가 없을 때도 지도는 유지하고, 안내만 표시 */}
+      {!hasCoords && (
+        <div className="pointer-events-none absolute inset-x-0 top-4 z-10 mx-auto w-fit rounded-full bg-[var(--bg-soft)]/90 px-3 py-1 text-xs text-[var(--text-subtle)] shadow-sm">
+          위치 정보를 불러오는 중입니다.
+        </div>
+      )}
     </div>
   )
 }
