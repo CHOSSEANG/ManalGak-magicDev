@@ -110,6 +110,7 @@ const lng = typeof place?.longitude === 'number' ? place.longitude : null
     }
 
     fetchPlace()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meetingUuid])
 
 

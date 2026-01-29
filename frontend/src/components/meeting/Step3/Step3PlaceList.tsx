@@ -208,12 +208,10 @@ const rawPlaces: Omit<RecommendedPlace, 'icon'>[] = [
 export default function Step5PlaceList({
                                         onStatusLoaded,
                                       }: Step3PlaceListProps) {
-
+const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const meetingUuid = searchParams.get('meetingUuid')
-
-  //   const [me, setMe] = useState<MeUser | null>(null)
   const [participants, setParticipants] = useState<Participant[]>([])
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null)
   const [showVoteModal, setShowVoteModal] = useState(false)
@@ -229,6 +227,7 @@ export default function Step5PlaceList({
   const [meetingPurpose, setMeetingPurpose] = useState<string | null>(null)
   const { user } = useUser()
   const stompClientRef = useRef<Client | null>(null)
+  const prevPlaceSignatureRef = useRef<string | null>(null)
 
   const myParticipant = participants.find(
     p => p.userId === user?.id
@@ -252,9 +251,10 @@ export default function Step5PlaceList({
           client.subscribe(`/topic/votes/${voteData.voteId}`, (message) => {
             try {
               const result = JSON.parse(message.body)
-              if (result.options) {
-                setVoteData(prev => prev ? { ...prev, options: result.options } : null)
-              }
+             if (result.voteId) {
+                   setVoteData(result);
+                   setIsNewPlaceAvailable(false);
+                 }
             } catch (error) {
               console.error('WebSocket 메시지 처리 실패:', error)
             }
@@ -386,9 +386,28 @@ export default function Step5PlaceList({
     [placeSource]
   )
 
+  // 추천장소 구성 변경 감지용 시그니처
+  const placeSignature = useMemo(() => {
+    return recommendedPlaces
+      .map(p => p.name)
+      .sort()
+      .join('|')
+  }, [recommendedPlaces])
+
   const mapMarkers = middlePoint
     ? [{ lat: middlePoint.lat, lng: middlePoint.lng }]
     : [{ lat: 37.563617, lng: 126.997628 }]
+
+useEffect(() => {
+  if (!placeSignature) return;
+
+  // 참여자, 모임장 가릴 것 없이 장소가 바뀌면 일단 상태를 바꿉니다.
+  if (prevPlaceSignatureRef.current && prevPlaceSignatureRef.current !== placeSignature) {
+    setIsNewPlaceAvailable(true);
+  }
+
+  prevPlaceSignatureRef.current = placeSignature;
+}, [placeSignature]); // 👈 여기에 isHost가 없어야 일반 유저도 감지합니다.
 
   /* ================= 투표 API ================= */
 
@@ -424,33 +443,33 @@ export default function Step5PlaceList({
     return () => { cancelled = true }
   }, [meetingUuid, fetchVote])
 
-  const createVote = async () => {
-    if (!meetingUuid || !isHost) {
-      alert('모임장만 투표를 생성할 수 있습니다.')
-      return
-    }
+ const createVote = async () => {
+   if (!meetingUuid || !isHost) {
+     alert('모임장만 투표를 생성할 수 있습니다.')
+     return
+   }
 
-    setIsCreatingVote(true)
-    try {
-      const options = recommendedPlaces.map(p => p.name)
+   setIsCreatingVote(true)
+   try {
+     const options = recommendedPlaces.map(p => p.name)
 
-      const res = await axios.post(
-        `${API_BASE_URL}/v1/votes/meeting/${meetingUuid}`,
-        { options },
-        { withCredentials: true }
-      )
+     // 백엔드 호출: 기존 투표 삭제 + 새 투표 생성이 서버에서 한 번에 일어남
+     await axios.post(
+       `${API_BASE_URL}/v1/votes/meeting/${meetingUuid}`,
+       { options },
+       { withCredentials: true }
+     )
 
-      if (res.data?.data) {
-        setVoteData(res.data.data)
-        setShowVoteModal(true)
-      }
-    } catch (error) {
-      console.error('투표 생성 실패:', error)
-      alert('투표 생성에 실패했습니다.')
-    } finally {
-      setIsCreatingVote(false)
-    }
-  }
+     // ✅ 성공 시 투표 모달을 바로 엽니다.
+     // 데이터 업데이트는 WebSocket 구독부(setIsNewPlaceAvailable(false))에서 처리됩니다.
+     setShowVoteModal(true);
+   } catch (error) {
+     console.error('투표 생성 실패:', error)
+     alert('투표 생성에 실패했습니다.')
+   } finally {
+     setIsCreatingVote(false)
+   }
+ }
 
   const submitVote = async (optionId: number) => {
     if (!voteData) return
@@ -504,26 +523,27 @@ export default function Step5PlaceList({
   }
 
   const handleVoteButtonClick = async () => {
-    if (!meetingUuid) return
-    const hasVoteOptions = Boolean(voteData?.options?.length)
-    if (!voteData || !hasVoteOptions) {
-      const fetchedVote = await fetchVote()
+    if (!meetingUuid) return;
 
-      if (fetchedVote && fetchedVote.options?.length > 0) {
-        setVoteData(fetchedVote)
-        setShowVoteModal(true)
-        return
-      }
+    const hasVote = Boolean(voteData?.options?.length);
 
-      if (isHost) {
-        createVote()
-      } else {
-        alert('아직 투표가 시작되지 않았습니다.')
-      }
-    } else {
-      setShowVoteModal(true)
+    // 1. 투표 시작하기 또는 갱신 (모임장 전용)
+    if (isHost && (!hasVote || isNewPlaceAvailable)) {
+      await createVote();
+      setIsNewPlaceAvailable(false);
+      return;
     }
-  }
+
+    // 2. 투표하기 (장소 변경 없을 때만 모달 오픈)
+    if (hasVote) {
+      // 혹시라도 일반 유저가 비활성화를 뚫고 눌렀을 경우를 대비해 한 번 더 체크
+      if (!isHost && isNewPlaceAvailable) {
+        alert("추천 장소가 갱신되었습니다. 모임장이 투표를 새로 만들 때까지 기다려주세요.");
+        return;
+      }
+      setShowVoteModal(true);
+    }
+  };
 
   /* ================= 장소 확정 핸들러 ================= */
 
@@ -599,24 +619,35 @@ export default function Step5PlaceList({
   const totalVotes = voteData?.options.reduce((sum, opt) => sum + opt.voteCount, 0) || 0
   const maxVotes = voteData ? Math.max(...voteData.options.map(opt => opt.voteCount)) : 0
 
-  const voteButtonDisabled =
-    isCreatingVote || (!isHost && (!voteData || (voteData.options?.length ?? 0) === 0))
 
-  let voteButtonLabel = '투표 대기 중'
-  if (isCreatingVote) {
-    voteButtonLabel = '생성 중...'
-  } else if (voteData?.options?.length) {
-    voteButtonLabel = '투표하기'
-  } else if (isHost) {
-    voteButtonLabel = '투표 시작하기'
-  }
+  const hasVote = Boolean(voteData?.options?.length);
+  let voteButtonLabel = '투표 대기 중';
 
-  let confirmLabel = '추천 장소 확정'
-  if (isConfirming) {
+    if (isCreatingVote) {
+      voteButtonLabel = '생성 중...';
+    }
+    // 1. 투표가 아예 없는 완전 초기 상태 (모임장용)
+    else if (isHost && !voteData?.options?.length) {
+      voteButtonLabel = '투표 시작하기';
+    }
+    // 2. 투표가 있는데, 그 사이에 장소까지 바뀌었을 때
+    else if (isHost && isNewPlaceAvailable) {
+      voteButtonLabel = '새 추천 장소! 투표 갱신';
+    }
+    // 3. 투표가 있고 장소 변경도 없을 때 (또는 일반 참여자)
+    else if (voteData?.options?.length) {
+      voteButtonLabel = '투표하기';
+    }
+    const isVoteDisabled =
+      isCreatingVote ||
+      (!isHost && !hasVote) || // 투표가 없는데 일반 참여자일 때
+      (!isHost && isNewPlaceAvailable); // ⭐ 장소가 바뀌었는데 일반 참여자일 때 (투표 방지)
+    let confirmLabel = '추천 장소 확정'
+    if (isConfirming) {
     confirmLabel = '확정 중...'
-  } else if (!isHost) {
+    } else if (!isHost) {
     confirmLabel = '모임장만 확정할 수 있습니다'
-  }
+    }
 
   return (
     <div className="space-y-4">
@@ -698,7 +729,7 @@ export default function Step5PlaceList({
           </div>
           <Button
             type="button"
-            disabled={voteButtonDisabled}
+            disabled={isVoteDisabled}
             onClick={handleVoteButtonClick}
             className="rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40"
           >
