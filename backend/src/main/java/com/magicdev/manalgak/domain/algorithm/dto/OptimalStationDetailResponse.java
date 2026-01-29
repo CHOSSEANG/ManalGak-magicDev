@@ -28,5 +28,6 @@ public class OptimalStationDetailResponse {
 		private Double originLongitude;
 		private Integer travelTimeMinutes;
 		private List<OdsayRouteResponse.Path> paths;  // 🆕 경로 정보 추가
+		private List<RouteSegment> routeSegments; // 정제된 경로 데이터
 	}
 }
