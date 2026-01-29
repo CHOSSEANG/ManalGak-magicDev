@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -101,25 +102,25 @@ public class VoteServiceImpl implements VoteService{
     }
 
     @Transactional
-    public VoteResponse createVote(
-            String meetingUuid,
-            List<String> options
-    ) {
-        Optional<Vote> existingVote = voteRepository.findFirstByMeeting_MeetingUuid(meetingUuid);
+    @Override
+    public VoteResponse createVote(String meetingUuid, List<String> options) {
+        voteRepository.findFirstByMeeting_MeetingUuid(meetingUuid).ifPresent(existingVote -> {
+            voteRepository.delete(existingVote);
 
-        if (existingVote.isPresent()) {
-            throw new BusinessException(ErrorCode.VOTE_ALREADY_EXISTS);
-        }
+            voteRepository.flush();
+            log.info("기존 투표 및 하위 데이터 삭제 완료");
+        });
 
-        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid).orElseThrow(()->
-                new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
         Vote vote = Vote.create(meeting);
         voteRepository.save(vote);
-        List<VoteOption> optionsToSave = options.stream()
-                .map(optionContent -> VoteOption.create(vote, optionContent))
+
+        List<VoteOption> optionEntities = options.stream()
+                .map(o -> VoteOption.create(vote, o))
                 .toList();
-        voteOptionRepository.saveAll(optionsToSave);
+        voteOptionRepository.saveAll(optionEntities);
 
         VoteResponse response = getVote(vote.getId());
 
