@@ -30,6 +30,7 @@ interface Meeting {
   meetingTime: string;
   organizerId: number;
   totalParticipants: number;
+  status?: 'PENDING' | 'COMPLETED';
   selectedPlace?: {
     placeId?: string;
     placeName?: string;
@@ -134,7 +135,11 @@ export default function CreateEntryPage() {
 
   const handleEdit = (uuid: string, organizerId: number) => {
     const readonly = user?.id !== organizerId ? "&readonly=true" : "";
-    router.push(`/meetings/new/step1-basic?meetingUuid=${uuid}${readonly}`);
+    router.push(`/meetings/new/step3-meeting?meetingUuid=${uuid}${readonly}`);
+  };
+
+  const handleView = (meetingUuid: string) => {
+    router.push(`/meetings/${meetingUuid}/complete`);
   };
 
   const handleCopy = async (uuid: string) => {
@@ -144,7 +149,7 @@ export default function CreateEntryPage() {
     });
     const data = await res.json();
     router.push(
-      `/meetings/new/step1-basic?meetingUuid=${data?.data?.meeting?.meetingUuid}`
+      `/meetings/new/step1-basic?meetingUuid=${data?.data?.meeting?.meetingUuid}&copied=true`
     );
   };
 
@@ -212,35 +217,57 @@ export default function CreateEntryPage() {
       <section className="space-y-3">
         {listState}
 
-        {!listState && (
-          <div className="divide-y divide-[var(--border)] bg-[var(--bg)]">
-            {existingMeetings.map(({ meeting }) => {
-              const isOrganizer = user?.id === meeting.organizerId;
-              const primaryLabel = isOrganizer ? "수정" : "조회";
+          {!listState && (
+            <div className="divide-y divide-[var(--border)] bg-[var(--bg)]">
+              {existingMeetings.map(({ meeting }) => {
+                const isOrganizer = user?.id === meeting.organizerId;
+                const isCompleted = meeting.status === 'COMPLETED';
 
-              return (
-                <div
-                  key={meeting.meetingUuid}
-                  className="px-0 py-3"
-                >
-                  <div className="flex items-start gap-4">
-                    {/* ===== 인원수 영역 ===== */}
-                    <div className="relative flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-[var(--primary-soft)]">
-                      <Users className="h-5 w-5 text-[var(--primary)]" />
-                      {meeting.totalParticipants > 0 && (
-                        <span className="absolute -right-1 -bottom-1 min-w-4 h-3 px-1 rounded-full bg-[var(--primary-soft)] text-sm leading-4 text-center font-medium text-[var(--text)]">
-                          {meeting.totalParticipants}
-                        </span>
-                      )}
-                    </div>
+                const primaryLabel = isCompleted ? "조회" : "수정";
 
+                const handlePrimaryAction = () => {
+                  if (isCompleted) {
+                    handleView(meeting.meetingUuid!);
+                  } else {
+                    handleEdit(meeting.meetingUuid!, meeting.organizerId);
+                  }
+                };
 
-                    {/* ===== 텍스트 정보 ===== */}
-                    <div className="flex-1 space-y-1">
-                      {/* 1줄: 모임명 */}
-                      <p className="text-base font-semibold text-[var(--text)] truncate">
-                        {meeting.meetingName}
-                      </p>
+                return (
+                  <div
+                    key={meeting.meetingUuid}
+                    className="px-0 py-3"
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* ===== 인원수 영역 ===== */}
+                      <div className="relative flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-[var(--primary-soft)]">
+                        <Users className="h-5 w-5 text-[var(--primary)]" />
+                        {meeting.totalParticipants > 0 && (
+                          <span className="absolute -right-1 -bottom-1 min-w-4 h-3 px-1 rounded-full bg-[var(--primary-soft)] text-sm leading-4 text-center font-medium text-[var(--text)]">
+                            {meeting.totalParticipants}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* ===== 텍스트 정보 ===== */}
+                      <div className="flex-1 space-y-1">
+                        {/* 1줄: 모임명 + 상태 뱃지 */}
+                        <div className="flex items-center gap-2">
+                          <p className="text-base font-semibold text-[var(--text)] truncate">
+                            {meeting.meetingName}
+                          </p>
+                          {/* ✅ 모임장 뱃지 추가 */}
+                          {isOrganizer && (
+                            <span className="shrink-0 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-medium text-yellow-700">
+                              모임장
+                            </span>
+                          )}
+                          {isCompleted && (
+                            <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
+                              확정
+                            </span>
+                          )}
+                        </div>
 
                       {/* 2줄: 장소 · 날짜 */}
                       <p className="text-sm text-[var(--text-subtle)]">
@@ -250,23 +277,21 @@ export default function CreateEntryPage() {
                       </p>
                     </div>
 
-                    {/* ===== 액션 영역 ===== */}
-                    <div className="shrink-0">
-                      {/* 데스크톱 버튼 */}
-                      <div className="hidden sm:flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            handleEdit(meeting.meetingUuid!, meeting.organizerId)
-                          }
-                          className={
-                            isOrganizer
-                              ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                              : "bg-[var(--neutral-soft)] text-[var(--text)]"
-                          }
-                        >
-                          {primaryLabel}
-                        </Button>
+                      {/* ===== 액션 영역 ===== */}
+                      <div className="shrink-0">
+                        {/* 데스크톱 버튼 */}
+                        <div className="hidden sm:flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={handlePrimaryAction}
+                            className={
+                              isCompleted
+                                ? "bg-[var(--neutral-soft)] text-[var(--text)]"
+                                : "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                            }
+                          >
+                            {primaryLabel}
+                          </Button>
 
                         <Button
                           size="sm"
@@ -276,17 +301,17 @@ export default function CreateEntryPage() {
                           복사
                         </Button>
 
-                        <Button
-                          size="sm"
-                          disabled={!isOrganizer}
-                          onClick={() =>
-                            handleDelete(meeting.meetingUuid!, meeting.organizerId)
-                          }
-                          className="bg-[var(--danger-soft)] text-[var(--danger)]"
-                        >
-                          삭제
-                        </Button>
-                      </div>
+                          <Button
+                            size="sm"
+                            disabled={!isOrganizer}
+                            onClick={() =>
+                              handleDelete(meeting.meetingUuid!, meeting.organizerId)
+                            }
+                            className="bg-[var(--danger-soft)] text-[var(--danger)] disabled:opacity-40"
+                          >
+                            삭제
+                          </Button>
+                        </div>
 
                       {/* 모바일 … 메뉴 */}
                       <div className="sm:hidden">
@@ -300,17 +325,10 @@ export default function CreateEntryPage() {
                             </button>
                           </DropdownMenuTrigger>
 
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleEdit(
-                                  meeting.meetingUuid!,
-                                  meeting.organizerId
-                                )
-                              }
-                            >
-                              {primaryLabel}
-                            </DropdownMenuItem>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={handlePrimaryAction}>
+                                {primaryLabel}
+                              </DropdownMenuItem>
 
                             <DropdownMenuItem
                               onClick={() => handleCopy(meeting.meetingUuid!)}
@@ -318,29 +336,29 @@ export default function CreateEntryPage() {
                               복사
                             </DropdownMenuItem>
 
-                            <DropdownMenuItem
-                              disabled={!isOrganizer}
-                              onClick={() =>
-                                handleDelete(
-                                  meeting.meetingUuid!,
-                                  meeting.organizerId
-                                )
-                              }
-                              className="text-destructive"
-                            >
-                              삭제
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <DropdownMenuItem
+                                disabled={!isOrganizer || isCompleted}
+                                onClick={() =>
+                                  handleDelete(
+                                    meeting.meetingUuid!,
+                                    meeting.organizerId
+                                  )
+                                }
+                                className="text-destructive"
+                              >
+                                삭제
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
 
 
