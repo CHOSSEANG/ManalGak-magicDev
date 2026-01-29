@@ -12,6 +12,7 @@ import com.magicdev.manalgak.domain.participant.entity.Location;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
 import com.magicdev.manalgak.domain.participant.repository.ParticipantRepository;
 import com.magicdev.manalgak.domain.participant.service.command.UpdateParticipantCommand;
+import com.magicdev.manalgak.domain.place.service.PlaceService;
 import com.magicdev.manalgak.domain.user.entity.User;
 import com.magicdev.manalgak.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final UserRepository userRepository;
     private final GeocodingService geoCodingService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final PlaceService placeService;
 
     private static final int MAX_COUNT = 10;
 
@@ -108,6 +110,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                             command.getOriginAddress()
                     )
             );
+
+            // 출발지 변경 시 추천 장소 캐시 무효화
+            placeService.invalidatePlaceCache(meetingUuid);
         }
 
         if (command.getDestinationAddress() != null) {
