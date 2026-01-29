@@ -56,6 +56,9 @@ export default function CompleteSummaryCard({ meeting }: Props) {
   const params = useParams()
   const meetingUuid = params.meetingId  as string
 
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api'
+
   const placeName = place?.placeName ?? ''
   const address = place?.address ?? ''
   const phoneNumber = place?.phone ?? ''
@@ -87,8 +90,6 @@ const lng = typeof place?.longitude === 'number' ? place.longitude : null
 
   useEffect(() => {
     if (!meetingUuid) return
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api'
     const fetchPlace = async () => {
       try {
         const res = await axios.get(
@@ -112,20 +113,32 @@ const lng = typeof place?.longitude === 'number' ? place.longitude : null
   }, [meetingUuid])
 
 
-const handleSendKakao = () => {
+  const updateMeetingStatus = async () => {
+    await axios.patch(
+      `${API_BASE_URL}/v1/meetings/${meetingUuid}`,
+      { status: 'COMPLETED' },
+      { withCredentials: true }
+    )
+  }
+
+const handleSendKakao = async () => {
   if (typeof window === "undefined") return
 
-  // Kakao SDK 없음 or 앱 없음
-if (!window.Kakao) {
-  alert('카카오 SDK가 로드되지 않았어요.')
-  return
-}
-
-if (!window.Kakao.isInitialized()) {
-  window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
-}
-
   try {
+    // ✅ 1. 모임 상태 확정
+    await updateMeetingStatus()
+
+    // Kakao SDK 없음
+    if (!window.Kakao) {
+      alert('카카오 SDK가 로드되지 않았어요.')
+      return
+    }
+
+    if (!window.Kakao.isInitialized()) {
+      window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
+    }
+
+    // ✅ 2. 카카오 공유
     window.Kakao.Share.sendCustom({
       templateId: 128597,
       templateArgs: {
@@ -136,12 +149,15 @@ if (!window.Kakao.isInitialized()) {
         lat: lat ? String(lat) : '',
         lng: lng ? String(lng) : '',
         number: phoneNumber || '-',
+        place: placeName,
       },
     })
-  } catch {
+  } catch (error) {
+    console.error('확정/공유 실패:', error)
     fallbackShare()
   }
 }
+
 
 const fallbackShare = async () => {
   const url = window.location.href
@@ -288,7 +304,7 @@ const handleDirection = () => {
     onClick={handleSendKakao}
     className="
       group flex flex-1 items-center justify-center gap-2
-      rounded-xl 
+      rounded-xl
       bg-[var(--wf-highlight)]
       hover:bg-[var(--wf-accent)]
       py-6

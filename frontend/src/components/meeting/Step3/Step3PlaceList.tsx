@@ -47,13 +47,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 
 /* ================= 타입 ================= */
 
-// interface MeUser {
-//   userId?: number
-//   name?: string
-//   nickname?: string
-//   profileImage?: string
-// }
-
 interface Participant {
   participantId: number
   userId: number
@@ -102,6 +95,10 @@ interface VoteOption {
 interface VoteData {
   voteId: number
   options: VoteOption[]
+}
+
+interface Step3PlaceListProps {
+  onStatusLoaded?: (status: string) => void
 }
 
 /* ================= API BASE ================= */
@@ -208,7 +205,10 @@ const rawPlaces: Omit<RecommendedPlace, 'icon'>[] = [
 
 /* ================= 컴포넌트 ================= */
 
-export default function Step5PlaceList() {
+export default function Step5PlaceList({
+                                        onStatusLoaded,
+                                      }: Step3PlaceListProps) {
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const meetingUuid = searchParams.get('meetingUuid')
@@ -298,8 +298,6 @@ export default function Step5PlaceList() {
       })
       .then((res) => {
         const data = res.data?.data
-        console.log('Meeting API Response:', data)
-
         const rawParticipants: Participant[] = data?.participants ?? []
         const sorted = sortParticipants(rawParticipants, user?.id)
         setParticipants(sorted)
@@ -309,12 +307,17 @@ export default function Step5PlaceList() {
 
         // 모임 목적 저장
         setMeetingPurpose(data?.purpose || 'DINING')
+
+        // ⭐ 모임 상태를 부모 컴포넌트에 전달
+        if (onStatusLoaded && data?.status) {
+          onStatusLoaded(data.status)
+        }
       })
       .catch((err) => {
         console.error('Meeting API Error:', err)
         setParticipants([])
       })
-  }, [meetingUuid, user?.id])
+  }, [meetingUuid, user?.id, onStatusLoaded])
 
   /* ================= 추천장소 + 중간지점 통합 API ================= */
 
