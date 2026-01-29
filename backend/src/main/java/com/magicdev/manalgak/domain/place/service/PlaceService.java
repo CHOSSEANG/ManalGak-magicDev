@@ -92,10 +92,10 @@ public class PlaceService {
     }
 
     private PlaceResponse callKakaoApi(String meetingUuid, String purpose, int limit) {
-        // 1. 중간지점 계산
-        Coordinate midpoint = midpointCalculationService.returnMidPointByMeetingID(meetingUuid);
+        // 1. 중간지점 역 기반으로 좌표 계산
+        Coordinate midpoint = midpointCalculationService.findOptimalStationByMeetingID(meetingUuid);
 
-        log.info("중간지점 계산 완료: lat={}, lng={}",
+        log.info("중간지점 역 계산 완료: lat={}, lng={}",
                 midpoint.getLatitude(), midpoint.getLongitude());
 
         // 2. 목적 -> 카카오 카테고리 코드 변환
@@ -354,7 +354,7 @@ public class PlaceService {
      * DB에 저장된 후보 장소들을 PlaceResponse로 변환
      */
     private PlaceResponse convertCandidatesToResponse(List<PlaceCandidate> candidates, String meetingUuid) {
-        Coordinate midpoint = midpointCalculationService.returnMidPointByMeetingID(meetingUuid);
+        Coordinate midpoint = midpointCalculationService.findOptimalStationByMeetingID(meetingUuid);
 
         List<PlaceResponse.Place> places = candidates.stream()
                 .map(this::convertCandidateToPlace)
@@ -449,5 +449,47 @@ public class PlaceService {
         savePlacesToCache(cacheKey, response);
 
         return response;
+    }
+
+    /**
+     * 모임의 추천 장소 캐시 무효화
+     * - 참여자 주소 변경 시 호출
+     */
+    @Transactional
+    public void invalidatePlaceCache(String meetingUuid) {
+        // 1. Redis 캐시 삭제 (SCAN 사용 - 논블로킹 방식)
+        String pattern = CacheKeys.meetingPlacesPattern(meetingUuid);
+        try {
+            int deletedCount = scanAndDelete(pattern);
+            if (deletedCount > 0) {
+                log.info("Redis 캐시 삭제: meetingUuid={}, 삭제된 키 수={}", meetingUuid, deletedCount);
+            }
+        } catch (Exception e) {
+            log.warn("Redis 캐시 삭제 실패: meetingUuid={}, error={}", meetingUuid, e.getMessage());
+        }
+
+        // 2. DB 캐시 삭제 (PlaceCandidate)
+        placeCandidateRepository.deleteByMeetingMeetingUuid(meetingUuid);
+        log.info("PlaceCandidate 삭제: meetingUuid={}", meetingUuid);
+    }
+
+    /**
+     * SCAN 명령을 사용하여 패턴에 맞는 키 삭제 (논블로킹)
+     */
+    private int scanAndDelete(String pattern) {
+        int deletedCount = 0;
+        var scanOptions = org.springframework.data.redis.core.ScanOptions.scanOptions()
+                .match(pattern)
+                .count(100)
+                .build();
+
+        try (var cursor = redisTemplate.scan(scanOptions)) {
+            while (cursor.hasNext()) {
+                String key = (String) cursor.next();
+                redisTemplate.delete(key);
+                deletedCount++;
+            }
+        }
+        return deletedCount;
     }
 }
