@@ -15,7 +15,7 @@ import com.magicdev.manalgak.domain.participant.service.command.UpdateParticipan
 import com.magicdev.manalgak.domain.place.service.PlaceService;
 import com.magicdev.manalgak.domain.user.entity.User;
 import com.magicdev.manalgak.domain.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class ParticipantServiceImpl implements ParticipantService {
 
@@ -38,6 +37,15 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final PlaceService placeService;
 
     private static final int MAX_COUNT = 10;
+
+    public ParticipantServiceImpl(ParticipantRepository participantRepository, MeetingRepository meetingRepository, UserRepository userRepository, GeocodingService geoCodingService, SimpMessagingTemplate messagingTemplate, @Lazy PlaceService placeService) {
+        this.participantRepository = participantRepository;
+        this.meetingRepository = meetingRepository;
+        this.userRepository = userRepository;
+        this.geoCodingService = geoCodingService;
+        this.messagingTemplate = messagingTemplate;
+        this.placeService = placeService;
+    }
 
     @Override
     @Transactional
