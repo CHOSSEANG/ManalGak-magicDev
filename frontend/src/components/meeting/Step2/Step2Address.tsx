@@ -123,6 +123,13 @@ export default function Step2Address({
                 </Button>
               )}
             </div>
+            {/* 이미 출발지가 있고 변경 가능한 경우 안내 문구 표시 */}
+            {!readonly && originAddress && (
+              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                <span>⚠️</span>
+                <span>출발지를 변경하면 추천 장소가 다시 계산됩니다</span>
+              </p>
+            )}
           </CardContent>
         </Card>
 

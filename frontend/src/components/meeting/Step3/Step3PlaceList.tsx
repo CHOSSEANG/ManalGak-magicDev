@@ -331,16 +331,25 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
           })
         }
 
-        // 2. 투표 생성 구독
+        // 2. 투표 생성/삭제 구독
         client.subscribe(`/topic/votes/meeting/${meetingUuid}`, (message) => {
           try {
             const result = JSON.parse(message.body)
+
+            // 투표 삭제 알림 처리 (장소 변경으로 인한 자동 삭제)
+            if (result.type === 'VOTE_DELETED') {
+              setVoteData(null)
+              console.log('투표가 삭제되었습니다 (장소 변경)')
+              return
+            }
+
+            // 투표 생성/업데이트 처리
             if (result.voteId && result.options) {
               setVoteData(result)
               setIsNewPlaceAvailable(false)
             }
           } catch (error) {
-            console.error('투표 생성 WebSocket 처리 실패:', error)
+            console.error('투표 WebSocket 처리 실패:', error)
           }
         })
 
