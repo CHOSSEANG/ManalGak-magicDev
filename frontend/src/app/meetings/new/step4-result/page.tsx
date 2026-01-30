@@ -2,7 +2,7 @@
 "use client";
 
 import { useState,Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 // 기존 로직 컴포넌트 (변경 없음)
 import StepNavigation from "@/components/layout/StepNavigation";
@@ -16,12 +16,11 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import CompletedMeetingNotice from "@/components/common/CompletedMeetingNotice";
+import RequireMeeting from "@/components/common/RequireMeeting";
 
 function Step3Content(): JSX.Element {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const meetingUuid = searchParams.get("meetingUuid");
   const [meetingStatus, setMeetingStatus] = useState<string | null>(null);
@@ -29,32 +28,7 @@ function Step3Content(): JSX.Element {
   // meetingUuid 없음 (Empty State)
   // =====================
   if (!meetingUuid) {
-    return (
-      <main className="flex min-h-[60vh] items-center justify-center px-6">
-        <Card className="w-full max-w-md border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardHeader>
-            <CardTitle className="text-[var(--text)]">
-              아직 모임이 없어요
-            </CardTitle>
-            <CardDescription className="text-[var(--text-subtle)]">
-              Step1에서 모임을 생성해야 <br />
-              추천 장소를 확인할 수 있어요.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <Button
-              className="w-full bg-[var(--primary)] text-[var(--primary-foreground)]"
-              onClick={() => {
-                router.push("/meetings/new/step1-basic");
-              }}
-            >
-              Step1로 이동
-            </Button>
-          </CardContent>
-        </Card>
-      </main>
-    );
+    return <RequireMeeting />;
   }
   if (meetingStatus === 'COMPLETED' && meetingUuid) {
     return <CompletedMeetingNotice meetingUuid={meetingUuid} />
@@ -98,7 +72,7 @@ function Step3Content(): JSX.Element {
 
       {/* 하단 네비게이션 */}
       <StepNavigation
-        prevHref={`/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}`}
+        prevHref={`/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`}
         nextHref={`/meetings/${meetingUuid}/complete`}
         nextLabel="확정 내용 확인"
       />
