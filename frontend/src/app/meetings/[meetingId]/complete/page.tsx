@@ -6,7 +6,8 @@ import { useSearchParams } from "next/navigation";
 import CompleteSummaryDrawer from '@/components/meeting/Step6/CompleteSummaryDrawer'
 import CompleteMapSection from "@/components/meeting/Step6/CompleteMapSection";
 import { useMeetingComplete } from "@/lib/hooks/useMeetingComplete";
-
+import { useUser } from "@/context/UserContext";
+import LoginRequired from "@/components/common/LoginRequired";
 interface PageProps {
   params: Promise<{
     meetingId: string;
@@ -15,6 +16,7 @@ interface PageProps {
 
 export default function MeetingCompletePage({ params }: PageProps) {
   // ✅ Next.js 15 방식
+  const { user } = useUser();
   const { meetingId } = use(params);
   const searchParams = useSearchParams();
   const candidateIdParam = searchParams.get("candidateId");
@@ -40,7 +42,11 @@ export default function MeetingCompletePage({ params }: PageProps) {
     phoneNumber: resolvedData?.phoneNumber ?? "",
     organizerId: Number(resolvedData?.organizerId ?? 0),
   };
-
+    if (!user) {
+      const currentUrl = `/meetings/${meetingId}/complete`;
+      localStorage.setItem("loginRedirect", currentUrl);
+      return <LoginRequired />;
+    }
   return (
     <main className="relative min-h-[100dvh] w-full overflow-visible bg-[var(--bg)]">
       {/* 배경 지도 */}

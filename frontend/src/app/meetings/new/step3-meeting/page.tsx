@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import axios from "axios";
 
 import StepNavigation from "@/components/layout/StepNavigation";
@@ -10,17 +10,9 @@ import Address, { TransportMode } from "@/components/meeting/Step2/Step2Address"
 import LoginRequired from "@/components/common/LoginRequired";
 import CompletedMeetingNotice from "@/components/common/CompletedMeetingNotice";
 import { useUser } from "@/context/UserContext";
-
+import RequireMeeting from "@/components/common/RequireMeeting";
 
 // shadcn/ui
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // =====================
@@ -122,7 +114,6 @@ const sendKakaoInvite = (
 // 메인 콘텐츠
 // =====================
 function Step3MembersContent(): JSX.Element {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const meetingUuid = searchParams.get("meetingUuid");
   const readonlyParam = searchParams.get("readonly") === "true";
@@ -211,30 +202,9 @@ const isOrganizer = meetingData?.organizerId === user?.id;
   // =====================
   // 예외 케이스 UI
   // =====================
-  if (!meetingUuid) {
-    return (
-      <main className="flex min-h-[60vh] items-center justify-center p-6">
-        <Card className="w-full max-w-md border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardHeader>
-            <CardTitle className="text-[var(--text)]">
-              아직 모임이 없어요
-            </CardTitle>
-            <CardDescription className="text-[var(--text-subtle)]">
-              Step1에서 모임을 생성해야 다음 단계를 진행할 수 있어요.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              className="w-full bg-[var(--primary)] text-[var(--primary-foreground)]"
-              onClick={() => router.push("/meetings/new/step1-basic")}
-            >
-              Step1로 이동
-            </Button>
-          </CardContent>
-        </Card>
-      </main>
-    );
-  }
+   if (!meetingUuid) {
+     return <RequireMeeting />;
+   }
 
   if (loading) {
     return (

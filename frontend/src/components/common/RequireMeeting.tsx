@@ -1,4 +1,4 @@
-// src/app/meetings/none/page.tsx
+// src/components/common/RequireMeeting.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export default function MeetingNonePage(): JSX.Element {
+export default function RequireMeeting(): JSX.Element {
   const router = useRouter();
 
   const handleGoStep1 = (): void => {
@@ -52,7 +52,7 @@ export default function MeetingNonePage(): JSX.Element {
           </Button>
 
           <p className="mt-3 text-xs text-[var(--text-subtle)]">
-            모임 준비, 지금 시작해요 🙂
+             모임 준비, 지금 시작해요 🙂
           </p>
         </CardContent>
       </Card>
