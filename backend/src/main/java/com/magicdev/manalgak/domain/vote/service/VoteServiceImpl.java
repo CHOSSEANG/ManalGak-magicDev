@@ -142,7 +142,6 @@ public class VoteServiceImpl implements VoteService{
         }
 
         voteRepository.delete(voteOpt.get());
-        voteRepository.flush();
         log.info("투표 삭제 완료 (장소 변경으로 인한 자동 삭제): meetingUuid={}", meetingUuid);
         return true;
     }
