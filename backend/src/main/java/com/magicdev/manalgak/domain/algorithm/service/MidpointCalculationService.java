@@ -31,6 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MidpointCalculationService {
 
+	private static final long ODSAY_API_CALL_DELAY_MS = 50L;
+
 	private final ParticipantService participantService;
 	private final SubwayStationRepository stationRepository;
 	private final OdsayService odsayService;
@@ -364,7 +366,7 @@ public class MidpointCalculationService {
 
 			// API 호출 사이에 딜레이 (Rate Limit 방지)
 			try {
-				Thread.sleep(50);  // 0.05초 대기 (성능 최적화)
+				Thread.sleep(ODSAY_API_CALL_DELAY_MS);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
