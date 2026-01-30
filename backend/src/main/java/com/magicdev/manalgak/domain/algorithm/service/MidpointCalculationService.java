@@ -341,7 +341,7 @@ public class MidpointCalculationService {
 					new Coordinate(s2.getLatitude(), s2.getLongitude()));
 				return Double.compare(d1, d2);
 			})
-			.limit(20)  // 상위 20개만 (너무 많으면 API 호출 과다)
+			.limit(5)  // 상위 5개만 (성능 최적화)
 			.toList();
 	}
 
@@ -362,9 +362,9 @@ public class MidpointCalculationService {
 				participant.getOrigin().getLongitude()
 			);
 
-			// 🆕 API 호출 사이에 딜레이 추가
+			// API 호출 사이에 딜레이 (Rate Limit 방지)
 			try {
-				Thread.sleep(200);  // 0.2초 대기
+				Thread.sleep(50);  // 0.05초 대기 (성능 최적화)
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
