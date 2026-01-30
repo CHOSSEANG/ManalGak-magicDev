@@ -240,112 +240,6 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   const isHost = organizerId != null && user?.id != null && organizerId === user.id
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false)
 
-  /* ================= WebSocket 연결 ================= */
-
-  // voteData를 ref로 관리하여 WebSocket 콜백에서 최신값 참조
-  const voteDataRef = useRef(voteData)
-  useEffect(() => {
-    voteDataRef.current = voteData
-  }, [voteData])
-
-  useEffect(() => {
-    if (!meetingUuid) return
-
-    const client = new Client({
-      webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws`),
-      onConnect: () => {
-        // 1. 투표 업데이트 구독
-        if (voteData?.voteId) {
-          client.subscribe(`/topic/votes/${voteData.voteId}`, (message) => {
-            try {
-              const result = JSON.parse(message.body)
-              if (result.voteId) {
-                setVoteData(result)
-                setIsNewPlaceAvailable(false)
-              }
-            } catch (error) {
-              console.error('WebSocket 메시지 처리 실패:', error)
-            }
-          })
-        }
-
-        // 2. 투표 생성 구독
-        client.subscribe(`/topic/votes/meeting/${meetingUuid}`, (message) => {
-          try {
-            const result = JSON.parse(message.body)
-            if (result.voteId && result.options) {
-              setVoteData(result)
-              setIsNewPlaceAvailable(false)
-            }
-          } catch (error) {
-            console.error('투표 생성 WebSocket 처리 실패:', error)
-          }
-        })
-
-        // 3. 장소 캐시 무효화 알림 구독 (NEW)
-        client.subscribe(`/topic/meeting/${meetingUuid}/places`, (message) => {
-          try {
-            const notification = JSON.parse(message.body)
-            if (notification.type === 'CACHE_INVALIDATED') {
-              // 항상 새 추천 장소 불러오기
-              fetchPlacesAndMidpoint()
-
-              // 투표 진행 중이면 추가로 알림 표시
-              if (voteDataRef.current) {
-                setIsNewPlaceAvailable(true)
-              }
-            }
-          } catch (error) {
-            console.error('장소 알림 WebSocket 처리 실패:', error)
-          }
-        })
-      },
-      onStompError: (frame) => {
-        console.error('STOMP error:', frame)
-      },
-    })
-
-    client.activate()
-    stompClientRef.current = client
-
-    return () => {
-      client.deactivate()
-      stompClientRef.current = null
-    }
-  }, [voteData?.voteId, meetingUuid, fetchPlacesAndMidpoint])
-
-  /* ================= 참여자 API ================= */
-
-  useEffect(() => {
-    if (!meetingUuid || !user?.id) return
-
-    axios
-      .get(`${API_BASE_URL}/v1/meetings/${meetingUuid}`, {
-        withCredentials: true,
-      })
-      .then((res) => {
-        const data = res.data?.data
-        const rawParticipants: Participant[] = data?.participants ?? []
-        const sorted = sortParticipants(rawParticipants, user?.id)
-        setParticipants(sorted)
-
-        const organizerIdValue = Number(data?.organizerId ?? 0)
-        setOrganizerId(organizerIdValue || null)
-
-        // 모임 목적 저장
-        setMeetingPurpose(data?.purpose || 'DINING')
-
-        // ⭐ 모임 상태를 부모 컴포넌트에 전달
-        if (onStatusLoaded && data?.status) {
-          onStatusLoaded(data.status)
-        }
-      })
-      .catch((err) => {
-        console.error('Meeting API Error:', err)
-        setParticipants([])
-      })
-  }, [meetingUuid, user?.id, onStatusLoaded])
-
   /* ================= 추천장소 + 중간지점 통합 API ================= */
 
   const fetchPlacesAndMidpoint = useCallback(async () => {
@@ -399,9 +293,121 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
     }
   }, [meetingUuid, meetingPurpose])
 
+  // fetchPlacesAndMidpoint를 ref로 관리하여 WebSocket 콜백에서 최신값 참조
+  const fetchPlacesAndMidpointRef = useRef(fetchPlacesAndMidpoint)
+  useEffect(() => {
+    fetchPlacesAndMidpointRef.current = fetchPlacesAndMidpoint
+  }, [fetchPlacesAndMidpoint])
+
   useEffect(() => {
     fetchPlacesAndMidpoint()
   }, [fetchPlacesAndMidpoint])
+
+  /* ================= WebSocket 연결 ================= */
+
+  // voteData를 ref로 관리하여 WebSocket 콜백에서 최신값 참조
+  const voteDataRef = useRef(voteData)
+  useEffect(() => {
+    voteDataRef.current = voteData
+  }, [voteData])
+
+  useEffect(() => {
+    if (!meetingUuid) return
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws`),
+      onConnect: () => {
+        // 1. 투표 업데이트 구독
+        if (voteData?.voteId) {
+          client.subscribe(`/topic/votes/${voteData.voteId}`, (message) => {
+            try {
+              const result = JSON.parse(message.body)
+              if (result.voteId) {
+                setVoteData(result)
+                setIsNewPlaceAvailable(false)
+              }
+            } catch (error) {
+              console.error('WebSocket 메시지 처리 실패:', error)
+            }
+          })
+        }
+
+        // 2. 투표 생성 구독
+        client.subscribe(`/topic/votes/meeting/${meetingUuid}`, (message) => {
+          try {
+            const result = JSON.parse(message.body)
+            if (result.voteId && result.options) {
+              setVoteData(result)
+              setIsNewPlaceAvailable(false)
+            }
+          } catch (error) {
+            console.error('투표 생성 WebSocket 처리 실패:', error)
+          }
+        })
+
+        // 3. 장소 캐시 무효화 알림 구독
+        client.subscribe(`/topic/meeting/${meetingUuid}/places`, (message) => {
+          try {
+            const notification = JSON.parse(message.body)
+            if (notification.type === 'CACHE_INVALIDATED') {
+              // 항상 새 추천 장소 불러오기 (ref 사용으로 최신 함수 참조)
+              fetchPlacesAndMidpointRef.current()
+
+              // 투표 진행 중이면 추가로 알림 표시
+              if (voteDataRef.current) {
+                setIsNewPlaceAvailable(true)
+              }
+            }
+          } catch (error) {
+            console.error('장소 알림 WebSocket 처리 실패:', error)
+          }
+        })
+      },
+      onStompError: (frame) => {
+        console.error('STOMP error:', frame)
+      },
+    })
+
+    client.activate()
+    stompClientRef.current = client
+
+    return () => {
+      client.deactivate()
+      stompClientRef.current = null
+    }
+  }, [voteData?.voteId, meetingUuid])
+
+  /* ================= 참여자 API ================= */
+
+  useEffect(() => {
+    if (!meetingUuid || !user?.id) return
+
+    axios
+      .get(`${API_BASE_URL}/v1/meetings/${meetingUuid}`, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        const data = res.data?.data
+        const rawParticipants: Participant[] = data?.participants ?? []
+        const sorted = sortParticipants(rawParticipants, user?.id)
+        setParticipants(sorted)
+
+        const organizerIdValue = Number(data?.organizerId ?? 0)
+        setOrganizerId(organizerIdValue || null)
+
+        // 모임 목적 저장
+        setMeetingPurpose(data?.purpose || 'DINING')
+
+        // ⭐ 모임 상태를 부모 컴포넌트에 전달
+        if (onStatusLoaded && data?.status) {
+          onStatusLoaded(data.status)
+        }
+      })
+      .catch((err) => {
+        console.error('Meeting API Error:', err)
+        setParticipants([])
+      })
+  }, [meetingUuid, user?.id, onStatusLoaded])
 
   /* ================= 추천 장소 (아이콘 주입) ================= */
 
