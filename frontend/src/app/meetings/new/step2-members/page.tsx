@@ -10,6 +10,8 @@ import StepNavigation from "@/components/layout/StepNavigation";
 import { TransportMode } from "@/components/meeting/Step2/Step2Address";
 import MemberList from "@/components/meeting/Step2/Step2MemberList";
 import LoginRequired from "@/components/common/LoginRequired";
+import CompletedMeetingNotice from "@/components/common/CompletedMeetingNotice";
+import RequireMeeting from "@/components/common/RequireMeeting";
 import { useUser } from "@/context/UserContext";
 
 
@@ -131,9 +133,10 @@ function Step3MembersContent(): JSX.Element {
 
   // const [originAddress, setOriginAddress] = useState("");
   // const [transport, setTransport] = useState<TransportMode | null>(null);
-  // const [setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [myParticipantId, setMyParticipantId] = useState<number | null>(null);
   const [meetingData, setMeetingData] = useState<MeetingData | null>(null);
+  const [isExpired, setIsExpired] = useState<boolean>(false);
 
   const joinedRef = useRef(false);
 
@@ -153,7 +156,7 @@ function Step3MembersContent(): JSX.Element {
 
     const fetchMeeting = async (): Promise<void> => {
       try {
-        // setIsLoading(true);
+        setIsLoading(true);
 
         const res = await axios.get<ApiResponse>(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}`,
@@ -176,31 +179,43 @@ function Step3MembersContent(): JSX.Element {
           //   setTransport(myParticipant.transportType);
           // }
         } else {
-          await axios.post(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants`,
-            null,
-            { withCredentials: true }
-          );
+          try {
+            await axios.post(
+              `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants`,
+              null,
+              { withCredentials: true }
+            );
 
-          const resAfter = await axios.get<ApiResponse>(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}`,
-            { withCredentials: true }
-          );
+            const resAfter = await axios.get<ApiResponse>(
+              `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}`,
+              { withCredentials: true }
+            );
 
-          const updatedData = resAfter.data.data;
-          setMeetingData(updatedData);
+            const updatedData = resAfter.data.data;
+            setMeetingData(updatedData);
 
-          const newParticipant = updatedData.participants.find(
-            (p) => p.userId === user.id
-          );
-          if (newParticipant) {
-            setMyParticipantId(newParticipant.participantId);
+            const newParticipant = updatedData.participants.find(
+              (p) => p.userId === user.id
+            );
+            if (newParticipant) {
+              setMyParticipantId(newParticipant.participantId);
+            }
+          } catch (err: unknown) {
+            console.error("참여 생성 실패", err);
+
+            if (axios.isAxiosError(err) && err.response?.status === 400) {
+              const errorCode = err.response?.data?.error?.code;
+
+              if (errorCode === "MEETING_EXPIRED") {
+                setIsExpired(true);
+              }
+            }
           }
         }
       } catch (e) {
         console.error("모임 조회 실패", e);
       } finally {
-        // setIsLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -211,28 +226,7 @@ function Step3MembersContent(): JSX.Element {
   // 예외 케이스 UI
   // =====================
   if (!meetingUuid) {
-    return (
-      <main className="flex min-h-[60vh] items-center justify-center p-6">
-        <Card className="w-full max-w-md border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardHeader>
-            <CardTitle className="text-[var(--text)]">
-              아직 모임이 없어요
-            </CardTitle>
-            <CardDescription className="text-[var(--text-subtle)]">
-              Step1에서 모임을 생성해야 다음 단계를 진행할 수 있어요.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              className="w-full bg-[var(--primary)] text-[var(--primary-foreground)]"
-              onClick={() => router.push("/meetings/new/step1-basic")}
-            >
-              Step1로 이동
-            </Button>
-          </CardContent>
-        </Card>
-      </main>
-    );
+    return <RequireMeeting />;
   }
 
   if (loading) {
@@ -245,10 +239,54 @@ function Step3MembersContent(): JSX.Element {
   }
 
   if (!user) {
-    const currentUrl = `/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}&readonly=true`;
+    const currentUrl = `/meetings/new/step2-members?meetingUuid=${meetingUuid}&readonly=true`;
     localStorage.setItem("loginRedirect", currentUrl);
     return <LoginRequired />;
   }
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-xl space-y-4 py-20">
+        <Skeleton className="h-24 w-full rounded-xl bg-[var(--neutral-soft)]" />
+        <Skeleton className="h-40 w-full rounded-xl bg-[var(--neutral-soft)]" />
+      </div>
+    );
+  }
+
+  // ⭐ COMPLETED 상태 체크 - 확정된 모임 안내 카드 표시
+  if (meetingData?.status === 'COMPLETED') {
+    return <CompletedMeetingNotice meetingUuid={meetingUuid} />;
+  }
+
+  // ⭐ 만료된 모임 카드 UI
+ if (isExpired) {
+   return (
+     <main className="flex min-h-[60vh] items-center justify-center p-6">
+       <Card className="w-full max-w-md text-center border-red-200 dark:border-red-700 bg-[var(--bg-soft)] shadow-md">
+         <CardHeader className="space-y-3">
+           <div className="text-4xl">⏰</div>
+           <CardTitle className="text-red-600 dark:text-red-400 text-xl font-semibold">
+             이미 만료된 모임입니다
+           </CardTitle>
+           <CardDescription className="text-[var(--text-subtle)] leading-relaxed">
+             이 모임은 참여 기한이 지나
+             <br />
+             새로운 참여자를 받을 수 없습니다.
+           </CardDescription>
+         </CardHeader>
+
+         <CardContent>
+           <Button
+             className="w-full bg-[var(--primary)] text-[var(--primary-foreground)]"
+             onClick={() => router.push("/meetings/new")}
+           >
+             모임 리스트로 이동
+           </Button>
+         </CardContent>
+       </Card>
+     </main>
+   );
+ }
 
   // =====================
   // 정상 화면
@@ -301,36 +339,6 @@ function Step3MembersContent(): JSX.Element {
 
       </main>
 
-      {/* <StepNavigation
-        prevHref={prevHref}
-        nextHref={`/meetings/new/step3-result?meetingUuid=${meetingUuid}`}
-        onNext={async () => {
-          if (meetingData?.status === "COMPLETED") {
-            return `/meetings/new/step3-result?meetingUuid=${meetingUuid}`;
-          }
-
-          if (!myParticipantId) {
-            alert("참여자 정보가 아직 준비되지 않았어요.");
-            throw new Error("participantId 없음");
-          }
-
-          if (!transport || !originAddress) {
-            alert("출발지와 이동수단을 입력해주세요.");
-            throw new Error("입력값 부족");
-          }
-
-          await axios.patch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants/${myParticipantId}`,
-            {
-              type: transport,
-              originAddress,
-            },
-            { withCredentials: true }
-          );
-
-          return `/meetings/new/step3-result?meetingUuid=${meetingUuid}`;
-        }}
-      /> */}
       <StepNavigation
         prevHref={prevHref}
         nextHref={`/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`}
