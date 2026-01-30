@@ -38,7 +38,6 @@ import {
   Users,
   TrendingUp,
   AlertTriangle,
-  Clock,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -571,13 +570,8 @@ useEffect(() => {
       return;
     }
 
-    // 2. 투표하기 (장소 변경 없을 때만 모달 오픈)
+    // 2. 투표하기
     if (hasVote) {
-      // 혹시라도 일반 유저가 비활성화를 뚫고 눌렀을 경우를 대비해 한 번 더 체크
-      if (!isHost && isNewPlaceAvailable) {
-        alert("추천 장소가 갱신되었습니다. 모임장이 투표를 새로 만들 때까지 기다려주세요.");
-        return;
-      }
       setShowVoteModal(true);
     }
   };
@@ -671,18 +665,13 @@ useEffect(() => {
     else if (isHost && isNewPlaceAvailable) {
       voteButtonLabel = '새 추천 장소! 투표 갱신';
     }
-    // 3. 투표가 있는데, 장소가 바뀌었을 때 (일반 참가자)
-    else if (!isHost && isNewPlaceAvailable) {
-      voteButtonLabel = '투표 갱신 대기 중';
-    }
-    // 4. 투표가 있고 장소 변경도 없을 때
+    // 3. 투표가 있고 장소 변경도 없을 때
     else if (voteData?.options?.length) {
       voteButtonLabel = '투표하기';
     }
     const isVoteDisabled =
       isCreatingVote ||
-      (!isHost && !hasVote) || // 투표가 없는데 일반 참여자일 때
-      (!isHost && isNewPlaceAvailable); // ⭐ 장소가 바뀌었는데 일반 참여자일 때 (투표 방지)
+      (!isHost && !hasVote); // 투표가 없는데 일반 참여자일 때
     let confirmLabel = '추천 장소 확정'
     if (isConfirming) {
     confirmLabel = '확정 중...'
@@ -718,31 +707,6 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* 오른쪽: 장소 변경 알림 */}
-            {isNewPlaceAvailable && (
-              isHost ? (
-                // 모임장: 경고 + 버튼
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 text-amber-600">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span className="text-sm font-medium hidden sm:inline">장소 변경됨</span>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={handleVoteButtonClick}
-                    className="bg-amber-500 hover:bg-amber-600 text-white"
-                  >
-                    투표 갱신
-                  </Button>
-                </div>
-              ) : (
-                // 일반 참가자: 대기 중 표시만
-                <div className="flex items-center gap-1.5 text-blue-500">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-sm font-medium">갱신 대기 중</span>
-                </div>
-              )
-            )}
           </CardContent>
         </Card>
       )}
@@ -795,14 +759,22 @@ useEffect(() => {
               중간지점 기준으로 추천된 장소입니다.
             </p>
           </div>
-          <Button
-            type="button"
-            disabled={isVoteDisabled}
-            onClick={handleVoteButtonClick}
-            className="rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40"
-          >
-            {voteButtonLabel}
-          </Button>
+          <div className="flex items-center gap-2">
+            {isNewPlaceAvailable && (
+              <div className="flex items-center gap-1.5 text-amber-600">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-sm font-medium">장소 변경됨</span>
+              </div>
+            )}
+            <Button
+              type="button"
+              disabled={isVoteDisabled}
+              onClick={handleVoteButtonClick}
+              className="rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40"
+            >
+              {voteButtonLabel}
+            </Button>
+          </div>
         </div>
 
         {isLoadingPlaces ? (
