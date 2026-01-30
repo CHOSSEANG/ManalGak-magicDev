@@ -227,7 +227,6 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   const [meetingPurpose, setMeetingPurpose] = useState<string | null>(null)
   const { user } = useUser()
   const stompClientRef = useRef<Client | null>(null)
-  const prevPlaceSignatureRef = useRef<string | null>(null)
 
   const myParticipant = participants.find(
     p => p.userId === user?.id
@@ -237,6 +236,7 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   /* ================= 모임장 여부 체크 ================= */
 
   const isHost = organizerId != null && user?.id != null && organizerId === user.id
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false)
 
   /* ================= WebSocket 연결 ================= */
 
@@ -354,6 +354,7 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
 
           if (parsedPlaces.length >= 6) {
             setPlaceSource(parsedPlaces.slice(0, 6))
+            setHasInitiallyLoaded(true)
           }
         }
       } catch {
@@ -399,15 +400,17 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
     : [{ lat: 37.563617, lng: 126.997628 }]
 
 useEffect(() => {
-  if (!placeSignature) return;
+  if (!placeSignature || !meetingUuid || isLoadingPlaces || !hasInitiallyLoaded) return;
 
-  // 참여자, 모임장 가릴 것 없이 장소가 바뀌면 일단 상태를 바꿉니다.
-  if (prevPlaceSignatureRef.current && prevPlaceSignatureRef.current !== placeSignature) {
+  const storageKey = `place-signature-${meetingUuid}`;
+  const prevSignature = localStorage.getItem(storageKey);
+
+  if (prevSignature && prevSignature !== placeSignature) {
     setIsNewPlaceAvailable(true);
   }
 
-  prevPlaceSignatureRef.current = placeSignature;
-}, [placeSignature]); // 👈 여기에 isHost가 없어야 일반 유저도 감지합니다.
+  localStorage.setItem(storageKey, placeSignature);
+}, [placeSignature, meetingUuid, isLoadingPlaces, hasInitiallyLoaded]);
 
   /* ================= 투표 API ================= */
 
@@ -460,8 +463,9 @@ useEffect(() => {
        { withCredentials: true }
      )
 
-     // ✅ 성공 시 투표 모달을 바로 엽니다.
-     // 데이터 업데이트는 WebSocket 구독부(setIsNewPlaceAvailable(false))에서 처리됩니다.
+     const storageKey = `place-signature-${meetingUuid}`;
+     localStorage.setItem(storageKey, placeSignature);
+     setIsNewPlaceAvailable(false);
      setShowVoteModal(true);
    } catch (error) {
      console.error('투표 생성 실패:', error)

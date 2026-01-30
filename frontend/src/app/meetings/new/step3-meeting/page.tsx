@@ -141,7 +141,7 @@ function Step3MembersContent(): JSX.Element {
  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const isOrganizer = meetingData?.organizerId === user?.id;
 
-  const prevHref = `/meetings/new/step1-basic?meetingUuid=${meetingUuid}${
+  const prevHref = `/meetings/new/step2-members?meetingUuid=${meetingUuid}${
     readonlyParam ? "&readonly=true" : ""
   }`;
 
@@ -246,7 +246,7 @@ const isOrganizer = meetingData?.organizerId === user?.id;
   }
 
   if (!user) {
-    const currentUrl = `/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}&readonly=true`;
+    const currentUrl = `/meetings/new/step3-meeting?meetingUuid=${meetingUuid}&readonly=true`;
     localStorage.setItem("loginRedirect", currentUrl);
     return <LoginRequired />;
   }
