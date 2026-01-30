@@ -12,6 +12,7 @@ import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
 import com.magicdev.manalgak.domain.place.dto.PlaceResponse;
 import com.magicdev.manalgak.domain.place.dto.PlaceSelectRequest;
+import com.magicdev.manalgak.domain.place.dto.PlaceUpdateNotification;
 import com.magicdev.manalgak.domain.place.entity.PlaceCandidate;
 import com.magicdev.manalgak.domain.place.entity.RecommendedPlace;
 import com.magicdev.manalgak.domain.place.repository.PlaceCandidateRepository;
@@ -19,6 +20,7 @@ import com.magicdev.manalgak.domain.place.repository.RecommendedPlaceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,7 @@ public class PlaceService {
     private final RecommendedPlaceRepository recommendedPlaceRepository;
     private final PlaceCandidateRepository placeCandidateRepository;
     private final MeetingRepository meetingRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     private static final int DEFAULT_RADIUS = 500;  // 반경 500m
 
@@ -471,6 +474,13 @@ public class PlaceService {
         // 2. DB 캐시 삭제 (PlaceCandidate)
         placeCandidateRepository.deleteByMeetingMeetingUuid(meetingUuid);
         log.info("PlaceCandidate 삭제: meetingUuid={}", meetingUuid);
+
+        // 3. WebSocket으로 클라이언트에게 알림 전송
+        messagingTemplate.convertAndSend(
+                "/topic/meeting/" + meetingUuid + "/places",
+                PlaceUpdateNotification.cacheInvalidated()
+        );
+        log.info("장소 캐시 무효화 알림 전송: meetingUuid={}", meetingUuid);
     }
 
     /**
