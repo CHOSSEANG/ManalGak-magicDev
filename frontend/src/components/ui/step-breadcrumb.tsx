@@ -55,8 +55,10 @@ export function Breadcrumb({
                   step.id === "01"
                     ? "/meetings/new/step1-basic"
                     : step.id === "02"
-                      ? "/meetings/new/step2-meetingmembers"
-                      : "/meetings/new/step3-result";
+                      ? "/meetings/new/step2-members"
+                        : step.id === "03"
+                           ? "/meetings/new/step3-meeting"
+                              : "/meetings/new/step4-result";
 
                 const query =
                   typeof window !== "undefined" ? window.location.search : "";

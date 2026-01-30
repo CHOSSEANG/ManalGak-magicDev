@@ -44,7 +44,7 @@ const MENUS = [
     href: "/meetings/new/step2-members",
     icon: Users,
   },
-    {
+  {
     label: "출발지 설정",
     href: "/meetings/new/step3-meeting",
     icon: Users,
@@ -53,7 +53,13 @@ const MENUS = [
   { label: "최근 확정모임 조희", href: "/meetings/complete", icon: CheckCircle },
 ];
 const OPT_MENUS = [
-  { label: "회비 계산기", href: "/", icon: Calculator },
+  { label: "회비 계산기", href: "/meetings/fee", icon: Calculator },
+];
+
+const NO_UUID_PATHS = [
+  "/my",
+  "/meetings/new",
+  "/meetings/fee",
 ];
 
 const isValidUuid = (value: string | null): value is string => {
@@ -87,8 +93,11 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
   })();
 
   const meetingUuid = queryMeetingUuid ?? pathMeetingUuid;
-
   const withMeetingUuid = (href: string) => {
+    if (NO_UUID_PATHS.includes(href)) {
+      return href;
+    }
+
     if (!meetingUuid) return href;
 
     const params = new URLSearchParams();
@@ -184,7 +193,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
           {/* Top bar: close + title */}
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              
+
             </div>
 
             <Button
@@ -212,14 +221,6 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                     shape="square"
                   />
                 </div>
-
-                {/* <div className="text-[var(--text-subtle)]">
-                  {isLoggedIn ? (
-                    <span></span>
-                  ) : (
-                    <span>로그인 후 내 모임과 내 페이지를 사용할 수 있어요.</span>
-                  )}
-                </div> */}
               </div>
 
 
@@ -302,14 +303,14 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                         </span>
                         <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
                       </Button>
-                    ))} 
+                    ))}
                   </div>
               </div>
 
 </div>
           {/* Global Footer */}
           <Footer />
-          
+
           {/* Bottom CTA area */}
           <div className="border-t border-[var(--border)] bg-[var(--bg)] pt-3">
             {isLoggedIn ? (
