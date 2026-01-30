@@ -37,6 +37,8 @@ import {
   Building2,
   Users,
   TrendingUp,
+  AlertTriangle,
+  Clock,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -240,36 +242,61 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
 
   /* ================= WebSocket 연결 ================= */
 
+  // voteData를 ref로 관리하여 WebSocket 콜백에서 최신값 참조
+  const voteDataRef = useRef(voteData)
   useEffect(() => {
-    if (!voteData?.voteId && !meetingUuid) return
+    voteDataRef.current = voteData
+  }, [voteData])
+
+  useEffect(() => {
+    if (!meetingUuid) return
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws`),
       onConnect: () => {
-        // 기존: 투표 업데이트 구독
+        // 1. 투표 업데이트 구독
         if (voteData?.voteId) {
           client.subscribe(`/topic/votes/${voteData.voteId}`, (message) => {
             try {
               const result = JSON.parse(message.body)
-             if (result.voteId) {
-                   setVoteData(result);
-                   setIsNewPlaceAvailable(false);
-                 }
+              if (result.voteId) {
+                setVoteData(result)
+                setIsNewPlaceAvailable(false)
+              }
             } catch (error) {
               console.error('WebSocket 메시지 처리 실패:', error)
             }
           })
         }
 
-        // ✅ 새로 추가: 투표 생성 구독
+        // 2. 투표 생성 구독
         client.subscribe(`/topic/votes/meeting/${meetingUuid}`, (message) => {
           try {
             const result = JSON.parse(message.body)
             if (result.voteId && result.options) {
-              setVoteData(result)  // 다른 유저가 생성하면 바로 업데이트
+              setVoteData(result)
+              setIsNewPlaceAvailable(false)
             }
           } catch (error) {
             console.error('투표 생성 WebSocket 처리 실패:', error)
+          }
+        })
+
+        // 3. 장소 캐시 무효화 알림 구독 (NEW)
+        client.subscribe(`/topic/meeting/${meetingUuid}/places`, (message) => {
+          try {
+            const notification = JSON.parse(message.body)
+            if (notification.type === 'CACHE_INVALIDATED') {
+              // 항상 새 추천 장소 불러오기
+              fetchPlacesAndMidpoint()
+
+              // 투표 진행 중이면 추가로 알림 표시
+              if (voteDataRef.current) {
+                setIsNewPlaceAvailable(true)
+              }
+            }
+          } catch (error) {
+            console.error('장소 알림 WebSocket 처리 실패:', error)
           }
         })
       },
@@ -285,7 +312,7 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
       client.deactivate()
       stompClientRef.current = null
     }
-  }, [voteData?.voteId, meetingUuid])
+  }, [voteData?.voteId, meetingUuid, fetchPlacesAndMidpoint])
 
   /* ================= 참여자 API ================= */
 
@@ -321,60 +348,60 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
 
   /* ================= 추천장소 + 중간지점 통합 API ================= */
 
-  useEffect(() => {
+  const fetchPlacesAndMidpoint = useCallback(async () => {
     if (!meetingUuid || !meetingPurpose) return
 
-    const fetchPlacesAndMidpoint = async () => {
-      setIsLoadingPlaces(true)
+    setIsLoadingPlaces(true)
 
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/v1/meetings/${meetingUuid}/places?purpose=${meetingPurpose}&limit=6`,
+        { withCredentials: true }
+      )
+
+      const data = res.data?.data
+      const apiPlaces: unknown[] = Array.isArray(data?.places) ? data.places : []
+      const apiMidpoint = data?.midpoint
+
+      // 중간지점 설정
+      if (apiMidpoint?.latitude && apiMidpoint?.longitude) {
+        setMiddlePoint({
+          lat: apiMidpoint.latitude,
+          lng: apiMidpoint.longitude,
+          stationName: apiMidpoint.stationName,
+        })
+      }
+
+      // 추천장소 설정 (6개 이상일 때만 교체)
+      if (apiPlaces.length >= 6) {
+        const parsedPlaces = apiPlaces
+          .map(parseApiPlace)
+          .filter((place): place is Omit<RecommendedPlace, 'icon'> => place !== null)
+
+        if (parsedPlaces.length >= 6) {
+          setPlaceSource(parsedPlaces.slice(0, 6))
+          setHasInitiallyLoaded(true)
+        }
+      }
+    } catch {
+      // places API 실패 시 기존 middle-point API 폴백
       try {
         const res = await axios.get(
-          `${API_BASE_URL}/v1/meetings/${meetingUuid}/places?purpose=${meetingPurpose}&limit=6`,
+          `${API_BASE_URL}/v1/meetings/${meetingUuid}/middle-point`,
           { withCredentials: true }
         )
-
-        const data = res.data?.data
-        const apiPlaces: unknown[] = Array.isArray(data?.places) ? data.places : []
-        const apiMidpoint = data?.midpoint
-
-        // 중간지점 설정
-        if (apiMidpoint?.latitude && apiMidpoint?.longitude) {
-          setMiddlePoint({
-            lat: apiMidpoint.latitude,
-            lng: apiMidpoint.longitude,
-            stationName: apiMidpoint.stationName,
-          })
+        if (res.data?.lat && res.data?.lng) {
+          setMiddlePoint(res.data)
         }
-
-        // 추천장소 설정 (6개 이상일 때만 교체)
-        if (apiPlaces.length >= 6) {
-          const parsedPlaces = apiPlaces
-            .map(parseApiPlace)
-            .filter((place): place is Omit<RecommendedPlace, 'icon'> => place !== null)
-
-          if (parsedPlaces.length >= 6) {
-            setPlaceSource(parsedPlaces.slice(0, 6))
-            setHasInitiallyLoaded(true)
-          }
-        }
-      } catch {
-        // places API 실패 시 기존 middle-point API 폴백
-        try {
-          const res = await axios.get(
-            `${API_BASE_URL}/v1/meetings/${meetingUuid}/middle-point`,
-            { withCredentials: true }
-          )
-          if (res.data?.lat && res.data?.lng) {
-            setMiddlePoint(res.data)
-          }
-        } catch {}
-      } finally {
-        setIsLoadingPlaces(false)
-      }
+      } catch {}
+    } finally {
+      setIsLoadingPlaces(false)
     }
-
-    fetchPlacesAndMidpoint()
   }, [meetingUuid, meetingPurpose])
+
+  useEffect(() => {
+    fetchPlacesAndMidpoint()
+  }, [fetchPlacesAndMidpoint])
 
   /* ================= 추천 장소 (아이콘 주입) ================= */
 
@@ -634,11 +661,15 @@ useEffect(() => {
     else if (isHost && !voteData?.options?.length) {
       voteButtonLabel = '투표 시작하기';
     }
-    // 2. 투표가 있는데, 그 사이에 장소까지 바뀌었을 때
+    // 2. 투표가 있는데, 그 사이에 장소까지 바뀌었을 때 (모임장)
     else if (isHost && isNewPlaceAvailable) {
       voteButtonLabel = '새 추천 장소! 투표 갱신';
     }
-    // 3. 투표가 있고 장소 변경도 없을 때 (또는 일반 참여자)
+    // 3. 투표가 있는데, 장소가 바뀌었을 때 (일반 참가자)
+    else if (!isHost && isNewPlaceAvailable) {
+      voteButtonLabel = '투표 갱신 대기 중';
+    }
+    // 4. 투표가 있고 장소 변경도 없을 때
     else if (voteData?.options?.length) {
       voteButtonLabel = '투표하기';
     }
@@ -668,6 +699,7 @@ useEffect(() => {
       {voteData && totalVotes > 0 && (
         <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
           <CardContent className="flex items-center justify-between p-4">
+            {/* 왼쪽: 투표 현황 */}
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary)]">
                 <TrendingUp className="h-5 w-5 text-[var(--primary-foreground)]" />
@@ -679,6 +711,32 @@ useEffect(() => {
                 </p>
               </div>
             </div>
+
+            {/* 오른쪽: 장소 변경 알림 */}
+            {isNewPlaceAvailable && (
+              isHost ? (
+                // 모임장: 경고 + 버튼
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 text-amber-600">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="text-sm font-medium hidden sm:inline">장소 변경됨</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={handleVoteButtonClick}
+                    className="bg-amber-500 hover:bg-amber-600 text-white"
+                  >
+                    투표 갱신
+                  </Button>
+                </div>
+              ) : (
+                // 일반 참가자: 대기 중 표시만
+                <div className="flex items-center gap-1.5 text-blue-500">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm font-medium">갱신 대기 중</span>
+                </div>
+              )
+            )}
           </CardContent>
         </Card>
       )}
