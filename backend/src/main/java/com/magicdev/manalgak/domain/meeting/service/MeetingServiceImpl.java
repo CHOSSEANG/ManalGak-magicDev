@@ -18,6 +18,7 @@ import com.magicdev.manalgak.domain.place.repository.RecommendedPlaceRepository;
 import com.magicdev.manalgak.domain.user.entity.User;
 import com.magicdev.manalgak.domain.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +41,7 @@ public class MeetingServiceImpl implements MeetingService {
     public MeetingServiceImpl(
             MeetingRepository meetingRepository,
             @Value("${frontend.base-url}") String frontendBaseUrl,
-            ParticipantService participantService,
+            @Lazy ParticipantService participantService,
             ParticipantRepository participantRepository,
             UserRepository userRepository,
             RecommendedPlaceRepository recommendedPlaceRepository
