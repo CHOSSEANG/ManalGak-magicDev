@@ -158,14 +158,30 @@ export default function CreateEntryPage() {
 
     if (!confirm("정말 이 모임을 삭제하시겠어요?")) return;
 
-    await axios.delete(`${API_BASE_URL}/v1/meetings/${uuid}`, {
-      withCredentials: true,
-    });
+     try {
+        await axios.delete(`${API_BASE_URL}/v1/meetings/${uuid}`, {
+          withCredentials: true,
+        });
 
-    setExistingMeetings((prev) =>
-      prev.filter((item) => item.meeting.meetingUuid !== uuid)
-    );
-  };
+        setExistingMeetings((prev) =>
+          prev.filter((item) => item.meeting.meetingUuid !== uuid)
+        );
+
+        setPageInfo((prev) => {
+          if (!prev) return prev;
+
+          const nextTotal = Math.max(0, prev.totalElements - 1);
+
+          return {
+            ...prev,
+            totalElements: nextTotal,
+            empty: nextTotal === 0,
+          };
+        });
+      } catch {
+        alert("모임 삭제에 실패했습니다.");
+      }
+    };
 
   const formatDateTime = (dateString: string) => {
     const d = new Date(dateString);
