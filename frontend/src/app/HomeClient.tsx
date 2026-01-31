@@ -85,19 +85,21 @@ export default function HomeClient() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+    <div
+      className="relative min-h-screen text-[var(--text)]"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(255, 245, 210, 0.55) 0%, rgba(255, 250, 225, 0.45) 40%, rgba(255, 255, 255, 0.9) 100%)",
+      }}
+    >
+      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
         <motion.div
           style={{ y: backgroundY }}
-          className="absolute -top-40 left-1/4 w-[600px] h-[600px] rounded-full bg-primary/20 blur-[120px]"
+          className="absolute -top-48 left-1/3 w-[520px] h-[520px] rounded-full bg-[var(--wf-highlight)] opacity-10 blur-[220px]"
         />
         <motion.div
           style={{ y: backgroundY }}
-          className="absolute top-1/3 -right-20 w-[400px] h-[400px] rounded-full bg-primary/15 blur-[100px]"
-        />
-        <motion.div
-          style={{ y: backgroundY }}
-          className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px]"
+          className="absolute bottom-0 right-1/4 w-[420px] h-[420px] rounded-full bg-[var(--wf-accent)] opacity-[0.08] blur-[240px]"
         />
       </div>
 
@@ -108,7 +110,7 @@ export default function HomeClient() {
           {/* Removed hero radial glow */}
           <motion.div
             {...floatingAnimation}
-            className="absolute top-32 left-[15%] w-4 h-4 rounded-full bg-primary/60"
+            className="absolute top-32 left-[15%] w-4 h-4 rounded-full bg-[var(--wf-highlight-soft)]"
           />
           <motion.div
             animate={{ y: [0, -15, 0], rotate: [0, 10, 0] }}
@@ -118,7 +120,7 @@ export default function HomeClient() {
               ease: "easeInOut" as const,
               delay: 0.5,
             }}
-            className="absolute top-48 right-[20%] w-6 h-6 rounded-lg bg-primary/40 rotate-12"
+            className="absolute top-48 right-[20%] w-6 h-6 rounded-full bg-[var(--wf-highlight-soft)] rotate-12"
           />
           <motion.div
             animate={{ y: [0, -8, 0] }}
@@ -128,7 +130,7 @@ export default function HomeClient() {
               ease: "easeInOut" as const,
               delay: 1,
             }}
-            className="absolute bottom-40 left-[10%] w-3 h-3 rounded-full bg-accent-foreground/20"
+            className="absolute bottom-40 left-[10%] w-3 h-3 rounded-full bg-[var(--wf-border)]"
           />
 
           <motion.div
@@ -142,8 +144,8 @@ export default function HomeClient() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-5 py-2.5 text-sm font-medium text-foreground backdrop-blur-sm">
-                <Sparkles className="w-4 h-4 text-primary" />
+              <span className="inline-flex items-center gap-2 rounded-full border border-[var(--wf-border)] bg-white/60 px-4 py-2 text-sm font-medium backdrop-blur">
+                <Sparkles className="w-4 h-4 text-primary " />
                 스마트한 약속 장소 추천
               </span>
             </motion.div>
@@ -221,7 +223,7 @@ export default function HomeClient() {
         </section>
 
         {/* ================= Problem ================= */}
-        <section className="px-6 py-24">
+        <section className="px-6 py-24 bg-white/60 backdrop-blur-[1px]">
           <div className="mx-auto max-w-6xl space-y-16">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -270,7 +272,7 @@ export default function HomeClient() {
                   animate="rest"
                 >
                   <motion.div variants={cardHover}>
-                    <Card className="h-full p-8 space-y-4 bg-[var(--wf-bg-soft)] border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors">
+                    <Card className="h-full p-8 space-y-4 bg-white border border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors">
                       <motion.div
                         whileHover={{ rotate: [0, -10, 10, 0] }}
                         transition={{ duration: 0.5 }}
@@ -299,9 +301,7 @@ export default function HomeClient() {
         </section>
 
         {/* ================= Solution ================= */}
-        <section className="px-6 py-24 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-primary/10 to-primary/5" />
-
+        <section className="px-6 py-24 relative bg-[var(--wf-highlight)]/20">
           <div className="relative mx-auto max-w-6xl text-center space-y-16">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -357,7 +357,7 @@ export default function HomeClient() {
                       <motion.div
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ type: "spring", stiffness: 400 }}
-                        className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--wf-highlight)]/10 text-[var(--wf-accent)] shadow-lg"
+                        className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--wf-highlight-soft)] text-[var(--wf-accent)] shadow-lg"
                       >
                         {item.icon.type === MapPin && (
                           <MapPin className="w-7 h-7 text-[var(--wf-accent)]" />
@@ -382,7 +382,7 @@ export default function HomeClient() {
         </section>
 
         {/* ================= Use Cases ================= */}
-        <section className="px-6 py-24">
+        <section className="px-6 py-24 bg-white/70">
           <div className="mx-auto max-w-5xl space-y-16 text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -425,7 +425,7 @@ export default function HomeClient() {
               ].map((item) => (
                 <motion.div key={item.label} variants={fadeInUp}>
                   <motion.div
-                    whileHover={{ scale: 1.05, y: -5 }}
+                    whileHover={{ scale: 1.03, y: -4 }}
                     transition={{ type: "spring", stiffness: 400 }}
                   >
                     <Card className="p-8 bg-white border border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors cursor-pointer group">
@@ -449,7 +449,7 @@ export default function HomeClient() {
         </section>
 
         {/* ================= FAQ ================= */}
-        <section className="px-6 py-24">
+        <section className="px-6 py-24 bg-[var(--wf-highlight)]/15">
           <div className="mx-auto max-w-3xl space-y-12">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -509,7 +509,7 @@ export default function HomeClient() {
         </section>
 
         {/* ================= Final CTA ================= */}
-        <section className="px-6 py-24">
+        <section className="px-6 py-24 bg-white/80">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -517,7 +517,7 @@ export default function HomeClient() {
             transition={{ duration: 0.7 }}
             className="mx-auto max-w-4xl"
           >
-            <Card className="relative p-12 md:p-16 text-center space-y-8 bg-[var(--wf-highlight)] border border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors overflow-hidden">
+            <Card className="relative p-12 md:p-16 text-center space-y-8 bg-[var(--wf-highlight-soft)] border border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors overflow-hidden">
               <motion.div
                 initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
@@ -528,11 +528,11 @@ export default function HomeClient() {
                 <span className="text-6xl">🎯</span>
               </motion.div>
 
-              <h2 className="text-3xl md:text-4xl font-bold">
+              <h2 className="text-2xl md:text-4xl font-bold">
                 지금 바로 시작해보세요
               </h2>
 
-              <p className="text-[var(--text-subtle)] text-lg">
+              <p className="text-[var(--text-subtle)] text-m">
                 더 이상 약속 장소로 고민하지 마세요
               </p>
 
@@ -543,7 +543,7 @@ export default function HomeClient() {
                 <Button
                   size="lg"
                   type="button"
-                  className="bg-[#371D1E] hover:bg-[#371D1E] active:bg-[#371D1E] text-white rounded-full px-10 py-6 text-lg font-semibold"
+                  className="bg-[#371D1E] hover:bg-[#371D1E] active:bg-[#371D1E] text-white rounded-full px-10 py-6 text-lg font-semibold shadow-lg"
                   onClick={handleKakaoLogin}
                 >
                   카카오로 3초만에 시작하기
