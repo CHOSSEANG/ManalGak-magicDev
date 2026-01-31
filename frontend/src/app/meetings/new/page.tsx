@@ -145,10 +145,7 @@ export default function CreateEntryPage() {
     router.push(`/meetings/${uuid}`);
   };
 
-  const handleEdit = (uuid: string, organizerId: number) => {
-    const readonly = user?.id !== organizerId ? "&readonly=true" : "";
-    router.push(`/meetings/new/step1-basic?meetingUuid=${uuid}${readonly}`);
-  };
+  // 1/30[유리] - handleEdit 미사용으로 제거 (eslint no-unused-vars 해결)
 
   const handleCopy = async (uuid: string) => {
     const res = await fetch(`${API_BASE_URL}/v1/meetings/${uuid}/copy`, {
@@ -237,11 +234,11 @@ export default function CreateEntryPage() {
                   <div
                     key={meeting.meetingUuid}
                     className="px-0 py-3 cursor-pointer"
-                    onClick={() =>
-                      goToConfirmPage(meeting.meetingUuid!)
-                    } // 1/30[유리] - 리스트 카드 클릭 시 확정 페이지 이동
+                    onClick={() => goToConfirmPage(meeting.meetingUuid!)}
+                    // 1/30[유리] - 리스트 카드 클릭 시 확정 페이지 이동
                   >
                     <div className="flex items-start gap-4">
+                      {/* ===== 인원수 영역 ===== */}
                       <div className="relative flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-[var(--primary-soft)]">
                         <Users className="h-5 w-5 text-[var(--primary)]" />
                         {meeting.totalParticipants > 0 && (
@@ -251,10 +248,12 @@ export default function CreateEntryPage() {
                         )}
                       </div>
 
+                      {/* ===== 텍스트 정보 ===== */}
                       <div className="flex-1 space-y-1">
-                        <p className="text-base font-semibold truncate">
+                        <p className="text-base font-semibold text-[var(--text)] truncate">
                           {meeting.meetingName}
                         </p>
+
                         <p className="text-sm text-[var(--text-subtle)]">
                           {meeting.selectedPlace?.placeName || "장소 미정"}
                           <span className="mx-2">·</span>
@@ -262,6 +261,7 @@ export default function CreateEntryPage() {
                         </p>
                       </div>
 
+                      {/* ===== 액션 영역 ===== */}
                       <div className="shrink-0">
                         {/* 데스크톱 버튼 */}
                         <div className="hidden sm:flex gap-2">
@@ -270,7 +270,8 @@ export default function CreateEntryPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               goToConfirmPage(meeting.meetingUuid!);
-                            }} // 1/30[유리] - 조회 버튼도 확정 페이지 이동
+                            }}
+                            // 1/30[유리] - 조회 버튼도 확정 페이지 이동
                             className={
                               isOrganizer
                                 ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
@@ -333,9 +334,7 @@ export default function CreateEntryPage() {
                               </DropdownMenuItem>
 
                               <DropdownMenuItem
-                                onClick={() =>
-                                  handleCopy(meeting.meetingUuid!)
-                                }
+                                onClick={() => handleCopy(meeting.meetingUuid!)}
                               >
                                 복사
                               </DropdownMenuItem>
