@@ -1,10 +1,13 @@
+// src/app/context/UserContext.tsx
 "use client";
+
 import {
   createContext,
   useContext,
   useState,
   useEffect,
   ReactNode,
+  useRef,
 } from "react";
 import axios from "axios";
 
@@ -30,8 +33,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ 앱 시작 시 "진짜 로그인 상태" 확인
+  // ✅ fetchMe 중복 실행 방지용 플래그
+  const hasFetchedRef = useRef(false);
+
+  // ✅ 앱 시작 시 "진짜 로그인 상태" 확인 (1회만)
   useEffect(() => {
+    // 🚫 이미 실행된 적 있으면 즉시 종료
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+
     const fetchMe = async () => {
       try {
         const res = await axios.get(
@@ -48,6 +58,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUserState(userData);
       } catch {
         // ❌ 토큰 없거나 만료 → 비로그인
+        // ❗ 재시도 없음
         setUserState(null);
       } finally {
         setLoading(false);
