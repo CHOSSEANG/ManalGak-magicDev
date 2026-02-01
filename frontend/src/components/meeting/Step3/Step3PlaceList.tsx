@@ -3,9 +3,8 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import WireframeModal from '@/components/ui/WireframeModal'
-import KakaoMap from '@/components/map/KakaoMap'
+import Step4Map from '@/components/map/Step4Map'
 import { useRouter, useSearchParams } from 'next/navigation'
-import ProfileIdentity from '@/components/layout/ProfileIdentity'
 import axios from 'axios'
 import { useUser } from '@/context/UserContext'
 import SockJS from 'sockjs-client'
@@ -43,7 +42,7 @@ import {
 } from 'lucide-react'
 
 // shadcn/ui
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
@@ -108,11 +107,6 @@ interface Step3PlaceListProps {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api'
 
 /* ================= 유틸 ================= */
-
-function displayName(name?: string) {
-  if (!name) return ''
-  return name.length > 6 ? `${name.slice(0, 6)}…` : name
-}
 
 function sortParticipants(list: Participant[], myUserId?: number): Participant[] {
   if (!myUserId) {
@@ -211,6 +205,7 @@ export default function Step5PlaceList({
                                         onStatusLoaded,
                                       }: Step3PlaceListProps) {
 const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
+  const [mapRefreshKey, setMapRefreshKey] = useState(0)  // 지도 갱신 트리거
   const router = useRouter()
   const searchParams = useSearchParams()
   const meetingUuid = searchParams.get('meetingUuid')
@@ -218,7 +213,7 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null)
   const [showVoteModal, setShowVoteModal] = useState(false)
 
-  const [middlePoint, setMiddlePoint] = useState<MiddlePoint | null>(null)
+  const [, setMiddlePoint] = useState<MiddlePoint | null>(null)
   const [placeSource, setPlaceSource] = useState<Omit<RecommendedPlace, 'icon'>[]>(rawPlaces)
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
@@ -353,6 +348,9 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
               // 항상 새 추천 장소 불러오기 (ref 사용으로 최신 함수 참조)
               fetchPlacesAndMidpointRef.current()
 
+              // 지도 경로도 갱신
+              setMapRefreshKey(prev => prev + 1)
+
               // 투표 진행 중이면 추가로 알림 표시
               if (voteDataRef.current) {
                 setIsNewPlaceAvailable(true)
@@ -427,10 +425,6 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
       .sort()
       .join('|')
   }, [recommendedPlaces])
-
-  const mapMarkers = middlePoint
-    ? [{ lat: middlePoint.lat, lng: middlePoint.lng }]
-    : [{ lat: 37.563617, lng: 126.997628 }]
 
 useEffect(() => {
   if (!placeSignature || !meetingUuid || isLoadingPlaces || !hasInitiallyLoaded) return;
@@ -692,14 +686,16 @@ useEffect(() => {
 
   return (
     <div className="space-y-4">
-      {/* ================= 지도 ================= */}
-      <Card className="overflow-hidden border border-[var(--border)] bg-[var(--bg)]">
-        <CardContent className="p-0">
-          <div className="h-56">
-            <KakaoMap markers={mapMarkers} level={5} />
-          </div>
-        </CardContent>
-      </Card>
+      {/* ================= 지도 (참여자 경로 시각화) ================= */}
+      {meetingUuid && (
+        <Card className="overflow-hidden border border-[var(--border)] bg-[var(--bg)]">
+          <CardContent className="p-0">
+            <div className="h-72">
+              <Step4Map meetingUuid={meetingUuid} refreshKey={mapRefreshKey} minHeight={288} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 투표 현황 배너 */}
       {voteData && totalVotes > 0 && (
@@ -746,45 +742,6 @@ useEffect(() => {
           </CardContent>
         </Card>
       )}
-
-      {/* 멤버 */}
-      <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base text-[var(--text)]">참여자</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {participants.map((p) => {
-              const isMe = p.userId === user?.id
-
-              return (
-                <div
-                  key={p.participantId}
-                  className="flex h-16 w-16 flex-col items-center justify-center"
-                >
-                  <div className="relative">
-                    <ProfileIdentity
-                      src={p.profileImageUrl}
-                      size={48}
-                      shape="square"
-                    />
-
-                    {isMe && (
-                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-md bg-[var(--primary)] px-1.5 text-[9px] text-[var(--primary-foreground)]">
-                        나
-                      </span>
-                    )}
-                  </div>
-
-                  <span className="mt-1 text-[10px] text-[var(--text)]">
-                    {displayName(p.nickName) || '참여자'}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* 추천 장소 */}
       <section className="space-y-3">
