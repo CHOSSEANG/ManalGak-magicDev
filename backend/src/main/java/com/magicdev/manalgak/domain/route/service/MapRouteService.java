@@ -169,25 +169,49 @@ public class MapRouteService {
                 .build();
     }
 
+    // 경계 상자 검색 반경 (km)
+    private static final double BOUNDING_BOX_RADIUS_KM = 2.0;
+
     /**
      * 좌표에서 가장 가까운 역 이름 찾기
+     * - Bounding Box로 주변 역만 조회 (성능 최적화)
+     * - Haversine 공식으로 정확한 거리 계산
      */
     private String findNearestStationName(Coordinate coord) {
-        List<SubwayStation> stations = subwayStationRepository.findAll();
+        // 경계 상자 계산 (위도 1도 ≈ 111km)
+        double latOffset = BOUNDING_BOX_RADIUS_KM / 111.0;
+        double lngOffset = BOUNDING_BOX_RADIUS_KM / (111.0 * Math.cos(Math.toRadians(coord.getLatitude())));
 
-        return stations.stream()
+        double minLat = coord.getLatitude() - latOffset;
+        double maxLat = coord.getLatitude() + latOffset;
+        double minLng = coord.getLongitude() - lngOffset;
+        double maxLng = coord.getLongitude() + lngOffset;
+
+        // Bounding Box 내의 역만 조회
+        List<SubwayStation> nearbyStations = subwayStationRepository.findStationsInBoundingBox(
+                minLat, maxLat, minLng, maxLng
+        );
+
+        // 주변에 역이 없으면 범위를 넓혀서 재조회
+        if (nearbyStations.isEmpty()) {
+            nearbyStations = subwayStationRepository.findStationsInBoundingBox(
+                    minLat - latOffset, maxLat + latOffset,
+                    minLng - lngOffset, maxLng + lngOffset
+            );
+        }
+
+        // Haversine 공식으로 가장 가까운 역 찾기
+        return nearbyStations.stream()
                 .min((s1, s2) -> {
-                    double d1 = calculateDistance(coord, s1);
-                    double d2 = calculateDistance(coord, s2);
+                    double d1 = midpointCalculationService.calculateDistance(
+                            coord, new Coordinate(s1.getLatitude(), s1.getLongitude())
+                    );
+                    double d2 = midpointCalculationService.calculateDistance(
+                            coord, new Coordinate(s2.getLatitude(), s2.getLongitude())
+                    );
                     return Double.compare(d1, d2);
                 })
                 .map(SubwayStation::getStationName)
                 .orElse("중간지점");
-    }
-
-    private double calculateDistance(Coordinate coord, SubwayStation station) {
-        double latDiff = coord.getLatitude() - station.getLatitude();
-        double lngDiff = coord.getLongitude() - station.getLongitude();
-        return Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
     }
 }
