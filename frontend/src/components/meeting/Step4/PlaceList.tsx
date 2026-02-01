@@ -1,9 +1,9 @@
-// src/components/meeting/Step3PlaceList.tsx
+// src/components/meeting/Step4/PlaceList.tsx
 'use client'
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { VoteToast } from '@/components/ui/vote-toast'
-import { VoteDrawer } from '@/components/ui/vote-drawer'
+import VoteToast from '@/components/ui/vote-toast'
+import VoteDrawer from '@/components/ui/vote-drawer'
 import KakaoMap from '@/components/map/KakaoMap'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ProfileIdentity from '@/components/layout/ProfileIdentity'
@@ -209,7 +209,7 @@ const rawPlaces: Omit<RecommendedPlace, 'icon'>[] = [
 
 /* ================= 컴포넌트 ================= */
 
-export default function Step5PlaceList() {
+export default function PlaceList() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const meetingUuid = searchParams.get('meetingUuid')
@@ -493,7 +493,7 @@ export default function Step5PlaceList() {
         })
       }
 
-      setShowVoteModal(false)
+      setIsVoteDrawerOpen(false)
     } catch (error) {
       console.error('투표 참여 실패:', error)
       alert('투표에 실패했습니다.')
@@ -510,7 +510,7 @@ export default function Step5PlaceList() {
 
       if (fetchedVote && fetchedVote.options?.length > 0) {
         setVoteData(fetchedVote)
-        setShowVoteModal(true)
+        setIsVoteDrawerOpen(true)
         return
       }
 
@@ -520,7 +520,7 @@ export default function Step5PlaceList() {
         alert('아직 투표가 시작되지 않았습니다.')
       }
     } else {
-      setShowVoteModal(true)
+      setIsVoteDrawerOpen(true)
     }
   }
 

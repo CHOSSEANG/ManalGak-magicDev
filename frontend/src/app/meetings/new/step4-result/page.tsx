@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 // 기존 로직 컴포넌트 (변경 없음)
-import Step3PlaceList from "@/components/meeting/Step3/Step3PlaceList";
+import PlaceList from "@/components/meeting/Step4/PlaceList";
 
 // shadcn/ui
 import { Button } from "@/components/ui/button";
@@ -73,7 +73,7 @@ function Step4ResultContent(): JSX.Element {
               </div>
             }
           >
-            <Step3PlaceList />
+            <PlaceList />
           </Suspense>
         </section>
       </main>

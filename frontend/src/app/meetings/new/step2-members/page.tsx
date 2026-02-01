@@ -1,4 +1,4 @@
-// src/app/meetings/new/step2-meetingmembers/page.tsx
+// src/app/meetings/new/step2-members/page.tsx
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
