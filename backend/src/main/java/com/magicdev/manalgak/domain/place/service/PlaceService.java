@@ -17,6 +17,8 @@ import com.magicdev.manalgak.domain.place.entity.PlaceCandidate;
 import com.magicdev.manalgak.domain.place.entity.RecommendedPlace;
 import com.magicdev.manalgak.domain.place.repository.PlaceCandidateRepository;
 import com.magicdev.manalgak.domain.place.repository.RecommendedPlaceRepository;
+import com.magicdev.manalgak.domain.vote.dto.VoteDeletedNotification;
+import com.magicdev.manalgak.domain.vote.service.VoteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -39,6 +41,7 @@ public class PlaceService {
     private final PlaceCandidateRepository placeCandidateRepository;
     private final MeetingRepository meetingRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final VoteService voteService;
 
     private static final int DEFAULT_RADIUS = 500;  // 반경 500m
 
@@ -457,6 +460,7 @@ public class PlaceService {
     /**
      * 모임의 추천 장소 캐시 무효화
      * - 참여자 주소 변경 시 호출
+     * - 기존 투표도 함께 삭제 (추천 장소와 투표 옵션 불일치 방지)
      */
     @Transactional
     public void invalidatePlaceCache(String meetingUuid) {
@@ -475,12 +479,24 @@ public class PlaceService {
         placeCandidateRepository.deleteByMeetingMeetingUuid(meetingUuid);
         log.info("PlaceCandidate 삭제: meetingUuid={}", meetingUuid);
 
-        // 3. WebSocket으로 클라이언트에게 알림 전송
+        // 3. 기존 투표 삭제 (추천 장소와 투표 옵션 불일치 방지)
+        boolean voteDeleted = voteService.deleteVoteByMeetingUuid(meetingUuid);
+
+        // 4. WebSocket으로 클라이언트에게 장소 변경 알림 전송
         messagingTemplate.convertAndSend(
                 "/topic/meeting/" + meetingUuid + "/places",
                 PlaceUpdateNotification.cacheInvalidated()
         );
         log.info("장소 캐시 무효화 알림 전송: meetingUuid={}", meetingUuid);
+
+        // 5. 투표가 삭제된 경우 투표 삭제 알림 전송
+        if (voteDeleted) {
+            messagingTemplate.convertAndSend(
+                    "/topic/votes/meeting/" + meetingUuid,
+                    VoteDeletedNotification.deleted()
+            );
+            log.info("투표 삭제 알림 전송: meetingUuid={}", meetingUuid);
+        }
     }
 
     /**
