@@ -28,6 +28,8 @@ interface MapRouteData {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type KakaoMapAny = any
+type KakaoCustomOverlay = { setMap: (map: KakaoMapAny | null) => void }
+type KakaoPolyline = { setMap: (map: KakaoMapAny | null) => void }
 
 interface Step4MapProps {
   meetingUuid: string
@@ -51,8 +53,8 @@ export default function Step4Map({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const overlaysRef = useRef<unknown[]>([])
-  const polylinesRef = useRef<unknown[]>([])
+  const overlaysRef = useRef<KakaoCustomOverlay[]>([])
+  const polylinesRef = useRef<KakaoPolyline[]>([])
 
   // API에서 경로 데이터 가져오기
   useEffect(() => {
@@ -115,19 +117,11 @@ export default function Step4Map({
     const map = mapInstanceRef.current
 
     // 기존 오버레이 제거
-    overlaysRef.current.forEach((overlay: unknown) => {
-      if (overlay && typeof overlay === 'object' && 'setMap' in overlay) {
-        (overlay as { setMap: (map: null) => void }).setMap(null)
-      }
-    })
+    overlaysRef.current.forEach((overlay) => overlay.setMap(null))
     overlaysRef.current = []
 
     // 기존 폴리라인 제거
-    polylinesRef.current.forEach((polyline: unknown) => {
-      if (polyline && typeof polyline === 'object' && 'setMap' in polyline) {
-        (polyline as { setMap: (map: null) => void }).setMap(null)
-      }
-    })
+    polylinesRef.current.forEach((polyline) => polyline.setMap(null))
     polylinesRef.current = []
 
     // 경계 계산용

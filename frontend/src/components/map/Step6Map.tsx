@@ -29,6 +29,8 @@ interface MapRouteData {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type KakaoMapAny = any
+type KakaoCustomOverlay = { setMap: (map: KakaoMapAny | null) => void }
+type KakaoPolyline = { setMap: (map: KakaoMapAny | null) => void }
 
 interface Step6MapProps {
   meetingUuid: string
@@ -56,8 +58,8 @@ export default function Step6Map({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const overlaysRef = useRef<unknown[]>([])
-  const polylinesRef = useRef<unknown[]>([])
+  const overlaysRef = useRef<KakaoCustomOverlay[]>([])
+  const polylinesRef = useRef<KakaoPolyline[]>([])
 
   useEffect(() => {
     if (!meetingUuid) return
@@ -123,18 +125,12 @@ export default function Step6Map({
     const maps = kakao.maps
     const map = mapInstanceRef.current
 
-    overlaysRef.current.forEach((overlay: unknown) => {
-      if (overlay && typeof overlay === 'object' && 'setMap' in overlay) {
-        ;(overlay as { setMap: (map: null) => void }).setMap(null)
-      }
-    })
+    // 기존 오버레이 제거
+    overlaysRef.current.forEach((overlay) => overlay.setMap(null))
     overlaysRef.current = []
 
-    polylinesRef.current.forEach((polyline: unknown) => {
-      if (polyline && typeof polyline === 'object' && 'setMap' in polyline) {
-        ;(polyline as { setMap: (map: null) => void }).setMap(null)
-      }
-    })
+    // 기존 폴리라인 제거
+    polylinesRef.current.forEach((polyline) => polyline.setMap(null))
     polylinesRef.current = []
 
     const bounds = new maps.LatLngBounds()
