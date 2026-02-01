@@ -108,6 +108,67 @@ public class MapRouteService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public MapRouteResponse getMapRoutesToPlace(
+            String meetingUuid,
+            double destLat,
+            double destLng,
+            String placeName
+    ) {
+        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        List<Participant> participants = participantRepository.findByMeetingId(meeting.getId());
+
+        List<Participant> participantsWithOrigin = participants.stream()
+                .filter(p -> p.getOrigin() != null)
+                .filter(p -> p.getOrigin().getLatitude() != null)
+                .filter(p -> p.getOrigin().getLongitude() != null)
+                .toList();
+
+        if (participantsWithOrigin.isEmpty()) {
+            throw new BusinessException(ErrorCode.ADDRESS_NO_ORIGIN);
+        }
+
+        List<MapRouteResponse.ParticipantRoute> participantRoutes = new ArrayList<>();
+
+        for (int i = 0; i < participantsWithOrigin.size(); i++) {
+            Participant participant = participantsWithOrigin.get(i);
+            String color = COLORS[i % COLORS.length];
+
+            List<double[]> path = kakaoMobilityService.getRouteCoordinates(
+                    participant.getOrigin().getLatitude(),
+                    participant.getOrigin().getLongitude(),
+                    destLat,
+                    destLng
+            );
+
+            MapRouteResponse.ParticipantRoute route = MapRouteResponse.ParticipantRoute.builder()
+                    .participantId(participant.getId())
+                    .nickName(participant.getNickName())
+                    .profileImageUrl(participant.getUser().getProfileImageUrl())
+                    .origin(MapRouteResponse.Origin.builder()
+                            .lat(participant.getOrigin().getLatitude())
+                            .lng(participant.getOrigin().getLongitude())
+                            .address(participant.getOrigin().getAddress())
+                            .build())
+                    .path(path)
+                    .color(color)
+                    .build();
+
+            participantRoutes.add(route);
+        }
+
+        return MapRouteResponse.builder()
+                .destination(MapRouteResponse.Destination.builder()
+                        .lat(destLat)
+                        .lng(destLng)
+                        .placeName(placeName)
+                        .build())
+                .participants(participantRoutes)
+                .build();
+    }
+
     /**
      * 좌표에서 가장 가까운 역 이름 찾기
      */

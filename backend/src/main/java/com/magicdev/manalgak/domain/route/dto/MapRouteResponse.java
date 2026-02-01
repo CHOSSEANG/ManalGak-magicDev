@@ -17,6 +17,7 @@ import java.util.List;
 public class MapRouteResponse {
 
     private Midpoint midpoint;
+    private Destination destination;
     private List<ParticipantRoute> participants;
 
     @Data
@@ -27,6 +28,16 @@ public class MapRouteResponse {
         private double lat;
         private double lng;
         private String stationName;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Destination {
+        private double lat;
+        private double lng;
+        private String placeName;
     }
 
     @Data

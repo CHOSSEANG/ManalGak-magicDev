@@ -46,4 +46,21 @@ public class RouteController {
         MapRouteResponse response = mapRouteService.getMapRoutes(meetingUuid);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
+
+    @GetMapping("/map/{meetingUuid}/place")
+    @Operation(
+            summary = "지도 경로 조회 (확정 장소)",
+            description = "Step6 지도에 표시할 참여자 출발지 → 확정 장소 도로 경로를 조회합니다."
+    )
+    public ResponseEntity<CommonResponse<MapRouteResponse>> getMapRoutesToPlace(
+            @PathVariable String meetingUuid,
+            @RequestParam double destLat,
+            @RequestParam double destLng,
+            @RequestParam String placeName
+    ) {
+        MapRouteResponse response = mapRouteService.getMapRoutesToPlace(
+                meetingUuid, destLat, destLng, placeName
+        );
+        return ResponseEntity.ok(CommonResponse.success(response));
+    }
 }
