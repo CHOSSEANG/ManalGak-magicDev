@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import VoteToast from '@/components/ui/vote-toast'
+// import VoteToast from '@/components/ui/vote-toast'
 import VoteDrawer from '@/components/ui/vote-drawer'
 import KakaoMap from '@/components/map/KakaoMap'
 import { useRouter, useSearchParams } from 'next/navigation'
