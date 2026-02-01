@@ -1,60 +1,31 @@
 // src/app/login/success/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
-import { useUser } from "@/context/UserContext";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LoginSuccessPage() {
   const router = useRouter();
-  const { setUser } = useUser();
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const redirectedRef = useRef(false);
 
   useEffect(() => {
-    if (isRedirecting) {
-      return;
-    }
+    // ✅ StrictMode / 재마운트 방어
+    if (redirectedRef.current) return;
+    redirectedRef.current = true;
 
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
-          {
-            withCredentials: true,
-          }
-        );
+    const redirectUrl = localStorage.getItem("loginRedirect");
+    localStorage.removeItem("loginRedirect");
 
-        const userData = {
-          id: res.data.data.userId,
-          name: res.data.data.nickname,
-          profileImage: res.data.data.profileImageUrl,
-        };
+    const targetUrl = redirectUrl || "/meetings/new";
+    console.log("✅ 로그인 성공 후 이동:", targetUrl);
 
-        setUser(userData);
-
-        const redirectUrl = localStorage.getItem("loginRedirect");
-        localStorage.removeItem("loginRedirect");
-
-        setIsRedirecting(true);
-
-        const targetUrl = redirectUrl || "/meetings/new";
-        console.log("✅ 이동:", targetUrl);
-
-        setTimeout(() => {
-          router.replace(targetUrl);
-        }, 100);
-      } catch (err) {
-        console.error("유저 정보 가져오기 실패", err);
-        setIsRedirecting(true);
-        router.replace("/meetings/new");
-      }
-    };
-
-    fetchUser();
-  }, [router, setUser, isRedirecting]);
+    // UX용 약간의 딜레이만 유지
+    setTimeout(() => {
+      router.replace(targetUrl);
+    }, 300);
+  }, [router]);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md items-center justify-center px-4">
@@ -72,12 +43,8 @@ export default function LoginSuccessPage() {
             잠시 후 자동으로 이동합니다.
           </p>
 
-          {/* Loading State */}
-          <div
-            className="space-y-2"
-            aria-busy="true"
-            aria-live="polite"
-          >
+          {/* Loading Skeleton */}
+          <div aria-busy="true" aria-live="polite" className="space-y-2">
             <div className="mx-auto h-3 w-2/3 rounded-md bg-[var(--neutral-soft)]" />
             <div className="mx-auto h-3 w-1/2 rounded-md bg-[var(--neutral-soft)]" />
           </div>
