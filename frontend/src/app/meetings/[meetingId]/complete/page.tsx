@@ -50,7 +50,12 @@ export default function MeetingCompletePage({ params }: PageProps) {
   return (
     <main className="relative min-h-[100dvh] w-full overflow-visible bg-[var(--bg)]">
       {/* 배경 지도 */}
-      <CompleteMapSection lat={resolvedData?.lat} lng={resolvedData?.lng} />
+      <CompleteMapSection
+        meetingUuid={meetingId}
+        lat={resolvedData?.lat}
+        lng={resolvedData?.lng}
+        placeName={resolvedData?.placeName}
+      />
 
       {/* 지도 위 상단 타이틀 */}
       <section className="pointer-events-none absolute left-0 right-0 top-16 z-20 flex flex-col items-center gap-1 px-4">

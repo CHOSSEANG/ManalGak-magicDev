@@ -4,9 +4,11 @@
 import { useEffect, useMemo, useRef } from 'react'
 
 type KakaoLatLng = unknown
+type KakaoLatLngBounds = { extend: (latlng: KakaoLatLng) => void }
 type KakaoMapInstance = {
   relayout: () => void
   setCenter: (center: KakaoLatLng) => void
+  setBounds: (bounds: KakaoLatLngBounds) => void
 }
 type KakaoMarker = { setMap: (map: KakaoMapInstance | null) => void }
 
