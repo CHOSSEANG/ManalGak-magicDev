@@ -2,23 +2,20 @@
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams  } from "next/navigation";
 import axios from "axios";
 import { Send } from "lucide-react";
 
 import StepNavigation from "@/components/layout/StepNavigation";
 import { TransportMode } from "@/components/meeting/Step2/Step2Address";
 import MemberList from "@/components/meeting/Step2/Step2MemberList";
-import LoginRequired from "@/components/common/LoginRequired";
+import MeetingAccessBoundary from "@/components/common/MeetingAccessBoundary";
 import { useUser } from "@/context/UserContext";
 
 // shadcn/ui
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -121,7 +118,6 @@ const sendKakaoInvite = (
 // 메인 콘텐츠
 // =====================
 function Step3MembersContent(): JSX.Element {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const meetingUuid = searchParams.get("meetingUuid");
   const readonlyParam = searchParams.get("readonly") === "true";
@@ -194,138 +190,100 @@ function Step3MembersContent(): JSX.Element {
   }, [meetingUuid, user]);
 
   // =====================
-  // 예외 케이스 UI
-  // =====================
-  if (!meetingUuid) {
-    return (
-      <main className="flex min-h-[60vh] items-center justify-center p-6">
-        <Card className="w-full max-w-md border-[var(--border)] bg-[var(--bg-soft)] shadow-none">
-          {/* 1/30[유리] - 카드 그림자 제거 */}
-          <CardHeader>
-            <CardTitle className="text-[var(--text)]">
-              아직 모임이 없어요
-            </CardTitle>
-            <CardDescription className="text-[var(--text-subtle)]">
-              Step1에서 모임을 생성해야 다음 단계를 진행할 수 있어요.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              className="w-full bg-[var(--primary)] text-[var(--primary-foreground)]"
-              onClick={() => router.push("/meetings/new/step1-basic")}
-            >
-              Step1로 이동
-            </Button>
-          </CardContent>
-        </Card>
-      </main>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-xl space-y-4 py-20">
-        <Skeleton className="h-24 w-full rounded-xl bg-[var(--neutral-soft)]" />
-        <Skeleton className="h-40 w-full rounded-xl bg-[var(--neutral-soft)]" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    const currentUrl = `/meetings/new/step2-meetingmembers?meetingUuid=${meetingUuid}&readonly=true`;
-    localStorage.setItem("loginRedirect", currentUrl);
-    return <LoginRequired />;
-  }
-
-  // =====================
   // 정상 화면
   // =====================
   return (
-    <>
-      <main className="mx-auto max-w-xl space-y-6">
-        {/* ===== Header ===== */}
-        <section className="space-y-1">
-          <h2 className="text-lg font-semibold text-[var(--text)]">참여자</h2>
-          <p className="text-sm text-[var(--text-subtle)]">
-            멤버를 초대하세요.
+    <MeetingAccessBoundary
+      meetingUuid={meetingUuid}
+      loading={loading}
+      user={user}
+    >
+      <>
+        <main className="mx-auto max-w-xl space-y-6">
+          {/* ===== Header ===== */}
+          <section className="space-y-1">
+            <h2 className="text-lg font-semibold text-[var(--text)]">참여자</h2>
+            <p className="text-sm text-[var(--text-subtle)]">
+              멤버를 초대하세요.
+            </p>
+          </section>
+
+          {/* 접근성 안내 */}
+          <p className="text-xs text-[var(--text-subtle)]">
+            이 페이지는 웹 접근성을 고려하여 버튼, 색상, 안내 문구가
+            설계되었습니다.
           </p>
-        </section>
+          {/* 1/30[유리] - 접근성 안내 문구 추가 */}
 
-        {/* 접근성 안내 */}
-        <p className="text-xs text-[var(--text-subtle)]">
-          이 페이지는 웹 접근성을 고려하여 버튼, 색상, 안내 문구가
-          설계되었습니다.
-        </p>
-        {/* 1/30[유리] - 접근성 안내 문구 추가 */}
+          {/* 초대 CTA */}
+          <Button
+            className="w-full gap-2 py-6 rounded-xl bg-[var(--kakao-yellow)] text-black"
+            disabled={isReadonly || !isOrganizer}
+            onClick={() => {
+              if (!meetingData) return;
+              sendKakaoInvite(
+                meetingUuid!,
+                meetingData.meetingName,
+                meetingData.meetingTime
+              );
+            }}
+          >
+            {/* 1/30[유리] - 카카오 컬러 토큰 적용 */}
+            <Send size={18} />
+            {isOrganizer
+              ? "참여 멤버 초대"
+              : "모임장만 멤버를 초대할 수 있어요"}
+          </Button>
 
-        {/* 초대 CTA */}
-        <Button
-          className="w-full gap-2 py-6 rounded-xl bg-[var(--kakao-yellow)] text-black"
-          disabled={isReadonly || !isOrganizer}
-          onClick={() => {
-            if (!meetingData) return;
-            sendKakaoInvite(
-              meetingUuid,
-              meetingData.meetingName,
-              meetingData.meetingTime
-            );
-          }}
-        >
-          {/* 1/30[유리] - 카카오 컬러 토큰 적용 */}
-          <Send size={18} />
-          {isOrganizer
-            ? "참여 멤버 초대"
-            : "모임장만 멤버를 초대할 수 있어요"}
-        </Button>
+          {/* 참여자 안내 */}
+          <p className="text-xs text-[var(--text-subtle)]">
+            참여자 리스트에는 현재 로그인한 사용자만 표시됩니다.
+          </p>
+          {/* 1/30[유리] - 참여자 표시 기준 안내 */}
 
-        {/* 참여자 안내 */}
-        <p className="text-xs text-[var(--text-subtle)]">
-          참여자 리스트에는 현재 로그인한 사용자만 표시됩니다.
-        </p>
-        {/* 1/30[유리] - 참여자 표시 기준 안내 */}
+          {/* 닉네임 설정 안내 (교통편/주소 대체 UI) */}
+          <Card className="border-[var(--border)] bg-[var(--bg-soft)] shadow-none">
+            {/* 1/30[유리] - 교통편/주소 비노출 + 닉네임 중심 UI 안내 */}
+            <CardContent className="py-4 text-sm text-[var(--text-subtle)]">
+              이 단계에서는 닉네임을 기준으로 참여자가 표시됩니다.
+            </CardContent>
+          </Card>
 
-        {/* 닉네임 설정 안내 (교통편/주소 대체 UI) */}
-        <Card className="border-[var(--border)] bg-[var(--bg-soft)] shadow-none">
-          {/* 1/30[유리] - 교통편/주소 비노출 + 닉네임 중심 UI 안내 */}
-          <CardContent className="py-4 text-sm text-[var(--text-subtle)]">
-            이 단계에서는 닉네임을 기준으로 참여자가 표시됩니다.
-          </CardContent>
-        </Card>
+          {/* 멤버 리스트 */}
+          <MemberList
+            meetingUuid={meetingUuid!}
+            userId={user!.id}
+            onMyParticipantResolved={(id) => {
+              if (!myParticipantId) {
+                setMyParticipantId(id);
+              }
+            }}
+            readonly={isReadonly}
+          />
+        </main>
 
-        {/* 멤버 리스트 */}
-        <MemberList
-          meetingUuid={meetingUuid}
-          userId={user.id}
-          onMyParticipantResolved={(id) => {
-            if (!myParticipantId) {
-              setMyParticipantId(id);
-            }
-          }}
-          readonly={isReadonly}
-        />
-      </main>
+        {/* 하단 네비게이션 */}
+        <div className="mt-10">
+          {/* 1/30[유리] - 하단 버튼 영역 상단 여백 추가 */}
+          <StepNavigation
+            prevHref={prevHref}
+            nextHref={`/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`}
+            onNext={async () => {
+              if (meetingData?.status === "COMPLETED") {
+                return `/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`;
+              }
 
-      {/* 하단 네비게이션 */}
-      <div className="mt-10">
-        {/* 1/30[유리] - 하단 버튼 영역 상단 여백 추가 */}
-        <StepNavigation
-          prevHref={prevHref}
-          nextHref={`/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`}
-          onNext={async () => {
-            if (meetingData?.status === "COMPLETED") {
+              if (!myParticipantId) {
+                alert("참여자 정보가 아직 준비되지 않았어요.");
+                throw new Error("participantId 없음");
+              }
+
               return `/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`;
-            }
-
-            if (!myParticipantId) {
-              alert("참여자 정보가 아직 준비되지 않았어요.");
-              throw new Error("participantId 없음");
-            }
-
-            return `/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`;
-          }}
-        />
-      </div>
-    </>
+            }}
+          />
+        </div>
+      </>
+    </MeetingAccessBoundary>
   );
 }
 
