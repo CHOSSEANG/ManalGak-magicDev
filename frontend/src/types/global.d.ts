@@ -2,14 +2,21 @@
 export {}
 
 type KakaoLatLng = unknown
+type KakaoLatLngBounds = {
+  extend: (latlng: KakaoLatLng) => void
+}
 type KakaoMapInstance = {
   relayout: () => void
   setCenter: (center: KakaoLatLng) => void
+  setBounds: (bounds: KakaoLatLngBounds) => void
 }
 type KakaoMapMarker = { setMap: (map: KakaoMapInstance | null) => void }
+type KakaoCustomOverlay = { setMap: (map: KakaoMapInstance | null) => void }
+type KakaoPolyline = { setMap: (map: KakaoMapInstance | null) => void }
 type KakaoMaps = {
   load: (cb: () => void) => void
   LatLng: new (lat: number, lng: number) => KakaoLatLng
+  LatLngBounds: new () => KakaoLatLngBounds
   Map: new (
     container: HTMLElement,
     options: { center: KakaoLatLng; level: number }
@@ -18,6 +25,18 @@ type KakaoMaps = {
     map: KakaoMapInstance
     position: KakaoLatLng
   }) => KakaoMapMarker
+  CustomOverlay: new (options: {
+    position: KakaoLatLng
+    content: HTMLElement | string
+    yAnchor?: number
+  }) => KakaoCustomOverlay
+  Polyline: new (options: {
+    path: KakaoLatLng[]
+    strokeWeight: number
+    strokeColor: string
+    strokeOpacity: number
+    strokeStyle: string
+  }) => KakaoPolyline
 }
 
 // ✅ KakaoShare를 interface로 통일

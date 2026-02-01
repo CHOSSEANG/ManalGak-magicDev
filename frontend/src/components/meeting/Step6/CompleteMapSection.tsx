@@ -2,13 +2,21 @@
 "use client"
 
 import KakaoMap from "@/components/map/KakaoMap"
+import Step6Map from "@/components/map/Step6Map"
 
 interface Props {
+  meetingUuid: string
   lat?: number
   lng?: number
+  placeName?: string
 }
 
-export default function CompleteMapSection({ lat, lng }: Props): JSX.Element {
+export default function CompleteMapSection({
+  meetingUuid,
+  lat,
+  lng,
+  placeName,
+}: Props): JSX.Element {
   const hasCoords =
     typeof lat === "number" &&
     Number.isFinite(lat) &&
@@ -27,7 +35,16 @@ export default function CompleteMapSection({ lat, lng }: Props): JSX.Element {
     <div className="absolute inset-0 z-0">
       {/* 지도 영역은 100% 높이를 유지해야 함 */}
       <div className="absolute inset-0">
-        <KakaoMap center={center} markers={markers} level={4} />
+        {hasCoords ? (
+          <Step6Map
+            meetingUuid={meetingUuid}
+            destLat={lat as number}
+            destLng={lng as number}
+            placeName={placeName ?? "확정 장소"}
+          />
+        ) : (
+          <KakaoMap center={center} markers={markers} level={4} />
+        )}
       </div>
 
       {/* 좌표가 없을 때도 지도는 유지하고, 안내만 표시 */}
