@@ -7,6 +7,7 @@ import com.magicdev.manalgak.common.exception.ErrorCode;
 import com.magicdev.manalgak.common.util.CoordinateUtil;
 import com.magicdev.manalgak.domain.algorithm.entity.MeetingCandidate;
 import com.magicdev.manalgak.domain.algorithm.repository.MeetingCandidateRepository;
+import com.magicdev.manalgak.domain.external.kakao.service.KakaoMapsApiService;
 import com.magicdev.manalgak.domain.external.odsay.service.OdsayApiService;
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
@@ -30,6 +31,7 @@ public class RouteService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final OdsayApiService odsayApiService;
+    private final KakaoMapsApiService kakaoMapsApiService;
     private final ObjectProvider<MeetingCandidateRepository> meetingCandidateRepositoryProvider;
     private final ObjectProvider<ParticipantRepository> participantRepositoryProvider;
     private final ObjectProvider<MeetingRepository> meetingRepositoryProvider;
@@ -110,6 +112,95 @@ public class RouteService {
                 .build();
     }
 
+    public RouteResponse calculateRoutesByCoordinate(
+            String meetingUuid,
+            Double destLat,
+            Double destLng
+    ) {
+        MeetingRepository meetingRepository = meetingRepositoryProvider.getIfAvailable();
+        ParticipantRepository participantRepository = participantRepositoryProvider.getIfAvailable();
+
+        if (meetingRepository == null || participantRepository == null) {
+            throw new BusinessException("Route data source is not configured", ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+
+        CoordinateUtil.validate(destLat, destLng);
+
+        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        List<Participant> participants = participantRepository.findByMeetingId(meeting.getId());
+        if (participants == null || participants.isEmpty()) {
+            throw new BusinessException(ErrorCode.INSUFFICIENT_PARTICIPANTS);
+        }
+
+        List<Participant> publicParticipants = participants.stream()
+                .filter(p -> p.getOrigin() != null
+                        && p.getOrigin().getLatitude() != null
+                        && p.getOrigin().getLongitude() != null)
+                .filter(p -> p.getType() == null || p.getType() == Participant.TransportType.PUBLIC)
+                .toList();
+
+        List<RouteResponse.RouteInfo> publicRoutes = List.of();
+        if (!publicParticipants.isEmpty()) {
+            List<OdsayApiService.ParticipantRoute> odsayRequests = publicParticipants.stream()
+                    .map(p -> new OdsayApiService.ParticipantRoute(
+                            p.getNickName(),
+                            p.getOrigin().getLongitude().doubleValue(),
+                            p.getOrigin().getLatitude().doubleValue()
+                    ))
+                    .toList();
+
+            publicRoutes = odsayApiService.getRoutesParallel(
+                    odsayRequests,
+                    destLng,
+                    destLat
+            );
+        }
+
+        List<Participant> carParticipants = participants.stream()
+                .filter(p -> p.getOrigin() != null
+                        && p.getOrigin().getLatitude() != null
+                        && p.getOrigin().getLongitude() != null)
+                .filter(p -> p.getType() == Participant.TransportType.CAR)
+                .toList();
+
+        List<RouteResponse.CarRouteInfo> carRoutes = List.of();
+        if (!carParticipants.isEmpty()) {
+            List<KakaoMapsApiService.ParticipantOrigin> carRequests = carParticipants.stream()
+                    .map(p -> new KakaoMapsApiService.ParticipantOrigin(
+                            p.getId(),
+                            p.getNickName(),
+                            p.getUser() != null ? p.getUser().getProfileImageUrl() : null,
+                            p.getOrigin().getLatitude().doubleValue(),
+                            p.getOrigin().getLongitude().doubleValue()
+                    ))
+                    .toList();
+
+            List<KakaoMapsApiService.ParticipantCarRoute> carResults =
+                    kakaoMapsApiService.getCarRoutesParallel(carRequests, destLat, destLng);
+
+            carRoutes = carResults.stream()
+                    .map(r -> RouteResponse.CarRouteInfo.builder()
+                            .participantId(r.getParticipantId())
+                            .participantName(r.getParticipantName())
+                            .profileImageUrl(r.getProfileImageUrl())
+                            .transportType("CAR")
+                            .travelTime(r.getTravelTime())
+                            .distance(r.getDistance())
+                            .build())
+                    .toList();
+        }
+
+        RouteResponse.RouteStatistics statistics = calculateStatistics(publicRoutes, carRoutes);
+
+        return RouteResponse.builder()
+                .routes(publicRoutes)
+                .carRoutes(carRoutes)
+                .statistics(statistics)
+                .build();
+    }
+
     private void saveRoutesToCache(String cacheKey, RouteResponse response) {
         try {
             redisTemplate.opsForValue().set(
@@ -124,34 +215,53 @@ public class RouteService {
     }
 
     private RouteResponse.RouteStatistics calculateStatistics(List<RouteResponse.RouteInfo> routes) {
-        if (routes.isEmpty()) {
+        return calculateStatistics(routes, List.of());
+    }
+
+    private RouteResponse.RouteStatistics calculateStatistics(
+            List<RouteResponse.RouteInfo> routes,
+            List<RouteResponse.CarRouteInfo> carRoutes
+    ) {
+        List<RouteResponse.RouteInfo> safeRoutes = routes == null ? List.of() : routes;
+        List<RouteResponse.CarRouteInfo> safeCarRoutes = carRoutes == null ? List.of() : carRoutes;
+
+        if (safeRoutes.isEmpty() && safeCarRoutes.isEmpty()) {
             return RouteResponse.RouteStatistics.builder().build();
         }
 
-        int avgTime = (int) routes.stream()
-                .mapToInt(RouteResponse.RouteInfo::getTravelTime)
-                .average()
-                .orElse(0);
+        int avgTime = (int) (
+                (safeRoutes.stream().mapToInt(RouteResponse.RouteInfo::getTravelTime).sum()
+                        + safeCarRoutes.stream().mapToInt(RouteResponse.CarRouteInfo::getTravelTime).sum())
+                        / (double) (safeRoutes.size() + safeCarRoutes.size())
+        );
 
-        int maxTime = routes.stream()
-                .mapToInt(RouteResponse.RouteInfo::getTravelTime)
-                .max()
-                .orElse(0);
+        int maxTime = Math.max(
+                safeRoutes.stream().mapToInt(RouteResponse.RouteInfo::getTravelTime).max().orElse(0),
+                safeCarRoutes.stream().mapToInt(RouteResponse.CarRouteInfo::getTravelTime).max().orElse(0)
+        );
 
-        int minTime = routes.stream()
-                .mapToInt(RouteResponse.RouteInfo::getTravelTime)
-                .min()
-                .orElse(0);
+        int minTime = safeRoutes.isEmpty()
+                ? safeCarRoutes.stream().mapToInt(RouteResponse.CarRouteInfo::getTravelTime).min().orElse(0)
+                : safeCarRoutes.isEmpty()
+                ? safeRoutes.stream().mapToInt(RouteResponse.RouteInfo::getTravelTime).min().orElse(0)
+                : Math.min(
+                        safeRoutes.stream().mapToInt(RouteResponse.RouteInfo::getTravelTime).min().orElse(0),
+                        safeCarRoutes.stream().mapToInt(RouteResponse.CarRouteInfo::getTravelTime).min().orElse(0)
+                );
 
-        int totalTransfers = routes.stream()
+        int totalTransfers = safeRoutes.stream()
                 .mapToInt(RouteResponse.RouteInfo::getTransferCount)
                 .sum();
 
-        Map<String, Long> transportCounts = routes.stream()
+        Map<String, Long> transportCounts = safeRoutes.stream()
                 .collect(Collectors.groupingBy(
                         RouteResponse.RouteInfo::getTransportType,
                         Collectors.counting()
                 ));
+
+        safeCarRoutes.stream()
+                .map(RouteResponse.CarRouteInfo::getTransportType)
+                .forEach(type -> transportCounts.merge(type, 1L, Long::sum));
 
         String mostFrequentTransport = transportCounts.entrySet().stream()
                 .max(Map.Entry.comparingByValue())

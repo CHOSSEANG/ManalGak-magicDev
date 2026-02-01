@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class RouteResponse {
     private List<RouteInfo> routes;
+    private List<CarRouteInfo> carRoutes;
     private RouteStatistics statistics;
 
     @Data
@@ -25,6 +26,19 @@ public class RouteResponse {
         private int travelTime;
         private int transferCount;
         private String transportType;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CarRouteInfo {
+        private Long participantId;
+        private String participantName;
+        private String profileImageUrl;
+        private String transportType;
+        private int travelTime;
+        private int distance;
     }
 
     @Data
