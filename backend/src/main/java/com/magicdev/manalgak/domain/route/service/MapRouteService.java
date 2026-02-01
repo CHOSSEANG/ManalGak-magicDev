@@ -1,0 +1,132 @@
+package com.magicdev.manalgak.domain.route.service;
+
+import com.magicdev.manalgak.common.exception.BusinessException;
+import com.magicdev.manalgak.common.exception.ErrorCode;
+import com.magicdev.manalgak.domain.algorithm.Model.Coordinate;
+import com.magicdev.manalgak.domain.algorithm.service.MidpointCalculationService;
+import com.magicdev.manalgak.domain.external.kakao.service.KakaoMobilityService;
+import com.magicdev.manalgak.domain.meeting.entity.Meeting;
+import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
+import com.magicdev.manalgak.domain.participant.entity.Participant;
+import com.magicdev.manalgak.domain.participant.repository.ParticipantRepository;
+import com.magicdev.manalgak.domain.route.dto.MapRouteResponse;
+import com.magicdev.manalgak.domain.station.entity.SubwayStation;
+import com.magicdev.manalgak.domain.station.repository.SubwayStationRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Step4 지도 경로 시각화 서비스
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class MapRouteService {
+
+    private final MeetingRepository meetingRepository;
+    private final ParticipantRepository participantRepository;
+    private final MidpointCalculationService midpointCalculationService;
+    private final SubwayStationRepository subwayStationRepository;
+    private final KakaoMobilityService kakaoMobilityService;
+
+    // 참여자별 색상 팔레트
+    private static final String[] COLORS = {
+            "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4",
+            "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F"
+    };
+
+    @Transactional(readOnly = true)
+    public MapRouteResponse getMapRoutes(String meetingUuid) {
+        // 1. 미팅 조회
+        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        // 2. 참여자 목록 조회
+        List<Participant> participants = participantRepository.findByMeetingId(meeting.getId());
+
+        // 3. 출발지가 설정된 참여자만 필터링
+        List<Participant> participantsWithOrigin = participants.stream()
+                .filter(p -> p.getOrigin() != null)
+                .filter(p -> p.getOrigin().getLatitude() != null)
+                .filter(p -> p.getOrigin().getLongitude() != null)
+                .toList();
+
+        if (participantsWithOrigin.isEmpty()) {
+            throw new BusinessException(ErrorCode.ADDRESS_NO_ORIGIN);
+        }
+
+        // 4. 중간지점(최적 역) 조회
+        Coordinate midpointCoord = midpointCalculationService.findOptimalStationByMeetingID(meetingUuid);
+
+        // 5. 역 이름 조회
+        String stationName = findNearestStationName(midpointCoord);
+
+        // 6. 각 참여자별 경로 조회
+        List<MapRouteResponse.ParticipantRoute> participantRoutes = new ArrayList<>();
+
+        for (int i = 0; i < participantsWithOrigin.size(); i++) {
+            Participant participant = participantsWithOrigin.get(i);
+            String color = COLORS[i % COLORS.length];
+
+            // 도로 경로 조회
+            List<double[]> path = kakaoMobilityService.getRouteCoordinates(
+                    participant.getOrigin().getLatitude(),
+                    participant.getOrigin().getLongitude(),
+                    midpointCoord.getLatitude(),
+                    midpointCoord.getLongitude()
+            );
+
+            MapRouteResponse.ParticipantRoute route = MapRouteResponse.ParticipantRoute.builder()
+                    .participantId(participant.getId())
+                    .nickName(participant.getNickName())
+                    .profileImageUrl(participant.getUser().getProfileImageUrl())
+                    .origin(MapRouteResponse.Origin.builder()
+                            .lat(participant.getOrigin().getLatitude())
+                            .lng(participant.getOrigin().getLongitude())
+                            .address(participant.getOrigin().getAddress())
+                            .build())
+                    .path(path)
+                    .color(color)
+                    .build();
+
+            participantRoutes.add(route);
+        }
+
+        // 7. 응답 생성
+        return MapRouteResponse.builder()
+                .midpoint(MapRouteResponse.Midpoint.builder()
+                        .lat(midpointCoord.getLatitude())
+                        .lng(midpointCoord.getLongitude())
+                        .stationName(stationName)
+                        .build())
+                .participants(participantRoutes)
+                .build();
+    }
+
+    /**
+     * 좌표에서 가장 가까운 역 이름 찾기
+     */
+    private String findNearestStationName(Coordinate coord) {
+        List<SubwayStation> stations = subwayStationRepository.findAll();
+
+        return stations.stream()
+                .min((s1, s2) -> {
+                    double d1 = calculateDistance(coord, s1);
+                    double d2 = calculateDistance(coord, s2);
+                    return Double.compare(d1, d2);
+                })
+                .map(SubwayStation::getStationName)
+                .orElse("중간지점");
+    }
+
+    private double calculateDistance(Coordinate coord, SubwayStation station) {
+        double latDiff = coord.getLatitude() - station.getLatitude();
+        double lngDiff = coord.getLongitude() - station.getLongitude();
+        return Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
+    }
+}
