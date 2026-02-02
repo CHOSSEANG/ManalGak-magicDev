@@ -1,5 +1,5 @@
 // src/app/meetings/new/page.tsx
-// 모임 리스트 페이지 
+// 모임 리스트 페이지
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
@@ -7,7 +7,12 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarPlus, ChevronDown, Users } from "lucide-react";
 
@@ -30,19 +35,10 @@ interface Meeting {
   meetingTime: string;
   organizerId: number;
   totalParticipants: number;
-  status?: 'PENDING' | 'COMPLETED';
+  status?: "PENDING" | "COMPLETED";
   selectedPlace?: {
-    placeId?: string;
     placeName?: string;
-    address?: string;
-    latitude?: number;
-    longitude?: number;
   };
-  participants: Array<{
-    destination?: {
-      address?: string;
-    };
-  }>;
 }
 
 interface MeetingItem {
@@ -52,14 +48,14 @@ interface MeetingItem {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 
+/* ======================
+ * UI States
+ * ====================== */
 function EmptyState() {
   return (
     <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--bg-soft)] px-4 py-6 text-center">
       <p className="text-sm text-[var(--text-subtle)]">
         아직 생성된 모임이 없습니다.
-      </p>
-      <p className="mt-1 text-xs text-[var(--text-subtle)]">
-        아래 버튼으로 새 모임을 만들어 보세요.
       </p>
     </div>
   );
@@ -69,13 +65,15 @@ function LoadingState() {
   return (
     <div className="space-y-3">
       <Skeleton className="h-5 w-40 bg-[var(--neutral-soft)]" />
-      <Skeleton className="h-4 w-64 bg-[var(--neutral-soft)]" />
       <Skeleton className="h-16 w-full bg-[var(--neutral-soft)]" />
       <Skeleton className="h-16 w-full bg-[var(--neutral-soft)]" />
     </div>
   );
 }
 
+/* ======================
+ * Page
+ * ====================== */
 export default function CreateEntryPage() {
   const router = useRouter();
   const { user } = useUser();
@@ -133,13 +131,12 @@ export default function CreateEntryPage() {
     fetchMeetings(next, true);
   };
 
-  const handleEdit = (uuid: string, organizerId: number) => {
-    const readonly = user?.id !== organizerId ? "&readonly=true" : "";
-    router.push(`/meetings/new/step3-meeting?meetingUuid=${uuid}${readonly}`);
-  };
-
-  const handleView = (meetingUuid: string) => {
-    router.push(`/meetings/${meetingUuid}/complete`);
+  /* ======================
+   * Navigation (FE only)
+   * ====================== */
+  const goToConfirmPage = (uuid: string) => {
+    // 1/30[유리] - 리스트/조회 클릭 시 확정 페이지로 이동
+    router.push(`/meetings/${uuid}/complete`);
   };
 
   const handleCopy = async (uuid: string) => {
@@ -153,35 +150,41 @@ export default function CreateEntryPage() {
     );
   };
 
-  const handleDelete = async (uuid: string, organizerId: number) => {
-    if (user?.id !== organizerId) return alert("모임장이 아닙니다.");
+const handleDelete = async (uuid: string, organizerId: number) => {
+  if (user?.id !== organizerId) {
+    alert("모임장이 아닙니다.");
+    return;
+  }
 
-    if (!confirm("정말 이 모임을 삭제하시겠어요?")) return;
+  if (!confirm("정말 이 모임을 삭제하시겠어요?")) return;
 
-     try {
-        await axios.delete(`${API_BASE_URL}/v1/meetings/${uuid}`, {
-          withCredentials: true,
-        });
+  try {
+    await axios.delete(`${API_BASE_URL}/v1/meetings/${uuid}`, {
+      withCredentials: true,
+    });
 
-        setExistingMeetings((prev) =>
-          prev.filter((item) => item.meeting.meetingUuid !== uuid)
-        );
+    // ✅ 리스트에서 제거
+    setExistingMeetings((prev) =>
+      prev.filter((item) => item.meeting.meetingUuid !== uuid)
+    );
 
-        setPageInfo((prev) => {
-          if (!prev) return prev;
+    // ✅ 페이지네이션 정보 갱신
+    setPageInfo((prev) => {
+      if (!prev) return prev;
 
-          const nextTotal = Math.max(0, prev.totalElements - 1);
+      const nextTotal = Math.max(0, prev.totalElements - 1);
 
-          return {
-            ...prev,
-            totalElements: nextTotal,
-            empty: nextTotal === 0,
-          };
-        });
-      } catch {
-        alert("모임 삭제에 실패했습니다.");
-      }
-    };
+      return {
+        ...prev,
+        totalElements: nextTotal,
+        empty: nextTotal === 0,
+      };
+    });
+  } catch (err) {
+    console.error("모임 삭제 실패:", err);
+    alert("모임 삭제에 실패했습니다.");
+  }
+};
 
   const formatDateTime = (dateString: string) => {
     const d = new Date(dateString);
@@ -208,7 +211,10 @@ export default function CreateEntryPage() {
   }
 
   return (
-    <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6">
+    <main
+      className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6 pb-28 scroll-pt-20"
+      // 1/30[유리] - 바텀네비 및 헤더 가림 방지
+    >
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {/* ===== Header ===== */}
         <section className="space-y-1">
@@ -221,38 +227,29 @@ export default function CreateEntryPage() {
         </section>
 
         {/* ===== Primary CTA ===== */}
-            <Button
-              onClick={() => router.push("/meetings/new/step1-basic")}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] py-6"
-            >
-              <CalendarPlus className="h-5 w-5" />
-              모임 생성하기
-            </Button>
+        <Button
+          onClick={() => router.push("/meetings/new/step1-basic")}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] py-6"
+        >
+          <CalendarPlus className="h-5 w-5" />
+          모임 생성하기
+        </Button>
 
-       {/* ===== List Section ===== */}
-      <section className="space-y-3">
-        {listState}
+        {/* ===== List Section ===== */}
+        <section className="space-y-3">
+          {listState}
 
           {!listState && (
             <div className="divide-y divide-[var(--border)] bg-[var(--bg)]">
               {existingMeetings.map(({ meeting }) => {
                 const isOrganizer = user?.id === meeting.organizerId;
-                const isCompleted = meeting.status === 'COMPLETED';
-
-                const primaryLabel = isCompleted ? "조회" : "수정";
-
-                const handlePrimaryAction = () => {
-                  if (isCompleted) {
-                    handleView(meeting.meetingUuid!);
-                  } else {
-                    handleEdit(meeting.meetingUuid!, meeting.organizerId);
-                  }
-                };
 
                 return (
                   <div
                     key={meeting.meetingUuid}
-                    className="px-0 py-3"
+                    className="px-0 py-3 cursor-pointer"
+                    onClick={() => goToConfirmPage(meeting.meetingUuid!)}
+                    // 1/30[유리] - 리스트 카드 클릭 시 확정 페이지 이동
                   >
                     <div className="flex items-start gap-4">
                       {/* ===== 인원수 영역 ===== */}
@@ -267,31 +264,15 @@ export default function CreateEntryPage() {
 
                       {/* ===== 텍스트 정보 ===== */}
                       <div className="flex-1 space-y-1">
-                        {/* 1줄: 모임명 + 상태 뱃지 */}
-                        <div className="flex items-center gap-2">
-                          <p className="text-base font-semibold text-[var(--text)] truncate">
-                            {meeting.meetingName}
-                          </p>
-                          {/* ✅ 모임장 뱃지 추가 */}
-                          {isOrganizer && (
-                            <span className="shrink-0 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-medium text-yellow-700">
-                              모임장
-                            </span>
-                          )}
-                          {isCompleted && (
-                            <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
-                              확정
-                            </span>
-                          )}
-                        </div>
-
-                      {/* 2줄: 장소 · 날짜 */}
-                      <p className="text-sm text-[var(--text-subtle)]">
-                        {meeting.selectedPlace?.placeName || "장소 미정"}
-                        <span className="mx-2">·</span>
-                        {formatDateTime(meeting.meetingTime)}
-                      </p>
-                    </div>
+                        <p className="text-base font-semibold text-[var(--text)] truncate">
+                          {meeting.meetingName}
+                        </p>
+                        <p className="text-sm text-[var(--text-subtle)]">
+                          {meeting.selectedPlace?.placeName || "장소 미정"}
+                          <span className="mx-2">·</span>
+                          {formatDateTime(meeting.meetingTime)}
+                        </p>
+                      </div>
 
                       {/* ===== 액션 영역 ===== */}
                       <div className="shrink-0">
@@ -299,61 +280,75 @@ export default function CreateEntryPage() {
                         <div className="hidden sm:flex gap-2">
                           <Button
                             size="sm"
-                            onClick={handlePrimaryAction}
-                            className={
-                              isCompleted
-                                ? "bg-[var(--neutral-soft)] text-[var(--text)]"
-                                : "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              goToConfirmPage(meeting.meetingUuid!);
+                            }}
+                            // 1/30[유리] - 조회 버튼도 확정 페이지 이동
                           >
-                            {primaryLabel}
+                            조회
                           </Button>
 
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleCopy(meeting.meetingUuid!)}
-                        >
-                          복사
-                        </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopy(meeting.meetingUuid!);
+                            }}
+                          >
+                            복사
+                          </Button>
 
                           <Button
                             size="sm"
                             disabled={!isOrganizer}
-                            onClick={() =>
-                              handleDelete(meeting.meetingUuid!, meeting.organizerId)
-                            }
-                            className="bg-[var(--danger-soft)] text-[var(--danger)] disabled:opacity-40"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(
+                                meeting.meetingUuid!,
+                                meeting.organizerId
+                              );
+                            }}
+                            className="bg-[var(--danger-soft)] text-[var(--danger)]"
                           >
                             삭제
                           </Button>
                         </div>
 
-                      {/* 모바일 … 메뉴 */}
-                      <div className="sm:hidden">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
-                              aria-label="더보기"
-                            >
-                              …
-                            </button>
-                          </DropdownMenuTrigger>
+                        {/* 모바일 … 메뉴 */}
+                        <div className="sm:hidden">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
+                                aria-label="더보기"
+                              >
+                                …
+                              </button>
+                            </DropdownMenuTrigger>
 
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={handlePrimaryAction}>
-                                {primaryLabel}
+                            <DropdownMenuContent
+                              align="end"
+                              className="bg-[var(--bg)] border border-[var(--border)]"
+                              // 1/30[유리] - 모바일 메뉴 배경 투명 문제 해결
+                            >
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  goToConfirmPage(meeting.meetingUuid!)
+                                }
+                              >
+                                조회
                               </DropdownMenuItem>
 
-                            <DropdownMenuItem
-                              onClick={() => handleCopy(meeting.meetingUuid!)}
-                            >
-                              복사
-                            </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleCopy(meeting.meetingUuid!)}
+                              >
+                                복사
+                              </DropdownMenuItem>
 
                               <DropdownMenuItem
-                                disabled={!isOrganizer || isCompleted}
+                                disabled={!isOrganizer}
                                 onClick={() =>
                                   handleDelete(
                                     meeting.meetingUuid!,
@@ -376,26 +371,23 @@ export default function CreateEntryPage() {
           )}
         </section>
 
-
-
-       
         {/* ===== Pagination ===== */}
         {pageInfo && !pageInfo.last && (
-            <div className="flex flex-col items-center gap-2 py-4">
-              <Button
-                onClick={handleLoadMore}
-                disabled={isLoadingMore}
-                variant="outline"
-                className="w-full max-w-sm border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
-              >
-                {isLoadingMore ? "불러오는 중…" : "더보기"}
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
+          <div className="flex flex-col items-center gap-2 py-4">
+            <Button
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              variant="outline"
+              className="w-full max-w-sm border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
+            >
+              {isLoadingMore ? "불러오는 중…" : "더보기"}
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
 
-              <p className="text-xs text-[var(--text-subtle)]">
-                {existingMeetings.length} 개 / 총 {pageInfo.totalElements} 개
-              </p>
-            </div>
+            <p className="text-xs text-[var(--text-subtle)]">
+              {existingMeetings.length} 개 / 총 {pageInfo.totalElements} 개
+            </p>
+          </div>
         )}
       </div>
     </main>

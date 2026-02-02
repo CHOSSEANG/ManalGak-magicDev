@@ -34,14 +34,12 @@ import {
   Mountain,
   TreePalm,
   Building2,
-  Users,
-  TrendingUp,
   AlertTriangle,
   type LucideIcon,
 } from 'lucide-react'
 
 // shadcn/ui
-import { Card, CardContent } from '@/components/ui/card'
+
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
@@ -103,7 +101,8 @@ interface Step3PlaceListProps {
 
 /* ================= API BASE ================= */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api'
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api'
 
 /* ================= 유틸 ================= */
 
@@ -143,7 +142,12 @@ function toNumber(value: unknown): number | undefined {
 }
 
 function isPlaceCategory(value: unknown): value is PlaceCategory {
-  return value === 'cafe' || value === 'restaurant' || value === 'culture' || value === 'tour'
+  return (
+    value === 'cafe' ||
+    value === 'restaurant' ||
+    value === 'culture' ||
+    value === 'tour'
+  )
 }
 
 function parseApiPlace(place: unknown): Omit<RecommendedPlace, 'icon'> | null {
@@ -157,7 +161,9 @@ function parseApiPlace(place: unknown): Omit<RecommendedPlace, 'icon'> | null {
   return {
     id: placeId,
     name: placeName,
-    category: isPlaceCategory(place.category) ? place.category : 'restaurant',
+    category: isPlaceCategory(place.category)
+      ? place.category
+      : 'restaurant',
     stationName: toString(place.stationName) || '중간지점',
     walkingMinutes: toNumber(place.walkingMinutes) ?? 0,
     placeId,
@@ -188,23 +194,11 @@ function pickIconById(category: PlaceCategory, id: string): LucideIcon {
   return icons[hash % icons.length]
 }
 
-/* ================= FE 더미 추천장소 (fallback) ================= */
-const rawPlaces: Omit<RecommendedPlace, 'icon'>[] = [
-  { id: 'p1', name: '추천 카페', category: 'cafe', stationName: '을지로입구역', walkingMinutes: 5 },
-  { id: 'p2', name: '추천 식당 A', category: 'restaurant', stationName: '종각역', walkingMinutes: 7 },
-  { id: 'p3', name: '추천 식당 B', category: 'restaurant', stationName: '종로3가역', walkingMinutes: 10 },
-  { id: 'p4', name: '추천 전시관', category: 'culture', stationName: '을지로3가역', walkingMinutes: 12 },
-  { id: 'p5', name: '추천 명소', category: 'tour', stationName: '명동역', walkingMinutes: 15 },
-  { id: 'p6', name: '추천 카페 B', category: 'cafe', stationName: '시청역', walkingMinutes: 8 },
-]
-
 /* ================= 컴포넌트 ================= */
 
-export default function Step5PlaceList({
-                                        onStatusLoaded,
-                                      }: Step3PlaceListProps) {
-const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
-  const [mapRefreshKey, setMapRefreshKey] = useState(0)  // 지도 갱신 트리거
+export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
+  const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
+  const [mapRefreshKey, setMapRefreshKey] = useState(0)
   const router = useRouter()
   const searchParams = useSearchParams()
   const meetingUuid = searchParams.get('meetingUuid')
@@ -213,7 +207,9 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   const [showVoteModal, setShowVoteModal] = useState(false)
 
   const [, setMiddlePoint] = useState<MiddlePoint | null>(null)
-  const [placeSource, setPlaceSource] = useState<Omit<RecommendedPlace, 'icon'>[]>(rawPlaces)
+  const [placeSource, setPlaceSource] = useState<
+    Omit<RecommendedPlace, 'icon'>[]
+  >([])
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
@@ -224,34 +220,27 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   const { user } = useUser()
   const stompClientRef = useRef<Client | null>(null)
 
-  const myParticipant = participants.find(
-    p => p.userId === user?.id
-  )
+  const myParticipant = participants.find((p) => p.userId === user?.id)
   const myNickname = myParticipant?.nickName ?? '나'
 
-  /* ================= 모임장 여부 체크 ================= */
-
-  const isHost = organizerId != null && user?.id != null && organizerId === user.id
+  const isHost =
+    organizerId != null && user?.id != null && organizerId === user.id
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false)
 
-  /* ================= 추천장소 + 중간지점 통합 API ================= */
+  /* ================= 추천장소 + 중간지점 ================= */
 
   const fetchPlacesAndMidpoint = useCallback(async () => {
     if (!meetingUuid || !meetingPurpose) return
-
     setIsLoadingPlaces(true)
-
     try {
       const res = await axios.get(
         `${API_BASE_URL}/v1/meetings/${meetingUuid}/places?purpose=${meetingPurpose}&limit=6`,
         { withCredentials: true }
       )
-
       const data = res.data?.data
       const apiPlaces: unknown[] = Array.isArray(data?.places) ? data.places : []
       const apiMidpoint = data?.midpoint
 
-      // 중간지점 설정
       if (apiMidpoint?.latitude && apiMidpoint?.longitude) {
         setMiddlePoint({
           lat: apiMidpoint.latitude,
@@ -260,19 +249,16 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
         })
       }
 
-      // 추천장소 설정 (6개 이상일 때만 교체)
-      if (apiPlaces.length >= 6) {
-        const parsedPlaces = apiPlaces
-          .map(parseApiPlace)
-          .filter((place): place is Omit<RecommendedPlace, 'icon'> => place !== null)
-
-        if (parsedPlaces.length >= 6) {
-          setPlaceSource(parsedPlaces.slice(0, 6))
-          setHasInitiallyLoaded(true)
-        }
-      }
+      const parsedPlaces = apiPlaces
+        .map(parseApiPlace)
+        .filter(
+          (place): place is Omit<RecommendedPlace, 'icon'> => place !== null
+        )
+      setPlaceSource(parsedPlaces.slice(0, 6))
+      setHasInitiallyLoaded(true)
     } catch {
-      // places API 실패 시 기존 middle-point API 폴백
+      setPlaceSource([])
+      setHasInitiallyLoaded(true)
       try {
         const res = await axios.get(
           `${API_BASE_URL}/v1/meetings/${meetingUuid}/middle-point`,
@@ -287,7 +273,6 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
     }
   }, [meetingUuid, meetingPurpose])
 
-  // fetchPlacesAndMidpoint를 ref로 관리하여 WebSocket 콜백에서 최신값 참조
   const fetchPlacesAndMidpointRef = useRef(fetchPlacesAndMidpoint)
   useEffect(() => {
     fetchPlacesAndMidpointRef.current = fetchPlacesAndMidpoint
@@ -297,9 +282,8 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
     fetchPlacesAndMidpoint()
   }, [fetchPlacesAndMidpoint])
 
-  /* ================= WebSocket 연결 ================= */
+  /* ================= WebSocket ================= */
 
-  // voteData를 ref로 관리하여 WebSocket 콜백에서 최신값 참조
   const voteDataRef = useRef(voteData)
   useEffect(() => {
     voteDataRef.current = voteData
@@ -307,11 +291,9 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
 
   useEffect(() => {
     if (!meetingUuid) return
-
     const client = new Client({
       webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws`),
       onConnect: () => {
-        // 1. 투표 업데이트 구독
         if (voteData?.voteId) {
           client.subscribe(`/topic/votes/${voteData.voteId}`, (message) => {
             try {
@@ -320,74 +302,45 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
                 setVoteData(result)
                 setIsNewPlaceAvailable(false)
               }
-            } catch (error) {
-              console.error('WebSocket 메시지 처리 실패:', error)
-            }
+            } catch {}
           })
         }
 
-        // 2. 투표 생성/삭제 구독
         client.subscribe(`/topic/votes/meeting/${meetingUuid}`, (message) => {
           try {
             const result = JSON.parse(message.body)
-
-            // 투표 삭제 알림 처리 (장소 변경으로 인한 자동 삭제)
             if (result.type === 'VOTE_DELETED') {
               setVoteData(null)
-              console.log('투표가 삭제되었습니다 (장소 변경)')
               return
             }
-
-            // 투표 생성/업데이트 처리
             if (result.voteId && result.options) {
               setVoteData(result)
               setIsNewPlaceAvailable(false)
             }
-          } catch (error) {
-            console.error('투표 WebSocket 처리 실패:', error)
-          }
+          } catch {}
         })
 
-        // 3. 장소 캐시 무효화 알림 구독
-        client.subscribe(`/topic/meeting/${meetingUuid}/places`, (message) => {
-          try {
-            const notification = JSON.parse(message.body)
-            if (notification.type === 'CACHE_INVALIDATED') {
-              // 항상 새 추천 장소 불러오기 (ref 사용으로 최신 함수 참조)
-              fetchPlacesAndMidpointRef.current()
-
-              // 지도 경로도 갱신
-              setMapRefreshKey(prev => prev + 1)
-
-              // 투표 진행 중이면 추가로 알림 표시
-              if (voteDataRef.current) {
-                setIsNewPlaceAvailable(true)
-              }
-            }
-          } catch (error) {
-            console.error('장소 알림 WebSocket 처리 실패:', error)
+        client.subscribe(`/topic/meeting/${meetingUuid}/places`, () => {
+          fetchPlacesAndMidpointRef.current()
+          setMapRefreshKey((p) => p + 1)
+          if (voteDataRef.current) {
+            setIsNewPlaceAvailable(true)
           }
         })
-      },
-      onStompError: (frame) => {
-        console.error('STOMP error:', frame)
       },
     })
-
     client.activate()
     stompClientRef.current = client
-
     return () => {
       client.deactivate()
       stompClientRef.current = null
     }
   }, [voteData?.voteId, meetingUuid])
 
-  /* ================= 참여자 API ================= */
+  /* ================= 참여자 ================= */
 
   useEffect(() => {
     if (!meetingUuid || !user?.id) return
-
     axios
       .get(`${API_BASE_URL}/v1/meetings/${meetingUuid}`, {
         withCredentials: true,
@@ -397,25 +350,17 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
         const rawParticipants: Participant[] = data?.participants ?? []
         const sorted = sortParticipants(rawParticipants, user?.id)
         setParticipants(sorted)
-
         const organizerIdValue = Number(data?.organizerId ?? 0)
         setOrganizerId(organizerIdValue || null)
-
-        // 모임 목적 저장
         setMeetingPurpose(data?.purpose || 'DINING')
-
-        // ⭐ 모임 상태를 부모 컴포넌트에 전달
         if (onStatusLoaded && data?.status) {
           onStatusLoaded(data.status)
         }
       })
-      .catch((err) => {
-        console.error('Meeting API Error:', err)
-        setParticipants([])
-      })
+      .catch(() => setParticipants([]))
   }, [meetingUuid, user?.id, onStatusLoaded])
 
-  /* ================= 추천 장소 (아이콘 주입) ================= */
+  /* ================= 추천 장소 ================= */
 
   const recommendedPlaces: RecommendedPlace[] = useMemo(
     () =>
@@ -426,93 +371,75 @@ const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
     [placeSource]
   )
 
-  // 추천장소 구성 변경 감지용 시그니처
-  const placeSignature = useMemo(() => {
-    return recommendedPlaces
-      .map(p => p.name)
-      .sort()
-      .join('|')
-  }, [recommendedPlaces])
+  const placeSignature = useMemo(
+    () => recommendedPlaces.map((p) => p.name).sort().join('|'),
+    [recommendedPlaces]
+  )
 
-useEffect(() => {
-  if (!placeSignature || !meetingUuid || isLoadingPlaces || !hasInitiallyLoaded) return;
+  useEffect(() => {
+    if (!placeSignature || !meetingUuid || isLoadingPlaces || !hasInitiallyLoaded)
+      return
+    const storageKey = `place-signature-${meetingUuid}`
+    const prevSignature = localStorage.getItem(storageKey)
+    if (prevSignature && prevSignature !== placeSignature) {
+      setIsNewPlaceAvailable(true)
+    }
+    localStorage.setItem(storageKey, placeSignature)
+  }, [placeSignature, meetingUuid, isLoadingPlaces, hasInitiallyLoaded])
 
-  const storageKey = `place-signature-${meetingUuid}`;
-  const prevSignature = localStorage.getItem(storageKey);
-
-  if (prevSignature && prevSignature !== placeSignature) {
-    setIsNewPlaceAvailable(true);
-  }
-
-  localStorage.setItem(storageKey, placeSignature);
-}, [placeSignature, meetingUuid, isLoadingPlaces, hasInitiallyLoaded]);
-
-  /* ================= 투표 API ================= */
+  /* ================= 투표 ================= */
 
   const fetchVote = useCallback(async (): Promise<VoteData | null> => {
-    if (!meetingUuid) return null;
-
+    if (!meetingUuid) return null
     try {
-      const res = await axios.get(`${API_BASE_URL}/v1/votes/meeting/${meetingUuid}`, {
-        withCredentials: true,
-        validateStatus: (status) => status < 500 // 404도 then으로 처리
-      });
-
-      if (res.status === 404) return null; // 투표가 없으면 null 반환
-      return res.data?.data ?? null;
+      const res = await axios.get(
+        `${API_BASE_URL}/v1/votes/meeting/${meetingUuid}`,
+        { withCredentials: true, validateStatus: (s) => s < 500 }
+      )
+      if (res.status === 404) return null
+      return res.data?.data ?? null
     } catch {
-      return null; // 네트워크 오류만 무시
+      return null
     }
-  }, [meetingUuid]);
+  }, [meetingUuid])
 
   useEffect(() => {
     if (!meetingUuid) return
-
     let cancelled = false
-
     const initFetchVote = async () => {
       const fetchedVote = await fetchVote()
-      if (!cancelled && fetchedVote) {
-        setVoteData(fetchedVote)
-      }
+      if (!cancelled && fetchedVote) setVoteData(fetchedVote)
     }
-
     initFetchVote()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [meetingUuid, fetchVote])
 
- const createVote = async () => {
-   if (!meetingUuid || !isHost) {
-     alert('모임장만 투표를 생성할 수 있습니다.')
-     return
-   }
-
-   setIsCreatingVote(true)
-   try {
-     const options = recommendedPlaces.map(p => p.name)
-
-     // 백엔드 호출: 기존 투표 삭제 + 새 투표 생성이 서버에서 한 번에 일어남
-     await axios.post(
-       `${API_BASE_URL}/v1/votes/meeting/${meetingUuid}`,
-       { options },
-       { withCredentials: true }
-     )
-
-     const storageKey = `place-signature-${meetingUuid}`;
-     localStorage.setItem(storageKey, placeSignature);
-     setIsNewPlaceAvailable(false);
-     setShowVoteModal(true);
-   } catch (error) {
-     console.error('투표 생성 실패:', error)
-     alert('투표 생성에 실패했습니다.')
-   } finally {
-     setIsCreatingVote(false)
-   }
- }
+  const createVote = async () => {
+    if (!meetingUuid || !isHost) {
+      alert('모임장만 투표를 생성할 수 있습니다.')
+      return
+    }
+    setIsCreatingVote(true)
+    try {
+      const options = recommendedPlaces.map((p) => p.name)
+      await axios.post(
+        `${API_BASE_URL}/v1/votes/meeting/${meetingUuid}`,
+        { options },
+        { withCredentials: true }
+      )
+      const storageKey = `place-signature-${meetingUuid}`
+      localStorage.setItem(storageKey, placeSignature)
+      setIsNewPlaceAvailable(false)
+      setShowVoteModal(true)
+    } finally {
+      setIsCreatingVote(false)
+    }
+  }
 
   const submitVote = async (optionId: number) => {
     if (!voteData) return
-
     setIsVoting(true)
     try {
       await axios.post(
@@ -520,78 +447,60 @@ useEffect(() => {
         { optionId },
         { withCredentials: true }
       )
-
-      const myParticipantId = participants.find(p => p.userId === user?.id)?.participantId
+      const myParticipantId = participants.find(
+        (p) => p.userId === user?.id
+      )?.participantId
       if (myParticipantId) {
-        setVoteData(prev => {
+        setVoteData((prev) => {
           if (!prev) return prev
-
           return {
             ...prev,
-            options: prev.options.map(opt => {
-              const filteredVoters = opt.voters.filter(v => v.participantId !== myParticipantId)
-
+            options: prev.options.map((opt) => {
+              const filtered = opt.voters.filter(
+                (v) => v.participantId !== myParticipantId
+              )
               if (opt.optionId === optionId) {
                 return {
                   ...opt,
-                  voteCount: filteredVoters.length + 1,
-                  voters: [...filteredVoters, {
-                    participantId: myParticipantId,
-                    nickname: myNickname,
-                  }]
+                  voteCount: filtered.length + 1,
+                  voters: [
+                    ...filtered,
+                    { participantId: myParticipantId, nickname: myNickname },
+                  ],
                 }
               }
-
-              return {
-                ...opt,
-                voteCount: filteredVoters.length,
-                voters: filteredVoters
-              }
-            })
+              return { ...opt, voteCount: filtered.length, voters: filtered }
+            }),
           }
         })
       }
-
       setShowVoteModal(false)
-    } catch (error) {
-      console.error('투표 참여 실패:', error)
-      alert('투표에 실패했습니다.')
     } finally {
       setIsVoting(false)
     }
   }
 
   const handleVoteButtonClick = async () => {
-    if (!meetingUuid) return;
-
-    const hasVote = Boolean(voteData?.options?.length);
-
-    // 1. 투표 시작하기 또는 갱신 (모임장 전용)
+    if (!meetingUuid) return
+    const hasVote = Boolean(voteData?.options?.length)
     if (isHost && (!hasVote || isNewPlaceAvailable)) {
-      await createVote();
-      setIsNewPlaceAvailable(false);
-      return;
+      await createVote()
+      setIsNewPlaceAvailable(false)
+      return
     }
+    if (hasVote) setShowVoteModal(true)
+  }
 
-    // 2. 투표하기
-    if (hasVote) {
-      setShowVoteModal(true);
-    }
-  };
-
-  /* ================= 장소 확정 핸들러 ================= */
+  /* ================= 확정 ================= */
 
   const handleConfirmPlace = async () => {
     if (!selectedPlace || !meetingUuid) return
-
     if (!isHost) {
       alert('모임장만 장소를 확정할 수 있습니다.')
       return
     }
-
     const selected = recommendedPlaces.find((p) => p.id === selectedPlace)
     if (!selected) return
-
     setIsConfirming(true)
     try {
       await axios.post(
@@ -614,164 +523,161 @@ useEffect(() => {
         { withCredentials: true }
       )
       router.push(`/meetings/${meetingUuid}/complete`)
-    } catch (err) {
-      console.error('장소 확정 실패:', err)
-      alert('장소 확정에 실패했습니다. 다시 시도해주세요.')
     } finally {
       setIsConfirming(false)
     }
   }
 
-  /* ================= 투표 데이터 계산 ================= */
+  /* ================= 계산 ================= */
 
   const placeVoteMap = useMemo(() => {
     if (!voteData) return new Map()
-
     const map = new Map<string, VoteOption>()
-    voteData.options.forEach(option => {
-      const place = recommendedPlaces.find(p => p.name === option.content)
-      if (place) {
-        map.set(place.id, option)
-      }
+    voteData.options.forEach((option) => {
+      const place = recommendedPlaces.find((p) => p.name === option.content)
+      if (place) map.set(place.id, option)
     })
     return map
   }, [voteData, recommendedPlaces])
 
   const myVotedOptionId = useMemo(() => {
     if (!voteData || !user?.id) return null
-
-    const myParticipantId = participants.find(p => p.userId === user?.id)?.participantId
+    const myParticipantId = participants.find(
+      (p) => p.userId === user?.id
+    )?.participantId
     if (!myParticipantId) return null
-
-    const votedOption = voteData.options.find(opt =>
-      opt.voters.some(v => v.participantId === myParticipantId)
+    const voted = voteData.options.find((opt) =>
+      opt.voters.some((v) => v.participantId === myParticipantId)
     )
-
-    return votedOption?.optionId || null
+    return voted?.optionId || null
   }, [voteData, user?.id, participants])
 
-  const totalVotes = voteData?.options.reduce((sum, opt) => sum + opt.voteCount, 0) || 0
-  const maxVotes = voteData ? Math.max(...voteData.options.map(opt => opt.voteCount)) : 0
+  const totalVotes =
+    voteData?.options.reduce((sum, opt) => sum + opt.voteCount, 0) || 0
+  const maxVotes = voteData
+    ? Math.max(...voteData.options.map((opt) => opt.voteCount))
+    : 0
 
+  const hasVote = Boolean(voteData?.options?.length)
+  let voteButtonLabel = '투표 대기 중'
+  if (isCreatingVote) voteButtonLabel = '생성 중...'
+  else if (isHost && !voteData?.options?.length)
+    voteButtonLabel = '투표 시작하기'
+  else if (isHost && isNewPlaceAvailable)
+    voteButtonLabel = '새 추천 장소! 투표 갱신'
+  else if (voteData?.options?.length) voteButtonLabel = '투표하기'
 
-  const hasVote = Boolean(voteData?.options?.length);
-  let voteButtonLabel = '투표 대기 중';
+  const isVoteDisabled =
+    isCreatingVote || recommendedPlaces.length === 0 || (!isHost && !hasVote)
 
-    if (isCreatingVote) {
-      voteButtonLabel = '생성 중...';
-    }
-    // 1. 투표가 아예 없는 완전 초기 상태 (모임장용)
-    else if (isHost && !voteData?.options?.length) {
-      voteButtonLabel = '투표 시작하기';
-    }
-    // 2. 투표가 있는데, 그 사이에 장소까지 바뀌었을 때 (모임장)
-    else if (isHost && isNewPlaceAvailable) {
-      voteButtonLabel = '새 추천 장소! 투표 갱신';
-    }
-    // 3. 투표가 있고 장소 변경도 없을 때
-    else if (voteData?.options?.length) {
-      voteButtonLabel = '투표하기';
-    }
-    const isVoteDisabled =
-      isCreatingVote ||
-      (!isHost && !hasVote); // 투표가 없는데 일반 참여자일 때
-    let confirmLabel = '추천 장소 확정'
-    if (isConfirming) {
-    confirmLabel = '확정 중...'
-    } else if (!isHost) {
-    confirmLabel = '모임장만 확정할 수 있습니다'
-    }
+  let confirmLabel = '추천 장소 확정'
+  if (isConfirming) confirmLabel = '확정 중...'
+  else if (!isHost) confirmLabel = '모임장만 확정할 수 있습니다'
 
   return (
-    <div className="space-y-4">
-      {/* ================= 지도 (참여자 경로 시각화) ================= */}
+    <div className="relative">
+      {/* ================= 지도: 배경 ================= */}
+      {/* 1/30[유리] - 지도 배경화 및 콘텐츠 오버레이 */}
       {meetingUuid && (
-        <Card className="overflow-hidden border border-[var(--border)] bg-[var(--bg)]">
-          <CardContent className="p-0">
-            <div className="h-72">
-              <Step4Map meetingUuid={meetingUuid} refreshKey={mapRefreshKey} minHeight={288} />
+        <div className="relative h-[60vh] min-h-[360px]">
+          <Step4Map
+            meetingUuid={meetingUuid}
+            refreshKey={mapRefreshKey}
+            minHeight={360}
+          />
+
+          {/* 투표 중앙 CTA */}
+          {/* 1/30[유리] - 투표 가능 시 지도 중앙 CTA(danger) */}
+          {hasVote && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <Button
+                type="button"
+                onClick={handleVoteButtonClick}
+                disabled={isVoteDisabled}
+                className="pointer-events-auto bg-[var(--danger)] text-white py-6 px-6 text-base font-semibold"
+              >
+                투표 참여하기
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
       )}
 
-      {/* 투표 현황 배너 */}
-      {voteData && totalVotes > 0 && (
-        <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardContent className="flex items-center justify-between p-4">
-            {/* 왼쪽: 투표 현황 */}
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary)]">
-                <TrendingUp className="h-5 w-5 text-[var(--primary-foreground)]" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--text)]">투표 진행 중</h3>
-                <p className="text-xs text-[var(--text-subtle)]">
-                  총 {totalVotes}명이 투표했습니다
-                </p>
-              </div>
-            </div>
-
-          </CardContent>
-        </Card>
+      {/* Toast */}
+      {/* 1/30[유리] - 지도 위 고정 배너 제거 → Toast 전환(danger) */}
+      {isNewPlaceAvailable && (
+        <div className="fixed left-1/2 top-4 z-50 -translate-x-1/2">
+          <button
+            type="button"
+            onClick={() => setShowVoteModal(true)}
+            className="flex items-center gap-2 rounded-full bg-[var(--danger-soft)] px-4 py-2 text-sm font-medium text-[var(--danger)]"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            새로운 추천 장소가 있어요 · 투표하기
+          </button>
+        </div>
       )}
 
-      {/* 추천 장소 */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
+      {/* ================= 추천 장소 ================= */}
+      <section className="relative z-10 mx-auto max-w-xl bg-[var(--bg)] p-4">
+        <div className="mb-3 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-[var(--text)]">추천장소 선택</h2>
+            <h2 className="text-base font-semibold text-[var(--text)]">
+              추천장소 선택
+            </h2>
             <p className="text-xs text-[var(--text-subtle)]">
-              중간지점 기준으로 추천된 장소입니다.
+              중간지점 기준 추천
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            {isNewPlaceAvailable && (
-              <div className="flex items-center gap-1.5 text-amber-600">
-                <AlertTriangle className="h-4 w-4" />
-                <span className="text-sm font-medium">장소 변경됨</span>
-              </div>
-            )}
-            <Button
-              type="button"
-              disabled={isVoteDisabled}
-              onClick={handleVoteButtonClick}
-              className="rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40"
-            >
-              {voteButtonLabel}
-            </Button>
-          </div>
+          <Button
+            type="button"
+            disabled={isVoteDisabled}
+            onClick={handleVoteButtonClick}
+            className="bg-[var(--danger)] text-white disabled:opacity-40"
+          >
+            {voteButtonLabel}
+          </Button>
         </div>
 
         {isLoadingPlaces ? (
-          <div className="flex items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] py-10">
-            <span className="text-sm text-[var(--text-subtle)]">추천 장소를 찾고 있어요...</span>
+          <div className="flex items-center justify-center rounded-lg border border-[var(--border)] py-10">
+            <span className="text-sm text-[var(--text-subtle)]">
+              추천 장소를 찾고 있어요...
+            </span>
+          </div>
+        ) : recommendedPlaces.length === 0 ? (
+          <div className="flex items-center justify-center rounded-lg border border-[var(--border)] py-10">
+            <span className="text-sm text-[var(--text-subtle)]">
+              추천 장소 데이터가 없어요. 잠시 후 다시 시도해주세요.
+            </span>
           </div>
         ) : (
-          <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2">
             {recommendedPlaces.map((place) => {
               const Icon = place.icon
               const selected = selectedPlace === place.id
               const voteOption = placeVoteMap.get(place.id)
               const hasVotes = Boolean(voteOption && voteOption.voteCount > 0)
-              const isTopChoice = Boolean(voteOption && voteOption.voteCount === maxVotes && maxVotes > 0)
-              const votePercentage = totalVotes > 0 && voteOption
-                ? (voteOption.voteCount / totalVotes) * 100
-                : 0
+              const isTopChoice = Boolean(
+                voteOption &&
+                  voteOption.voteCount === maxVotes &&
+                  maxVotes > 0
+              )
+              const votePercentage =
+                totalVotes > 0 && voteOption
+                  ? (voteOption.voteCount / totalVotes) * 100
+                  : 0
 
-              let cardClass =
-                'flex w-full items-center gap-3 rounded-xl px-4 py-3 border-2 relative overflow-hidden'
-              if (selected) {
-                cardClass += ' border-[var(--primary)] bg-[var(--bg-soft)]'
-              } else {
-                cardClass += ' border-[var(--border)] bg-[var(--bg)]'
-              }
+              let cls =
+                'relative flex items-center gap-3 rounded-lg border p-3'
+              if (selected) cls += ' border-[var(--danger)]'
+              else cls += ' border-[var(--border)]'
 
               return (
                 <button
                   key={place.id}
                   onClick={() => setSelectedPlace(place.id)}
-                  className={cardClass}
+                  className={cls}
                 >
                   {hasVotes && (
                     <div
@@ -779,40 +685,36 @@ useEffect(() => {
                       style={{
                         width: `${votePercentage}%`,
                         backgroundColor: 'var(--neutral-soft)',
-                        opacity: 0.6,
+                        opacity: 0.5,
                       }}
                     />
                   )}
-
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--neutral-soft)]">
-                    <Icon className="h-8 w-8 text-[var(--primary)]" />
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                    <Icon className="h-6 w-6 text-[var(--danger)]" />
                   </div>
-                  <div className="flex-1 text-left relative">
-                    <p className="text-sm font-semibold text-[var(--text)]">{place.name}</p>
-                    <p className="text-xs text-[var(--text-subtle)]">
-                      {place.stationName} 도보 {place.walkingMinutes}분
+                  <div className="relative flex-1 text-left">
+                    <p className="text-sm font-semibold text-[var(--text)]">
+                      {place.name}
                     </p>
-
+                    <p className="text-xs text-[var(--text-subtle)]">
+                      {place.stationName} · {place.walkingMinutes}분
+                    </p>
                     {hasVotes && voteOption && (
                       <div className="mt-1 flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          <Users className="h-3 w-3 text-[var(--primary)]" />
-                          <span className="text-xs font-semibold text-[var(--primary)]">
-                            {voteOption.voteCount}표
-                          </span>
-                        </div>
+                        <span className="text-xs font-semibold text-[var(--danger)]">
+                          {voteOption.voteCount}표
+                        </span>
                         {isTopChoice && (
-                          <span className="rounded-full bg-[var(--primary)] px-1.5 py-0.5 text-[9px] font-semibold text-[var(--primary-foreground)]">
+                          <span className="rounded-full bg-[var(--danger)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
                             1위
                           </span>
                         )}
-                        <span className="text-[9px] text-[var(--text-subtle)]">
-                          {votePercentage.toFixed(0)}%
-                        </span>
                       </div>
                     )}
                   </div>
-                  {selected && <CheckCircle className="h-5 w-5 text-[var(--primary)] relative" />}
+                  {selected && (
+                    <CheckCircle className="relative h-5 w-5 text-[var(--danger)]" />
+                  )}
                 </button>
               )
             })}
@@ -820,7 +722,7 @@ useEffect(() => {
         )}
       </section>
 
-      {/* 투표 모달 */}
+      {/* ================= Drawer(기존) ================= */}
       <WireframeModal
         open={showVoteModal}
         title="추천장소 투표"
@@ -831,26 +733,31 @@ useEffect(() => {
             <>
               <div className="mb-4 text-center">
                 <p className="text-sm text-[var(--text-subtle)]">
-                  총 {totalVotes}표 · {myVotedOptionId ? '투표 완료' : '투표해주세요'}
+                  총 {totalVotes}표 ·{' '}
+                  {myVotedOptionId ? '투표 완료' : '투표해주세요'}
                 </p>
               </div>
 
               <ScrollArea className="max-h-80 pr-1">
                 <div className="space-y-2">
                   {voteData.options.map((option) => {
-                    const place = recommendedPlaces.find(p => p.name === option.content)
+                    const place = recommendedPlaces.find(
+                      (p) => p.name === option.content
+                    )
                     const Icon = place?.icon || Coffee
                     const isMyVote = option.optionId === myVotedOptionId
-                    const votePercentage = totalVotes > 0 ? (option.voteCount / totalVotes) * 100 : 0
-                    const isTopChoice = option.voteCount === maxVotes && maxVotes > 0
+                    const votePercentage =
+                      totalVotes > 0
+                        ? (option.voteCount / totalVotes) * 100
+                        : 0
+                    const isTopChoice =
+                      option.voteCount === maxVotes && maxVotes > 0
 
                     let optionClass =
-                      'relative w-full overflow-hidden rounded-xl border-2 p-3 text-left'
-                    if (isMyVote) {
-                      optionClass += ' border-[var(--primary)] bg-[var(--bg-soft)]'
-                    } else {
-                      optionClass += ' border-[var(--border)] bg-[var(--bg)]'
-                    }
+                      'relative w-full overflow-hidden rounded-lg border p-3 text-left'
+                    if (isMyVote)
+                      optionClass += ' border-[var(--danger)]'
+                    else optionClass += ' border-[var(--border)]'
 
                     return (
                       <button
@@ -867,58 +774,24 @@ useEffect(() => {
                             opacity: 0.5,
                           }}
                         />
-
                         <div className="relative flex items-center gap-3">
-                          <div
-                            className="flex h-10 w-10 items-center justify-center rounded-lg"
-                            style={{
-                              backgroundColor: isMyVote
-                                ? 'var(--primary)'
-                                : 'var(--neutral-soft)',
-                            }}
-                          >
-                            <Icon
-                              className="h-6 w-6"
-                              style={{
-                                color: isMyVote
-                                  ? 'var(--primary-foreground)'
-                                  : 'var(--primary)',
-                              }}
-                            />
+                          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                            <Icon className="h-6 w-6 text-[var(--danger)]" />
                           </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
                               <p className="text-sm font-semibold text-[var(--text)]">
                                 {option.content}
                               </p>
                               {isTopChoice && option.voteCount > 0 && (
-                                <span className="rounded-full bg-[var(--primary)] px-1.5 py-0.5 text-[9px] font-semibold text-[var(--primary-foreground)]">
+                                <span className="rounded-full bg-[var(--danger)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
                                   1위
                                 </span>
                               )}
                             </div>
-
-                            {option.voters.length > 0 && (
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <span className="text-xs font-semibold text-[var(--primary)]">
-                                  {option.voteCount}표
-                                </span>
-                                <span className="text-xs text-[var(--text-subtle)]">·</span>
-                                {option.voters.map((voter) => (
-                                  <span
-                                    key={voter.participantId}
-                                    className="rounded-full bg-[var(--neutral-soft)] px-2 py-0.5 text-[9px] font-medium text-[var(--text)]"
-                                  >
-                                    {voter.nickname}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
                           </div>
-
                           {isMyVote && (
-                            <CheckCircle className="h-5 w-5 text-[var(--primary)]" />
+                            <CheckCircle className="h-5 w-5 text-[var(--danger)]" />
                           )}
                         </div>
                       </button>
@@ -927,57 +800,20 @@ useEffect(() => {
                 </div>
               </ScrollArea>
             </>
-          ) : (
-            <div className="space-y-2">
-              {recommendedPlaces.map((place) => {
-                const Icon = place.icon
-                const selected = selectedPlace === place.id
-
-                let optionClass =
-                  'flex w-full items-center gap-3 rounded-xl px-4 py-3 border-2'
-                if (selected) {
-                  optionClass += ' border-[var(--primary)] bg-[var(--bg-soft)]'
-                } else {
-                  optionClass += ' border-[var(--border)] bg-[var(--bg)]'
-                }
-
-                return (
-                  <button
-                    key={`vote-${place.id}`}
-                    onClick={() => {
-                      setSelectedPlace(place.id)
-                      setShowVoteModal(false)
-                    }}
-                    className={optionClass}
-                  >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--neutral-soft)]">
-                      <Icon className="h-8 w-8 text-[var(--primary)]" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <p className="text-sm font-semibold text-[var(--text)]">{place.name}</p>
-                      <p className="text-xs text-[var(--text-subtle)]">
-                        {place.stationName} 도보 {place.walkingMinutes}분
-                      </p>
-                    </div>
-                    {selected && (
-                      <CheckCircle className="h-5 w-5 text-[var(--primary)]" />
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          )}
+          ) : null}
         </div>
       </WireframeModal>
 
-      {/* 확정 버튼 */}
-      <Button
-        disabled={!selectedPlace || isConfirming || !isHost}
-        onClick={handleConfirmPlace}
-        className="w-full rounded-2xl bg-[var(--primary)] text-[var(--primary-foreground)] py-4 text-base font-semibold disabled:opacity-40"
-      >
-        {confirmLabel}
-      </Button>
+      {/* ================= 확정 CTA ================= */}
+      <div className="sticky bottom-0 z-20 bg-[var(--bg)] p-4">
+        <Button
+          disabled={!selectedPlace || isConfirming || !isHost}
+          onClick={handleConfirmPlace}
+          className="w-full bg-[var(--danger)] text-white py-6 text-base font-semibold disabled:opacity-40"
+        >
+          {confirmLabel}
+        </Button>
+      </div>
     </div>
   )
 }
