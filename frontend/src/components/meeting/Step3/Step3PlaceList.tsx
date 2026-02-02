@@ -201,6 +201,12 @@ function pickIconById(category: PlaceCategory, id: string): LucideIcon {
   return icons[hash % icons.length]
 }
 
+function logClientError(message: string, error: unknown) {
+  if (process.env.NODE_ENV === 'development') {
+    console.error(message, error)
+  }
+}
+
 /* ================= 컴포넌트 ================= */
 
 export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
@@ -237,8 +243,18 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   // 이동시간 관련 상태
   const [routeCache, setRouteCache] = useState<Record<string, RouteResponse>>({})
   const [loadingRoutes, setLoadingRoutes] = useState<Record<string, boolean>>({})
+  const routeCacheRef = useRef(routeCache)
+  const loadingRoutesRef = useRef(loadingRoutes)
   const [showTravelTimeModal, setShowTravelTimeModal] = useState(false)
   const [selectedPlaceForDetail, setSelectedPlaceForDetail] = useState<string | null>(null)
+
+  useEffect(() => {
+    routeCacheRef.current = routeCache
+  }, [routeCache])
+
+  useEffect(() => {
+    loadingRoutesRef.current = loadingRoutes
+  }, [loadingRoutes])
 
   /* ================= 추천장소 + 중간지점 ================= */
 
@@ -269,7 +285,8 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         )
       setPlaceSource(parsedPlaces.slice(0, 6))
       setHasInitiallyLoaded(true)
-    } catch {
+    } catch (error) {
+      logClientError('추천 장소 조회 실패', error)
       setPlaceSource([])
       setHasInitiallyLoaded(true)
       try {
@@ -280,7 +297,9 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         if (res.data?.lat && res.data?.lng) {
           setMiddlePoint(res.data)
         }
-      } catch { }
+      } catch (innerError) {
+        logClientError('중간지점 조회 실패', innerError)
+      }
     } finally {
       setIsLoadingPlaces(false)
     }
@@ -299,7 +318,13 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
 
   const fetchTravelTimes = useCallback(
     async (placeId: string, latitude: number, longitude: number) => {
-      if (!meetingUuid || routeCache[placeId] || loadingRoutes[placeId]) return
+      if (
+        !meetingUuid ||
+        routeCacheRef.current[placeId] ||
+        loadingRoutesRef.current[placeId]
+      ) {
+        return
+      }
 
       setLoadingRoutes((prev) => ({ ...prev, [placeId]: true }))
       try {
@@ -313,12 +338,12 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
           setRouteCache((prev) => ({ ...prev, [placeId]: data }))
         }
       } catch (error) {
-        console.error('이동시간 조회 실패:', error)
+        logClientError('이동시간 조회 실패', error)
       } finally {
         setLoadingRoutes((prev) => ({ ...prev, [placeId]: false }))
       }
     },
-    [meetingUuid, routeCache, loadingRoutes]
+    [meetingUuid]
   )
 
   const handlePlaceClick = useCallback(
@@ -357,7 +382,9 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
                 setVoteData(result)
                 setIsNewPlaceAvailable(false)
               }
-            } catch { }
+            } catch (error) {
+              logClientError('투표 메시지 처리 실패', error)
+            }
           })
         }
 
@@ -372,7 +399,9 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
               setVoteData(result)
               setIsNewPlaceAvailable(false)
             }
-          } catch { }
+          } catch (error) {
+            logClientError('투표 갱신 처리 실패', error)
+          }
         })
 
         client.subscribe(`/topic/meeting/${meetingUuid}/places`, () => {
@@ -415,7 +444,10 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
           onStatusLoaded(data.status)
         }
       })
-      .catch(() => setParticipants([]))
+      .catch((error) => {
+        logClientError('참여자 조회 실패', error)
+        setParticipants([])
+      })
   }, [meetingUuid, user?.id, onStatusLoaded])
 
   /* ================= 추천 장소 ================= */
@@ -432,6 +464,14 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const placeSignature = useMemo(
     () => recommendedPlaces.map((p) => p.name).sort().join('|'),
     [recommendedPlaces]
+  )
+
+  const selectedPlaceDetail = useMemo(
+    () =>
+      selectedPlaceForDetail
+        ? recommendedPlaces.find((p) => p.id === selectedPlaceForDetail) ?? null
+        : null,
+    [recommendedPlaces, selectedPlaceForDetail]
   )
 
   useEffect(() => {
@@ -456,7 +496,8 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
       )
       if (res.status === 404) return null
       return res.data?.data ?? null
-    } catch {
+    } catch (error) {
+      logClientError('투표 조회 실패', error)
       return null
     }
   }, [meetingUuid])
@@ -928,21 +969,20 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         {selectedPlaceForDetail && (
           <div className="space-y-4">
             {/* 매장 정보 요약 */}
-            {recommendedPlaces.find(p => p.id === selectedPlaceForDetail) && (
+            {selectedPlaceDetail && (
               <div className="flex items-center gap-3 mb-2">
                 <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
                   {(() => {
-                    const p = recommendedPlaces.find(p => p.id === selectedPlaceForDetail);
-                    const Icon = p?.icon || Coffee;
-                    return <Icon className="h-7 w-7 text-[var(--danger)]" />;
+                    const Icon = selectedPlaceDetail.icon || Coffee
+                    return <Icon className="h-7 w-7 text-[var(--danger)]" />
                   })()}
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-[var(--text)]">
-                    {recommendedPlaces.find(p => p.id === selectedPlaceForDetail)?.name}
+                    {selectedPlaceDetail.name}
                   </h3>
                   <p className="text-xs text-[var(--text-subtle)]">
-                    {recommendedPlaces.find(p => p.id === selectedPlaceForDetail)?.address || recommendedPlaces.find(p => p.id === selectedPlaceForDetail)?.stationName}
+                    {selectedPlaceDetail.address || selectedPlaceDetail.stationName}
                   </p>
                 </div>
               </div>
