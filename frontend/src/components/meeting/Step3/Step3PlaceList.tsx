@@ -57,6 +57,7 @@ interface Participant {
   nickName?: string
   profileImageUrl?: string
   handicap: boolean
+  type?: 'PUBLIC' | 'CAR' | 'WALK'
 }
 
 export type PlaceCategory = 'cafe' | 'restaurant' | 'culture' | 'tour'
@@ -382,6 +383,8 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         client.subscribe(`/topic/meeting/${meetingUuid}/places`, () => {
           fetchPlacesAndMidpointRef.current()
           setMapRefreshKey((p) => p + 1)
+          // 추천 장소 변경 시 이동시간 캐시 초기화
+          setRouteCache({})
           if (voteDataRef.current) {
             setIsNewPlaceAvailable(true)
           }
@@ -731,8 +734,38 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
               const routeData = routeCache[place.id]
               const isLoadingRoute = loadingRoutes[place.id]
               const avgTravelTime = routeData?.statistics?.averageTravelTime
-              const hasCarRoutes = routeData?.carRoutes && routeData.carRoutes.length > 0
-              const hasPublicRoutes = routeData?.routes && routeData.routes.length > 0
+
+              // 내 이동시간 계산
+              const myTransportType = myParticipant?.type
+              let myTravelTime: number | null = null
+              let myTransportIcon: React.ReactNode = null
+
+              if (routeData && myParticipant) {
+                if (myTransportType === 'CAR') {
+                  // 자동차: carRoutes에서 찾기 (매장까지 직접)
+                  const myCarRoute = routeData.carRoutes?.find(
+                    (r) => r.participantName === myParticipant.nickName
+                  )
+                  if (myCarRoute) {
+                    myTravelTime = myCarRoute.travelTime
+                    myTransportIcon = <Car className="h-3 w-3" />
+                  }
+                } else if (myTransportType === 'WALK') {
+                  // 도보: walkingMinutes만
+                  myTravelTime = place.walkingMinutes
+                  myTransportIcon = null
+                } else {
+                  // 대중교통 (PUBLIC 또는 기본값)
+                  const myRoute = routeData.routes?.find(
+                    (r) => r.participantName === myParticipant.nickName
+                  )
+                  if (myRoute) {
+                    // 대중교통: API 시간 + 도보시간
+                    myTravelTime = myRoute.travelTime + place.walkingMinutes
+                    myTransportIcon = <Train className="h-3 w-3" />
+                  }
+                }
+              }
 
               let cls =
                 'relative flex items-center gap-3 rounded-lg border p-3'
@@ -770,6 +803,19 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
                       <p className="mt-1 text-xs text-[var(--text-subtle)]">
                         이동시간 조회 중...
                       </p>
+                    ) : myTravelTime !== null ? (
+                      <button
+                        type="button"
+                        onClick={(e) => handleShowTravelTimeDetail(place.id, e)}
+                        className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)] hover:underline"
+                      >
+                        나 {myTransportIcon} {myTravelTime}분
+                        {avgTravelTime && avgTravelTime !== myTravelTime && (
+                          <span className="text-[var(--text-subtle)] ml-1">
+                            (평균 {avgTravelTime}분)
+                          </span>
+                        )}
+                      </button>
                     ) : avgTravelTime ? (
                       <button
                         type="button"
@@ -778,8 +824,6 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
                       >
                         <Clock className="h-3 w-3" />
                         평균 {avgTravelTime}분
-                        {hasCarRoutes && <Car className="h-3 w-3 ml-1" />}
-                        {hasPublicRoutes && <Train className="h-3 w-3 ml-1" />}
                       </button>
                     ) : null}
                     {hasVotes && voteOption && (
