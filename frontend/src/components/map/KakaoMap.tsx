@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 
 type LatLng = { lat: number; lng: number }
+type KakaoMapWithZoomable = KakaoMapInstance & { setZoomable: (zoomable: boolean) => void }
 
 const FALLBACK_CENTER = { lat: 37.5665, lng: 126.978 }
 
@@ -52,6 +53,10 @@ export default function KakaoMap({
         center: kakaoCenter,
         level,
       })
+
+      // ✅ 배경 지도 제스처 활성화
+      map.setDraggable(true)
+      ;(map as unknown as KakaoMapWithZoomable).setZoomable(true)
 
       mapInstanceRef.current = map
 

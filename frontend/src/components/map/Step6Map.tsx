@@ -30,6 +30,7 @@ interface MapRouteData {
 type KakaoMap = kakao.maps.Map
 type KakaoCustomOverlay = kakao.maps.CustomOverlay
 type KakaoPolyline = kakao.maps.Polyline
+type KakaoMapWithZoomable = KakaoMap & { setZoomable: (zoomable: boolean) => void }
 
 interface Step6MapProps {
   meetingUuid: string
@@ -115,6 +116,8 @@ export default function Step6Map({
 
       // ✅ 드래그 활성화 (any ❌)
       map.setDraggable(true)
+      // ✅ 확대/축소 활성화 (휠/핀치)
+      ;(map as unknown as KakaoMapWithZoomable).setZoomable(true)
 
       mapInstanceRef.current = map
       setIsMapLoaded(true)

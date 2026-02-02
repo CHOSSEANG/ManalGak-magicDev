@@ -46,17 +46,18 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
 
   return (
     <Drawer open>
+      전체 
       <DrawerContent
         // ✅ 상태 기반 bottom
         style={{ bottom }}
         className="
+        app-container 
           z-20
           rounded-t-3xl
           bg-[var(--bg)]
           mx-auto
           w-full
           max-w-[var(--app-max-width)]
-          touch-none
         "
       >
         {/* 드래그 핸들 */}
@@ -67,7 +68,7 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
             mt-2
             mb-1
             h-1.5
-            w-10
+            w-40
             rounded-full
             bg-[var(--border)]
             cursor-grab

@@ -134,7 +134,9 @@ body {
   }
 }
 
-
+[data-radix-dialog-overlay] {
+  pointer-events: none;
+}
 
 /* ===== Global Layout Container ===== */
 .app-container {
