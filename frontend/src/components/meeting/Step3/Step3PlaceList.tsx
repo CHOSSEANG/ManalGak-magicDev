@@ -251,10 +251,20 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const loadingRoutesRef = useRef(loadingRoutes)
   const [showTravelTimeModal, setShowTravelTimeModal] = useState(false)
   const [selectedPlaceForDetail, setSelectedPlaceForDetail] = useState<string | null>(null)
+  const showTravelTimeModalRef = useRef(showTravelTimeModal)
+  const selectedPlaceForDetailRef = useRef(selectedPlaceForDetail)
 
   useEffect(() => {
     routeCacheRef.current = routeCache
   }, [routeCache])
+
+  useEffect(() => {
+    showTravelTimeModalRef.current = showTravelTimeModal
+  }, [showTravelTimeModal])
+
+  useEffect(() => {
+    selectedPlaceForDetailRef.current = selectedPlaceForDetail
+  }, [selectedPlaceForDetail])
 
   useEffect(() => {
     loadingRoutesRef.current = loadingRoutes
@@ -413,6 +423,34 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
           setMapRefreshKey((p) => p + 1)
           // 추천 장소 변경 시 이동시간 캐시 초기화
           setRouteCache({})
+
+          // 모달이 열려있으면 해당 장소의 이동시간 다시 조회
+          if (showTravelTimeModalRef.current && selectedPlaceForDetailRef.current) {
+            const place = recommendedPlacesRef.current.find(
+              (p) => p.id === selectedPlaceForDetailRef.current
+            )
+            if (place?.latitude && place?.longitude) {
+              // 약간의 딜레이 후 재조회 (추천장소 갱신 후)
+              setTimeout(() => {
+                setLoadingRoutes((prev) => ({ ...prev, [place.id]: true }))
+                calculateRoutes(meetingUuid, {
+                  latitude: place.latitude!,
+                  longitude: place.longitude!,
+                }).then((response) => {
+                  const res = response as CommonResponse<RouteResponse>
+                  if (res?.data) {
+                    const data = res.data
+                    setRouteCache((prev) => ({ ...prev, [place.id]: data }))
+                  }
+                }).catch((err) => {
+                  logClientError('모달 이동시간 재조회 실패', err)
+                }).finally(() => {
+                  setLoadingRoutes((prev) => ({ ...prev, [place.id]: false }))
+                })
+              }, 500)
+            }
+          }
+
           if (voteDataRef.current) {
             setIsNewPlaceAvailable(true)
           }
@@ -464,6 +502,32 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
       })),
     [placeSource]
   )
+
+  // 프리페칭: 추천장소 로드 시 이동시간 미리 조회
+  const recommendedPlacesRef = useRef(recommendedPlaces)
+  useEffect(() => {
+    recommendedPlacesRef.current = recommendedPlaces
+  }, [recommendedPlaces])
+
+  useEffect(() => {
+    if (!meetingUuid || recommendedPlaces.length === 0) return
+
+    // 각 장소의 이동시간을 순차적으로 프리페칭 (API 부하 방지)
+    const prefetchTravelTimes = async () => {
+      for (const place of recommendedPlaces) {
+        if (place.latitude && place.longitude) {
+          // 캐시에 없고 로딩 중이 아닌 경우에만 조회
+          if (!routeCacheRef.current[place.id] && !loadingRoutesRef.current[place.id]) {
+            await fetchTravelTimes(place.id, place.latitude, place.longitude)
+            // API 부하 방지를 위해 200ms 딜레이
+            await new Promise((resolve) => setTimeout(resolve, 200))
+          }
+        }
+      }
+    }
+
+    prefetchTravelTimes()
+  }, [meetingUuid, recommendedPlaces, fetchTravelTimes])
 
   const placeSignature = useMemo(
     () => recommendedPlaces.map((p) => p.name).sort().join('|'),
