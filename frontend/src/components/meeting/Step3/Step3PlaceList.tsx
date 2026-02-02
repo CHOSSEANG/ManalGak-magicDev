@@ -280,7 +280,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         if (res.data?.lat && res.data?.lng) {
           setMiddlePoint(res.data)
         }
-      } catch {}
+      } catch { }
     } finally {
       setIsLoadingPlaces(false)
     }
@@ -329,6 +329,10 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
       if (place.latitude && place.longitude) {
         fetchTravelTimes(place.id, place.latitude, place.longitude)
       }
+
+      // 모달창 즉시 열기
+      setSelectedPlaceForDetail(place.id)
+      setShowTravelTimeModal(true)
     },
     [fetchTravelTimes]
   )
@@ -362,7 +366,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
                 setVoteData(result)
                 setIsNewPlaceAvailable(false)
               }
-            } catch {}
+            } catch { }
           })
         }
 
@@ -377,7 +381,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
               setVoteData(result)
               setIsNewPlaceAvailable(false)
             }
-          } catch {}
+          } catch { }
         })
 
         client.subscribe(`/topic/meeting/${meetingUuid}/places`, () => {
@@ -403,6 +407,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
 
   useEffect(() => {
     if (!meetingUuid || !user?.id) return
+
     axios
       .get(`${API_BASE_URL}/v1/meetings/${meetingUuid}`, {
         withCredentials: true,
@@ -722,8 +727,8 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
               const hasVotes = Boolean(voteOption && voteOption.voteCount > 0)
               const isTopChoice = Boolean(
                 voteOption &&
-                  voteOption.voteCount === maxVotes &&
-                  maxVotes > 0
+                voteOption.voteCount === maxVotes &&
+                maxVotes > 0
               )
               const votePercentage =
                 totalVotes > 0 && voteOption
@@ -798,33 +803,25 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
                     <p className="text-xs text-[var(--text-subtle)]">
                       {place.stationName} · 도보 {place.walkingMinutes}분
                     </p>
-                    {/* 이동시간 표시 */}
+                    {/* 이동시간 표시 (전체 카드 클릭 가능) */}
                     {isLoadingRoute ? (
                       <p className="mt-1 text-xs text-[var(--text-subtle)]">
                         이동시간 조회 중...
                       </p>
                     ) : myTravelTime !== null ? (
-                      <button
-                        type="button"
-                        onClick={(e) => handleShowTravelTimeDetail(place.id, e)}
-                        className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)] hover:underline"
-                      >
+                      <div className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)]">
                         나 {myTransportIcon} {myTravelTime}분
                         {avgTravelTime && avgTravelTime !== myTravelTime && (
                           <span className="text-[var(--text-subtle)] ml-1">
                             (평균 {avgTravelTime}분)
                           </span>
                         )}
-                      </button>
+                      </div>
                     ) : avgTravelTime ? (
-                      <button
-                        type="button"
-                        onClick={(e) => handleShowTravelTimeDetail(place.id, e)}
-                        className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)] hover:underline"
-                      >
+                      <div className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)]">
                         <Clock className="h-3 w-3" />
                         평균 {avgTravelTime}분
-                      </button>
+                      </div>
                     ) : null}
                     {hasVotes && voteOption && (
                       <div className="mt-1 flex items-center gap-2">
@@ -937,103 +934,139 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         title="참여자별 이동시간"
         onClose={() => setShowTravelTimeModal(false)}
       >
-        {selectedPlaceForDetail && routeCache[selectedPlaceForDetail] && (
+        {selectedPlaceForDetail && (
           <div className="space-y-4">
-            {/* 통계 요약 */}
-            {routeCache[selectedPlaceForDetail].statistics && (
-              <div className="rounded-lg bg-[var(--neutral-soft)] p-3">
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <p className="text-lg font-bold text-[var(--danger)]">
-                      {routeCache[selectedPlaceForDetail].statistics?.averageTravelTime}분
-                    </p>
-                    <p className="text-xs text-[var(--text-subtle)]">평균</p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-[var(--text)]">
-                      {routeCache[selectedPlaceForDetail].statistics?.minTravelTime}분
-                    </p>
-                    <p className="text-xs text-[var(--text-subtle)]">최소</p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-[var(--text)]">
-                      {routeCache[selectedPlaceForDetail].statistics?.maxTravelTime}분
-                    </p>
-                    <p className="text-xs text-[var(--text-subtle)]">최대</p>
-                  </div>
+            {/* 매장 정보 요약 */}
+            {recommendedPlaces.find(p => p.id === selectedPlaceForDetail) && (
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                  {(() => {
+                    const p = recommendedPlaces.find(p => p.id === selectedPlaceForDetail);
+                    const Icon = p?.icon || Coffee;
+                    return <Icon className="h-7 w-7 text-[var(--danger)]" />;
+                  })()}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[var(--text)]">
+                    {recommendedPlaces.find(p => p.id === selectedPlaceForDetail)?.name}
+                  </h3>
+                  <p className="text-xs text-[var(--text-subtle)]">
+                    {recommendedPlaces.find(p => p.id === selectedPlaceForDetail)?.address || recommendedPlaces.find(p => p.id === selectedPlaceForDetail)?.stationName}
+                  </p>
                 </div>
               </div>
             )}
 
-            {/* 대중교통 경로 */}
-            {routeCache[selectedPlaceForDetail].routes &&
-              routeCache[selectedPlaceForDetail].routes!.length > 0 && (
-                <div>
-                  <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-                    <Train className="h-4 w-4" />
-                    대중교통
-                  </h4>
-                  <ScrollArea className="max-h-40">
-                    <div className="space-y-2">
-                      {routeCache[selectedPlaceForDetail].routes!.map(
-                        (route: RouteInfo, idx: number) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between rounded-lg border border-[var(--border)] p-2"
-                          >
-                            <span className="text-sm text-[var(--text)]">
-                              {route.participantName}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-[var(--text-subtle)]">
-                                환승 {route.transferCount}회
-                              </span>
-                              <span className="font-semibold text-[var(--danger)]">
-                                {route.travelTime}분
-                              </span>
-                            </div>
-                          </div>
-                        )
-                      )}
+            {routeCache[selectedPlaceForDetail] ? (
+              <>
+                {/* 통계 요약 */}
+                {routeCache[selectedPlaceForDetail].statistics && (
+                  <div className="rounded-xl bg-[var(--neutral-soft)] p-4 border border-[var(--border)]">
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-xl font-bold text-[var(--danger)]">
+                          {routeCache[selectedPlaceForDetail].statistics?.averageTravelTime}분
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">평균</p>
+                      </div>
+                      <div className="border-x border-[var(--border)]">
+                        <p className="text-xl font-bold text-[var(--text)]">
+                          {routeCache[selectedPlaceForDetail].statistics?.minTravelTime}분
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">최소</p>
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-[var(--text)]">
+                          {routeCache[selectedPlaceForDetail].statistics?.maxTravelTime}분
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">최대</p>
+                      </div>
                     </div>
-                  </ScrollArea>
-                </div>
-              )}
+                  </div>
+                )}
 
-            {/* 자동차 경로 */}
-            {routeCache[selectedPlaceForDetail].carRoutes &&
-              routeCache[selectedPlaceForDetail].carRoutes!.length > 0 && (
-                <div>
-                  <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-                    <Car className="h-4 w-4" />
-                    자동차
-                  </h4>
-                  <ScrollArea className="max-h-40">
-                    <div className="space-y-2">
-                      {routeCache[selectedPlaceForDetail].carRoutes!.map(
-                        (route: CarRouteInfo, idx: number) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between rounded-lg border border-[var(--border)] p-2"
-                          >
-                            <span className="text-sm text-[var(--text)]">
-                              {route.participantName}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-[var(--text-subtle)]">
-                                {(route.distance / 1000).toFixed(1)}km
+                {/* 대중교통 경로 */}
+                {routeCache[selectedPlaceForDetail].routes &&
+                  routeCache[selectedPlaceForDetail].routes!.length > 0 && (
+                    <div>
+                      <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                        <Train className="h-4 w-4 text-[var(--text-subtle)]" />
+                        대중교통 참여자
+                      </h4>
+                      <div className="space-y-2">
+                        {routeCache[selectedPlaceForDetail].routes!.map(
+                          (route: RouteInfo, idx: number) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between rounded-lg border border-[var(--border)] p-3 bg-[var(--bg)]"
+                            >
+                              <span className="text-sm font-medium text-[var(--text)]">
+                                {route.participantName}
                               </span>
-                              <span className="font-semibold text-[var(--danger)]">
-                                {route.travelTime}분
-                              </span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[11px] text-[var(--text-subtle)]">
+                                  환승 {route.transferCount}회
+                                </span>
+                                <span className="text-sm font-bold text-[var(--danger)]">
+                                  {route.travelTime}분
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        )
-                      )}
+                          )
+                        )}
+                      </div>
                     </div>
-                  </ScrollArea>
-                </div>
-              )}
+                  )}
+
+                {/* 자동차 경로 */}
+                {routeCache[selectedPlaceForDetail].carRoutes &&
+                  routeCache[selectedPlaceForDetail].carRoutes!.length > 0 && (
+                    <div className="pt-2">
+                      <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                        <Car className="h-4 w-4 text-[var(--text-subtle)]" />
+                        자동차 참여자
+                      </h4>
+                      <div className="space-y-2">
+                        {routeCache[selectedPlaceForDetail].carRoutes!.map(
+                          (route: CarRouteInfo, idx: number) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between rounded-lg border border-[var(--border)] p-3 bg-[var(--bg)]"
+                            >
+                              <span className="text-sm font-medium text-[var(--text)]">
+                                {route.participantName}
+                              </span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[11px] text-[var(--text-subtle)]">
+                                  {(route.distance / 1000).toFixed(1)}km
+                                </span>
+                                <span className="text-sm font-bold text-[var(--danger)]">
+                                  {route.travelTime}분
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+              </>
+            ) : (
+              <div className="py-10 text-center">
+                <p className="text-sm text-[var(--text-subtle)]">이동시간 정보를 불러오는 중입니다...</p>
+              </div>
+            )}
+
+            {/* 선택 버튼 (푸터 스타일) */}
+            <div className="pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowTravelTimeModal(false)}
+                className="w-full border-2 border-[var(--danger)] text-[var(--danger)] font-bold py-6 rounded-xl hover:bg-[var(--danger-soft)]"
+              >
+                닫기
+              </Button>
+            </div>
           </div>
         )}
       </WireframeModal>
