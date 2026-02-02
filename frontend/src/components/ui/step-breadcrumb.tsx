@@ -35,14 +35,20 @@ export function Breadcrumb({
       aria-label="Progress"
     >
       {/* overflow-x-auto: 혹시라도 화면이 아주 작은(320px 이하) 폰을 위해 스크롤 안전장치 유지 */}
-      <ol className="flex items-center justify-between w-full overflow-x-auto scrollbar-hide">
+      <ol
+        className="
+          flex items-center justify-center w-full
+          gap-x-2 md:gap-x-6
+          overflow-hidden
+        "
+      >
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1;
 
           return (
             <React.Fragment key={step.id}>
               {/* --- 1. 스텝 아이템 --- */}
-              <li className="relative flex items-center shrink-0">
+              <li className="relative flex items-center shrink">
                 <button
                   type="button"
                   onClick={() => {
@@ -61,7 +67,12 @@ export function Breadcrumb({
                     router.push(`${basePath}${query}`);
                   }}
                   // 간격(gap)도 요소가 커진 만큼 아주 조금 넓힘 (1.5 = 6px)
-                  className="group flex items-center gap-1.5 md:gap-3"
+                  className="
+                    group flex
+                    flex-col xs:flex-row
+                    items-center
+                    gap-0.5 xs:gap-1 md:gap-3
+                  "
                 >
                   {/* 동그라미 */}
                   <span
@@ -85,7 +96,7 @@ export function Breadcrumb({
                       step.id
                     )}
                   </span>
-
+                  
                   {/* 텍스트 라벨 */}
                   <span
                     className={cn(

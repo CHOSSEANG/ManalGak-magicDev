@@ -62,15 +62,16 @@ function Step1Content() {
     return `/meetings/new/step2-members?meetingUuid=${resultMeetingUuid}`;
   };
 
+  
   return (
     <>
-      <main className="bg-[var(--bg)]">
+      <main className="bg-[var(--bg)] border-t border-[var(--border)]">
         <div className="mx-auto max-w-3xl space-y-6">
-          <section className="space-y-4 pb-24">
+          <section className=" pb-24">
             {isCopied && (
-              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
+              <div className="bg-blue-50 border-y border-blue-200 px-3 py-1">
                 <p className="text-sm text-blue-800">
-                  📋 <strong>복사된 모임입니다.</strong> 모임 목적과 날짜를 수정한 후 저장해주세요.
+                  📋 <strong>복사된 모임입니다.</strong> <br />모임 목적과 날짜/시간을 수정한 후 저장 해 주세요.
                 </p>
               </div>
             )}
@@ -92,11 +93,14 @@ function Step1Content() {
         </div>
       </main>
 
-      <StepNavigation
-        prevHref="/meetings/new"
-        nextHref="/meetings/new/step2-members"
-        onNext={handleNext}
-      />
+      {/* ===== Step Navigation Fixed (하단 고정) ===== */}
+      <div className="fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
+        <StepNavigation
+          prevHref="/meetings/new"
+          nextHref="/meetings/new/step2-members"
+          onNext={handleNext}
+        />
+      </div>
     </>
   );
 }

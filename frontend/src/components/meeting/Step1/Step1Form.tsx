@@ -7,6 +7,7 @@ import {
   useImperativeHandle,
   forwardRef,
   useEffect,
+  useCallback,
 } from "react";
 import { Utensils, Coffee, Film, Landmark } from "lucide-react";
 import axios from "axios";
@@ -70,6 +71,18 @@ const apiToPurposeMap: Record<string, string> = {
   TOUR: "관광명소",
 };
 
+// -------------------- 날씨 아이콘 매핑 --------------------
+const weatherIconMap: Record<string, string> = {
+  Clear: "☀️",
+  Clouds: "☁️",
+  Rain: "🌧",
+  Snow: "❄️",
+  Thunderstorm: "⛈",
+  Drizzle: "🌦",
+  Mist: "🌫",
+};
+
+
 export interface Step1FormRef {
   createOrUpdateMeeting: () => Promise<string | null>;
   isValid: () => boolean;
@@ -100,6 +113,16 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(
     const [endDraft, setEndDraft] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
 
+    // --- 날씨 상태 ---
+    const [weather, setWeather] = useState<{
+      main: string;
+      description: string;
+      temp: number;
+    } | null>(null);
+
+    const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+    const [weatherError, setWeatherError] = useState<string | null>(null);
+    
     // --- meetingUuid로 모임 정보 조회 (수정 모드) ---
     useEffect(() => {
       if (!meetingUuid) return;
@@ -186,8 +209,53 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(
       return null;
     }, [startDraft, endDraft]);
 
-    const canShowWeather = !!selectedDate && !!startTime;
+const canShowWeather = !!selectedDate && !!startTime;
 
+// -- 날씨 관련 -- //
+const fetchWeather = useCallback(async () => {
+  if (!selectedDate || !startTime) return;
+
+  try {
+    setIsWeatherLoading(true);
+    setWeatherError(null);
+
+    const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+    if (!API_KEY) throw new Error("Weather API Key missing");
+
+    // 서울 고정 (테스트용)
+    const lat = 37.5665;
+    const lon = 126.978;
+
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+    );
+
+    if (!res.ok) throw new Error("Weather fetch failed");
+
+    const data = await res.json();
+
+    setWeather({
+      main: data.weather?.[0]?.main ?? "Clear",
+      description: data.weather?.[0]?.description ?? "",
+      temp: Math.round(data.main?.temp ?? 0),
+    });
+  } catch (err) {
+    console.error("❌ 날씨 조회 실패", err);
+    setWeatherError("날씨 정보를 불러올 수 없어요");
+    setWeather(null);
+  } finally {
+    setIsWeatherLoading(false);
+  }
+}, [selectedDate, startTime]);
+
+useEffect(() => {
+  if (!canShowWeather) return;
+  void fetchWeather();
+}, [canShowWeather, fetchWeather]);
+
+
+
+    
     // --- 핸들러 함수 ---
     const openCalendar = () => {
       if (readonly && !isCopied) return;
@@ -460,9 +528,35 @@ const Step1Form = forwardRef<Step1FormRef, Step1FormProps>(
             </div>
           ) : (
             <div className="text-center">
-              <p className="mt-1 text-xs text-[var(--text-subtle)]">
-                서울 예상 날씨: 맑음
-              </p>
+              {/* 4. 예상 날씨 */}
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] p-4">
+                {!canShowWeather ? (
+                  <div className="flex h-16 items-center justify-center text-xs text-[var(--text-subtle)]">
+                    날짜와 시작 시간을 선택하면 날씨를 보여드려요
+                  </div>
+                ) : isWeatherLoading ? (
+                  <div className="flex h-16 items-center justify-center text-xs text-[var(--text-subtle)]">
+                    날씨 불러오는 중…
+                  </div>
+                ) : weather ? (
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="text-2xl">
+                      {weatherIconMap[weather.main] ?? "🌡"}
+                    </div>
+                    <p className="text-sm font-medium text-[var(--text)]">
+                      {weather.temp}°C · {weather.description}
+                    </p>
+                    <p className="text-xs text-[var(--text-subtle)]">
+                      서울 기준 예상 날씨
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-xs text-[var(--danger)] text-center">
+                    {weatherError}
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
         </div>

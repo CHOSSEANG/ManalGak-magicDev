@@ -3,8 +3,6 @@
 
 import { Breadcrumb } from "@/components/ui/step-breadcrumb";
 import { usePathname } from "next/navigation";
-// import { StepProgress } from "@/components/ui/StepProgress";
-
 
 const stepMap: Record<string, number> = {
   "/meetings/new/step1-basic": 1,
@@ -68,58 +66,25 @@ export default function MeetingsNewLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-
-  // const progress = stepMap[pathname] ?? 0;
   const hideProgressBar = pathname === "/meetings/new";
 
-  let progressSection: React.ReactNode = null;
-  if (!hideProgressBar) {
-    progressSection = (
-      <div className="">
-          {/* Step Labels
-          <div className="grid grid-cols-4 gap-2 text-xs">
-            {STEPS.map((step) => {
-              const isActive = pathname === step.path;
-
-              let labelClass = "text-[var(--text-subtle)]";
-              if (isActive) {
-                labelClass = "font-semibold text-[var(--text)]";
-              }
-
-              return (
-                <div key={step.path} className="text-center">
-                  <span className={labelClass}>{step.label}</span>
-                </div>
-              );
-            })}
-          </div> */}
-{/* 
-          {/* Progress Bar *
-          <StepProgress
-            value={progress}
-            className="h-2 bg-[var(--neutral-soft)]"
-            indicatorClassName="bg-[var(--primary)]"
-          /> */}
-
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {progressSection}
-
-     <div className="">
+    <div className="min-h-screen flex flex-col">
+      {/* ✅ 상단 고정 영역 */}
       {!hideProgressBar && (
-        <div className="mb-8">
-          <Breadcrumb steps={breadcrumbSteps(pathname)} />
+        <div className="sticky z-0 bg-[var(--bg)]">
+          <div className="overflow-x-hidden">
+            <div className="flex flex-wrap justify-center">
+              <Breadcrumb steps={breadcrumbSteps(pathname)} />
+            </div>
+          </div>
         </div>
       )}
+
+      {/* ✅ 본문 스크롤 영역 */}
+      <div className="flex-1">
         {children}
-        </div>
+      </div>
     </div>
   );
 }
-
-
-
