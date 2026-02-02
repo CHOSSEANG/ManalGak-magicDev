@@ -66,11 +66,11 @@ function Step1Content() {
     <>
       <main className="bg-[var(--bg)]">
         <div className="mx-auto max-w-3xl space-y-6">
-          <section className="space-y-4 pb-24">
+          <section className=" pb-24">
             {isCopied && (
-              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
+              <div className="bg-blue-50 border-y border-blue-200 px-3 py-1">
                 <p className="text-sm text-blue-800">
-                  📋 <strong>복사된 모임입니다.</strong> 모임 목적과 날짜를 수정한 후 저장해주세요.
+                  📋 <strong>복사된 모임입니다.</strong> <br />모임 목적과 날짜/시간을 수정한 후 저장 해 주세요.
                 </p>
               </div>
             )}
@@ -92,7 +92,7 @@ function Step1Content() {
         </div>
       </main>
 
-      <StepNavigation
+      <StepNavigation 
         prevHref="/meetings/new"
         nextHref="/meetings/new/step2-members"
         onNext={handleNext}
