@@ -31,12 +31,12 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
     window.addEventListener('pointerup', onPointerUp)
   }
 
-  const onPointerMove = (e: PointerEvent) => {
+    const onPointerMove = (e: PointerEvent) => {
     const deltaY = startYRef.current - e.clientY
     const nextBottom = startBottomRef.current + deltaY
-
-    // 🔑 하한 clamp
-    setBottom(Math.max(nextBottom, MIN_BOTTOM))
+    // 🔑 상/하한 clamp
+    const maxBottom = window.innerHeight - 100; // 100px은 상단 여백 예시입니다.
+    setBottom(Math.min(Math.max(nextBottom, MIN_BOTTOM), maxBottom))
   }
 
   const onPointerUp = () => {
