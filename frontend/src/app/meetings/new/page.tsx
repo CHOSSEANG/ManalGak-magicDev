@@ -5,7 +5,7 @@
 import { useEffect, useState, useCallback, type ReactNode } from "react";
 
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,6 +80,7 @@ function LoadingState() {
  * ====================== */
 export default function CreateEntryPage() {
   const router = useRouter();
+  const pathname = usePathname(); 
   const { user } = useUser();
 
   const [existingMeetings, setExistingMeetings] = useState<MeetingItem[]>([]);
@@ -147,6 +148,29 @@ export default function CreateEntryPage() {
   const goToConfirmPage = (uuid: string) => {
     router.push(`/meetings/${uuid}/complete`);
   };
+
+  // 1/30[유리] - 카카오 로그인 직접 호출 (DOM 의존 제거)
+const handleKakaoLogin = () => {
+  const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+  const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
+
+  if (!REST_API_KEY || !REDIRECT_URI) {
+    alert("카카오 로그인 설정이 완료되지 않았습니다.");
+    return;
+  }
+
+  const redirectPath = pathname + location.search;
+
+  const kakaoAuthUrl =
+    "https://kauth.kakao.com/oauth/authorize" +
+    `?client_id=${REST_API_KEY}` +
+    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+    "&response_type=code" +
+    `&state=${encodeURIComponent(redirectPath)}`;
+
+  window.location.href = kakaoAuthUrl;
+};
+  
 
   const goToEditPage = (uuid: string) => {
     // 1/30[유리] - 수정 버튼: Step1부터 기존 데이터 로드
@@ -217,9 +241,8 @@ export default function CreateEntryPage() {
 
           {error === "로그인이 필요합니다" && (
           <Button
-            onClick={() => {
-              document.getElementById("kakao-login-button")?.click();
-            }}
+            onClick={handleKakaoLogin}
+            className="bg-[var(--kakao-yellow)] text-black"
           >
             카카오 로그인
           </Button>
