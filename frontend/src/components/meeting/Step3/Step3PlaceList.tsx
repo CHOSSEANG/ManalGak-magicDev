@@ -205,9 +205,9 @@ function pickIconById(category: PlaceCategory, id: string): LucideIcon {
 }
 
 function logClientError(message: string, error: unknown) {
-  if (process.env.NODE_ENV === 'development') {
-    console.error(message, error)
-  }
+  // 프로덕션에서도 오류 추적을 위해 항상 로깅
+  console.error(`[Step3] ${message}`, error)
+  // TODO: 필요 시 외부 로깅 서비스(Sentry 등)로 전송 가능
 }
 
 /* ================= 컴포넌트 ================= */
@@ -342,22 +342,16 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
 
       setLoadingRoutes((prev) => ({ ...prev, [placeId]: true }))
       try {
-        console.log('[이동시간 조회] 시작:', { meetingUuid, placeId, latitude, longitude })
         const response = (await calculateRoutes(meetingUuid, {
           latitude,
           longitude,
         })) as CommonResponse<RouteResponse>
 
-        console.log('[이동시간 조회] 응답:', response)
         if (response?.data) {
           const data = response.data
-          console.log('[이동시간 조회] 캐시 저장:', { placeId, data })
           setRouteCache((prev) => ({ ...prev, [placeId]: data }))
-        } else {
-          console.warn('[이동시간 조회] 응답에 data 없음:', response)
         }
       } catch (error) {
-        console.error('[이동시간 조회] 에러:', error)
         logClientError('이동시간 조회 실패', error)
       } finally {
         setLoadingRoutes((prev) => ({ ...prev, [placeId]: false }))
