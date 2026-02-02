@@ -1,4 +1,4 @@
-// src/components/metting/Step2/MemberSummaryGrid.tsx
+// src/components/meeting/Step2/MemberSummaryGrid.tsx
 import StepCard from "@/components/meeting/StepCard";
 import { Member } from "./Step2MemberList";
 

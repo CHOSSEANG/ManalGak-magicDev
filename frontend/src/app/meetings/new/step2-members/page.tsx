@@ -342,7 +342,7 @@ function Step3MembersContent(): JSX.Element {
           }}
           readonly={isReadonly}
         />
-        <div  className="bottom-[var[--bottom-cta-space2)]"/>
+        <div  className="bottom-[var(--bottom-cta-space2)]"/>
       </main>
 
 

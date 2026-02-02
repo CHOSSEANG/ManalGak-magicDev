@@ -1,4 +1,4 @@
-// src/components/metting/Step2/MemberStatusList.tsx
+// src/components/meeting/Step2/MemberStatusList.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -26,9 +26,20 @@ interface Props {
 //   PUBLIC: "🚌",
 // };
 
-export default function MemberStatusList({ members, onPersonalChange }: Props) {
-  const myMember = members[0];
-  const otherMembers = useMemo(() => members.slice(1), [members]);
+export default function MemberStatusList({
+  members,
+  currentUserId,
+  onPersonalChange,
+}: Props) {
+  const myMember = useMemo(
+  () => members.find((m) => m.id === currentUserId.toString()),
+  [members, currentUserId]
+);
+
+const otherMembers = useMemo(
+  () => members.filter((m) => m.id !== currentUserId.toString()),
+  [members, currentUserId]
+);
 
   const [myNickname, setMyNickname] = useState("");
 

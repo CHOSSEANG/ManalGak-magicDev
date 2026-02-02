@@ -1,4 +1,4 @@
-// src/components/meeting/Step3/MemberList.tsx
+// src/components/meeting/Step2/MemberList.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
