@@ -9,7 +9,6 @@ import Step3PlaceList from "@/components/meeting/Step3/Step3PlaceList";
 
 // shadcn/ui
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 
 import CompletedMeetingNotice from "@/components/common/CompletedMeetingNotice";
 import RequireMeeting from "@/components/common/RequireMeeting";
@@ -65,15 +64,9 @@ function Step3Content(): JSX.Element {
         </section>
       </main>
 
-      {/* 하단 CTA */}
-      {/* 1/30[유리] - 기존 이전/다음 네비게이션 제거, 단일 [추천장소확정] 버튼으로 교체 */}
-      <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-[var(--border)] bg-[var(--bg)] px-4 py-3">
-        <Button
-          className="w-full py-6 text-base font-medium bg-[var(--danger)] text-white"
-        >
-          추천장소확정
-        </Button>
-      </div>
+      {/* 하단 CTA 제거
+          - 실제 추천장소 확정은 CompleteSummaryDrawer 내부 버튼에서 처리됨
+          - 중복/비동작 CTA 제거 */}
     </>
   );
 }
