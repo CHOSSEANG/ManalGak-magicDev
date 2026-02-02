@@ -1,4 +1,4 @@
-// src/app/meetings/new/step2-meetingmembers/page.tsx
+// src/app/meetings/new/step2-members/page.tsx
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
@@ -192,8 +192,11 @@ function Step3MembersContent(): JSX.Element {
               setMyParticipantId(newParticipant.participantId);
             }
           } catch (err: unknown) {
+            console.error("참여 생성 실패", err);
+
             if (axios.isAxiosError(err) && err.response?.status === 400) {
               const errorCode = err.response?.data?.error?.code;
+
               if (errorCode === "MEETING_EXPIRED") {
                 setIsExpired(true);
               }
