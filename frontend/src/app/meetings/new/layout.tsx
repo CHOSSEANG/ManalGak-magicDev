@@ -3,8 +3,6 @@
 
 import { Breadcrumb } from "@/components/ui/step-breadcrumb";
 import { usePathname } from "next/navigation";
-// import { StepProgress } from "@/components/ui/StepProgress";
-
 
 const stepMap: Record<string, number> = {
   "/meetings/new/step1-basic": 1,
@@ -69,37 +67,13 @@ export default function MeetingsNewLayout({
 }) {
   const pathname = usePathname();
 
-  // const progress = stepMap[pathname] ?? 0;
   const hideProgressBar = pathname === "/meetings/new";
 
   let progressSection: React.ReactNode = null;
   if (!hideProgressBar) {
     progressSection = (
       <div className="">
-          {/* Step Labels
-          <div className="grid grid-cols-4 gap-2 text-xs">
-            {STEPS.map((step) => {
-              const isActive = pathname === step.path;
-
-              let labelClass = "text-[var(--text-subtle)]";
-              if (isActive) {
-                labelClass = "font-semibold text-[var(--text)]";
-              }
-
-              return (
-                <div key={step.path} className="text-center">
-                  <span className={labelClass}>{step.label}</span>
-                </div>
-              );
-            })}
-          </div> */}
-{/* 
-          {/* Progress Bar *
-          <StepProgress
-            value={progress}
-            className="h-2 bg-[var(--neutral-soft)]"
-            indicatorClassName="bg-[var(--primary)]"
-          /> */}
+          {}
 
       </div>
     );
