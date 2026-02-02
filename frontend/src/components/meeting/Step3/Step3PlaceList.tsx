@@ -35,8 +35,14 @@ import {
   TreePalm,
   Building2,
   AlertTriangle,
+  Clock,
+  Car,
+  Train,
   type LucideIcon,
 } from 'lucide-react'
+import { calculateRoutes } from '@/lib/api/route'
+import type { RouteResponse, RouteInfo, CarRouteInfo } from '@/types/route'
+import type { CommonResponse } from '@/types/api'
 
 // shadcn/ui
 
@@ -51,6 +57,7 @@ interface Participant {
   nickName?: string
   profileImageUrl?: string
   handicap: boolean
+  type?: 'PUBLIC' | 'CAR' | 'WALK'
 }
 
 export type PlaceCategory = 'cafe' | 'restaurant' | 'culture' | 'tour'
@@ -194,6 +201,12 @@ function pickIconById(category: PlaceCategory, id: string): LucideIcon {
   return icons[hash % icons.length]
 }
 
+function logClientError(message: string, error: unknown) {
+  if (process.env.NODE_ENV === 'development') {
+    console.error(message, error)
+  }
+}
+
 /* ================= 컴포넌트 ================= */
 
 export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
@@ -227,6 +240,22 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     organizerId != null && user?.id != null && organizerId === user.id
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false)
 
+  // 이동시간 관련 상태
+  const [routeCache, setRouteCache] = useState<Record<string, RouteResponse>>({})
+  const [loadingRoutes, setLoadingRoutes] = useState<Record<string, boolean>>({})
+  const routeCacheRef = useRef(routeCache)
+  const loadingRoutesRef = useRef(loadingRoutes)
+  const [showTravelTimeModal, setShowTravelTimeModal] = useState(false)
+  const [selectedPlaceForDetail, setSelectedPlaceForDetail] = useState<string | null>(null)
+
+  useEffect(() => {
+    routeCacheRef.current = routeCache
+  }, [routeCache])
+
+  useEffect(() => {
+    loadingRoutesRef.current = loadingRoutes
+  }, [loadingRoutes])
+
   /* ================= 추천장소 + 중간지점 ================= */
 
   const fetchPlacesAndMidpoint = useCallback(async () => {
@@ -256,7 +285,8 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         )
       setPlaceSource(parsedPlaces.slice(0, 6))
       setHasInitiallyLoaded(true)
-    } catch {
+    } catch (error) {
+      logClientError('추천 장소 조회 실패', error)
       setPlaceSource([])
       setHasInitiallyLoaded(true)
       try {
@@ -267,7 +297,9 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         if (res.data?.lat && res.data?.lng) {
           setMiddlePoint(res.data)
         }
-      } catch {}
+      } catch (innerError) {
+        logClientError('중간지점 조회 실패', innerError)
+      }
     } finally {
       setIsLoadingPlaces(false)
     }
@@ -281,6 +313,54 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   useEffect(() => {
     fetchPlacesAndMidpoint()
   }, [fetchPlacesAndMidpoint])
+
+  /* ================= 이동시간 조회 ================= */
+
+  const fetchTravelTimes = useCallback(
+    async (placeId: string, latitude: number, longitude: number) => {
+      if (
+        !meetingUuid ||
+        routeCacheRef.current[placeId] ||
+        loadingRoutesRef.current[placeId]
+      ) {
+        return
+      }
+
+      setLoadingRoutes((prev) => ({ ...prev, [placeId]: true }))
+      try {
+        const response = (await calculateRoutes(meetingUuid, {
+          latitude,
+          longitude,
+        })) as CommonResponse<RouteResponse>
+
+        if (response?.data) {
+          const data = response.data
+          setRouteCache((prev) => ({ ...prev, [placeId]: data }))
+        }
+      } catch (error) {
+        logClientError('이동시간 조회 실패', error)
+      } finally {
+        setLoadingRoutes((prev) => ({ ...prev, [placeId]: false }))
+      }
+    },
+    [meetingUuid]
+  )
+
+  const handlePlaceClick = useCallback(
+    (place: RecommendedPlace) => {
+      setSelectedPlace(place.id)
+
+      // 좌표가 있으면 이동시간 조회
+      if (place.latitude && place.longitude) {
+        fetchTravelTimes(place.id, place.latitude, place.longitude)
+      }
+
+      // 모달창 즉시 열기
+      setSelectedPlaceForDetail(place.id)
+      setShowTravelTimeModal(true)
+    },
+    [fetchTravelTimes]
+  )
 
   /* ================= WebSocket ================= */
 
@@ -302,7 +382,9 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
                 setVoteData(result)
                 setIsNewPlaceAvailable(false)
               }
-            } catch {}
+            } catch (error) {
+              logClientError('투표 메시지 처리 실패', error)
+            }
           })
         }
 
@@ -317,12 +399,16 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
               setVoteData(result)
               setIsNewPlaceAvailable(false)
             }
-          } catch {}
+          } catch (error) {
+            logClientError('투표 갱신 처리 실패', error)
+          }
         })
 
         client.subscribe(`/topic/meeting/${meetingUuid}/places`, () => {
           fetchPlacesAndMidpointRef.current()
           setMapRefreshKey((p) => p + 1)
+          // 추천 장소 변경 시 이동시간 캐시 초기화
+          setRouteCache({})
           if (voteDataRef.current) {
             setIsNewPlaceAvailable(true)
           }
@@ -341,6 +427,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
 
   useEffect(() => {
     if (!meetingUuid || !user?.id) return
+
     axios
       .get(`${API_BASE_URL}/v1/meetings/${meetingUuid}`, {
         withCredentials: true,
@@ -357,7 +444,10 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
           onStatusLoaded(data.status)
         }
       })
-      .catch(() => setParticipants([]))
+      .catch((error) => {
+        logClientError('참여자 조회 실패', error)
+        setParticipants([])
+      })
   }, [meetingUuid, user?.id, onStatusLoaded])
 
   /* ================= 추천 장소 ================= */
@@ -374,6 +464,14 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const placeSignature = useMemo(
     () => recommendedPlaces.map((p) => p.name).sort().join('|'),
     [recommendedPlaces]
+  )
+
+  const selectedPlaceDetail = useMemo(
+    () =>
+      selectedPlaceForDetail
+        ? recommendedPlaces.find((p) => p.id === selectedPlaceForDetail) ?? null
+        : null,
+    [recommendedPlaces, selectedPlaceForDetail]
   )
 
   useEffect(() => {
@@ -398,7 +496,8 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
       )
       if (res.status === 404) return null
       return res.data?.data ?? null
-    } catch {
+    } catch (error) {
+      logClientError('투표 조회 실패', error)
       return null
     }
   }, [meetingUuid])
@@ -660,13 +759,50 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
               const hasVotes = Boolean(voteOption && voteOption.voteCount > 0)
               const isTopChoice = Boolean(
                 voteOption &&
-                  voteOption.voteCount === maxVotes &&
-                  maxVotes > 0
+                voteOption.voteCount === maxVotes &&
+                maxVotes > 0
               )
               const votePercentage =
                 totalVotes > 0 && voteOption
                   ? (voteOption.voteCount / totalVotes) * 100
                   : 0
+
+              // 이동시간 정보
+              const routeData = routeCache[place.id]
+              const isLoadingRoute = loadingRoutes[place.id]
+              const avgTravelTime = routeData?.statistics?.averageTravelTime
+
+              // 내 이동시간 계산
+              const myTransportType = myParticipant?.type
+              let myTravelTime: number | null = null
+              let myTransportIcon: React.ReactNode = null
+
+              if (routeData && myParticipant) {
+                if (myTransportType === 'CAR') {
+                  // 자동차: carRoutes에서 찾기 (매장까지 직접)
+                  const myCarRoute = routeData.carRoutes?.find(
+                    (r) => r.participantName === myParticipant.nickName
+                  )
+                  if (myCarRoute) {
+                    myTravelTime = myCarRoute.travelTime
+                    myTransportIcon = <Car className="h-3 w-3" />
+                  }
+                } else if (myTransportType === 'WALK') {
+                  // 도보: walkingMinutes만
+                  myTravelTime = place.walkingMinutes
+                  myTransportIcon = null
+                } else {
+                  // 대중교통 (PUBLIC 또는 기본값)
+                  const myRoute = routeData.routes?.find(
+                    (r) => r.participantName === myParticipant.nickName
+                  )
+                  if (myRoute) {
+                    // 대중교통: API 시간 + 도보시간
+                    myTravelTime = myRoute.travelTime + place.walkingMinutes
+                    myTransportIcon = <Train className="h-3 w-3" />
+                  }
+                }
+              }
 
               let cls =
                 'relative flex items-center gap-3 rounded-lg border p-3'
@@ -676,7 +812,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
               return (
                 <button
                   key={place.id}
-                  onClick={() => setSelectedPlace(place.id)}
+                  onClick={() => handlePlaceClick(place)}
                   className={cls}
                 >
                   {hasVotes && (
@@ -697,8 +833,28 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
                       {place.name}
                     </p>
                     <p className="text-xs text-[var(--text-subtle)]">
-                      {place.stationName} · {place.walkingMinutes}분
+                      {place.stationName} · 도보 {place.walkingMinutes}분
                     </p>
+                    {/* 이동시간 표시 (전체 카드 클릭 가능) */}
+                    {isLoadingRoute ? (
+                      <p className="mt-1 text-xs text-[var(--text-subtle)]">
+                        이동시간 조회 중...
+                      </p>
+                    ) : myTravelTime !== null ? (
+                      <div className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)]">
+                        나 {myTransportIcon} {myTravelTime}분
+                        {avgTravelTime && avgTravelTime !== myTravelTime && (
+                          <span className="text-[var(--text-subtle)] ml-1">
+                            (평균 {avgTravelTime}분)
+                          </span>
+                        )}
+                      </div>
+                    ) : avgTravelTime ? (
+                      <div className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)]">
+                        <Clock className="h-3 w-3" />
+                        평균 {avgTravelTime}분
+                      </div>
+                    ) : null}
                     {hasVotes && voteOption && (
                       <div className="mt-1 flex items-center gap-2">
                         <span className="text-xs font-semibold text-[var(--danger)]">
@@ -802,6 +958,148 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
             </>
           ) : null}
         </div>
+      </WireframeModal>
+
+      {/* ================= 이동시간 상세 모달 ================= */}
+      <WireframeModal
+        open={showTravelTimeModal}
+        title="참여자별 이동시간"
+        onClose={() => setShowTravelTimeModal(false)}
+      >
+        {selectedPlaceForDetail && (
+          <div className="space-y-4">
+            {/* 매장 정보 요약 */}
+            {selectedPlaceDetail && (
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                  {(() => {
+                    const Icon = selectedPlaceDetail.icon || Coffee
+                    return <Icon className="h-7 w-7 text-[var(--danger)]" />
+                  })()}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[var(--text)]">
+                    {selectedPlaceDetail.name}
+                  </h3>
+                  <p className="text-xs text-[var(--text-subtle)]">
+                    {selectedPlaceDetail.address || selectedPlaceDetail.stationName}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {routeCache[selectedPlaceForDetail] ? (
+              <>
+                {/* 통계 요약 */}
+                {routeCache[selectedPlaceForDetail].statistics && (
+                  <div className="rounded-xl bg-[var(--neutral-soft)] p-4 border border-[var(--border)]">
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-xl font-bold text-[var(--danger)]">
+                          {routeCache[selectedPlaceForDetail].statistics?.averageTravelTime}분
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">평균</p>
+                      </div>
+                      <div className="border-x border-[var(--border)]">
+                        <p className="text-xl font-bold text-[var(--text)]">
+                          {routeCache[selectedPlaceForDetail].statistics?.minTravelTime}분
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">최소</p>
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-[var(--text)]">
+                          {routeCache[selectedPlaceForDetail].statistics?.maxTravelTime}분
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">최대</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 대중교통 경로 */}
+                {routeCache[selectedPlaceForDetail].routes &&
+                  routeCache[selectedPlaceForDetail].routes!.length > 0 && (
+                    <div>
+                      <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                        <Train className="h-4 w-4 text-[var(--text-subtle)]" />
+                        대중교통 참여자
+                      </h4>
+                      <div className="space-y-2">
+                        {routeCache[selectedPlaceForDetail].routes!.map(
+                          (route: RouteInfo, idx: number) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between rounded-lg border border-[var(--border)] p-3 bg-[var(--bg)]"
+                            >
+                              <span className="text-sm font-medium text-[var(--text)]">
+                                {route.participantName}
+                              </span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[11px] text-[var(--text-subtle)]">
+                                  환승 {route.transferCount}회
+                                </span>
+                                <span className="text-sm font-bold text-[var(--danger)]">
+                                  {route.travelTime}분
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                {/* 자동차 경로 */}
+                {routeCache[selectedPlaceForDetail].carRoutes &&
+                  routeCache[selectedPlaceForDetail].carRoutes!.length > 0 && (
+                    <div className="pt-2">
+                      <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                        <Car className="h-4 w-4 text-[var(--text-subtle)]" />
+                        자동차 참여자
+                      </h4>
+                      <div className="space-y-2">
+                        {routeCache[selectedPlaceForDetail].carRoutes!.map(
+                          (route: CarRouteInfo, idx: number) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between rounded-lg border border-[var(--border)] p-3 bg-[var(--bg)]"
+                            >
+                              <span className="text-sm font-medium text-[var(--text)]">
+                                {route.participantName}
+                              </span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[11px] text-[var(--text-subtle)]">
+                                  {(route.distance / 1000).toFixed(1)}km
+                                </span>
+                                <span className="text-sm font-bold text-[var(--danger)]">
+                                  {route.travelTime}분
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+              </>
+            ) : (
+              <div className="py-10 text-center">
+                <p className="text-sm text-[var(--text-subtle)]">이동시간 정보를 불러오는 중입니다...</p>
+              </div>
+            )}
+
+            {/* 선택 버튼 (푸터 스타일) */}
+            <div className="pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowTravelTimeModal(false)}
+                className="w-full border-2 border-[var(--danger)] text-[var(--danger)] font-bold py-6 rounded-xl hover:bg-[var(--danger-soft)]"
+              >
+                닫기
+              </Button>
+            </div>
+          </div>
+        )}
       </WireframeModal>
 
       {/* ================= 확정 CTA ================= */}
