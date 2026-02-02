@@ -143,7 +143,7 @@ function Step3MembersContent(): JSX.Element {
   const prevHref = `/meetings/new/step1-basic?meetingUuid=${meetingUuid}${
     readonlyParam ? "&readonly=true" : ""
   }`;
-  const userId = user?.id;
+
 
   // =====================
   // 모임 조회 + 참여자 생성
@@ -155,6 +155,7 @@ function Step3MembersContent(): JSX.Element {
           setIsLoading(false);
           return;
      }
+    const userId = user?.id;
     joinedRef.current = true;
 
     const fetchMeeting = async (): Promise<void> => {
@@ -218,7 +219,7 @@ function Step3MembersContent(): JSX.Element {
     };
 
     void fetchMeeting();
-  }, [meetingUuid, userId]);
+  }, [meetingUuid, user]);
 
   // =====================
   // 예외 케이스 UI
@@ -335,7 +336,7 @@ function Step3MembersContent(): JSX.Element {
 
         <MemberList
           meetingUuid={meetingUuid}
-          userId={userId!}
+          userId={user.id}
           onMyParticipantResolved={(id) => {
             if (!myParticipantId) setMyParticipantId(id);
           }}
