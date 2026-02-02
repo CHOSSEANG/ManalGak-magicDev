@@ -278,7 +278,7 @@ const handleEntryClick = (meeting: Meeting) => {
   
 
   return (
-    <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] pt-4 pb-28">
+    <main className="bg-[var(--bg)] pt-4 pb-[var(--bottom-cta-space)]">
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {/* ===== Header ===== */}
         <section className="space-y-1">
