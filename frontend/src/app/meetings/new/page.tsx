@@ -19,7 +19,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarPlus, ChevronDown, Users } from "lucide-react";
 import { MoreHorizontal } from "lucide-react";
 
-
 /* ======================
  * Types (변경 없음)
  * ====================== */
@@ -80,7 +79,7 @@ function LoadingState() {
  * ====================== */
 export default function CreateEntryPage() {
   const router = useRouter();
-  const pathname = usePathname(); 
+  const pathname = usePathname();
   const { user } = useUser();
 
   const [existingMeetings, setExistingMeetings] = useState<MeetingItem[]>([]);
@@ -94,44 +93,43 @@ export default function CreateEntryPage() {
    * Data Fetch (변경 없음)
    * ====================== */
   const fetchMeetings = useCallback(
-  async (page: number, append = false) => {
-    try {
-      if (append) setIsLoadingMore(true);
-      else setIsLoading(true);
+    async (page: number, append = false) => {
+      try {
+        if (append) setIsLoadingMore(true);
+        else setIsLoading(true);
 
-      const res = await axios.get(
-        `${API_BASE_URL}/v1/meetings/user?page=${page}`,
-        { withCredentials: true }
-      );
+        const res = await axios.get(
+          `${API_BASE_URL}/v1/meetings/user?page=${page}`,
+          { withCredentials: true },
+        );
 
-      if (res.data?.data?.content) {
-        if (append) {
-          setExistingMeetings((prev) => [...prev, ...res.data.data.content]);
+        if (res.data?.data?.content) {
+          if (append) {
+            setExistingMeetings((prev) => [...prev, ...res.data.data.content]);
+          } else {
+            setExistingMeetings(res.data.data.content);
+          }
+          setPageInfo(res.data.data);
         } else {
-          setExistingMeetings(res.data.data.content);
+          setExistingMeetings([]);
         }
-        setPageInfo(res.data.data);
-      } else {
-        setExistingMeetings([]);
-      }
 
-      setError(null);
-    } catch {
-      // 1/30[유리] - 로그인 여부에 따른 에러 문구 분기
-      if (!user) {
-        setError("로그인이 필요합니다");
-      } else {
-        setError("모임을 불러오는 데 실패했습니다");
+        setError(null);
+      } catch {
+        // 1/30[유리] - 로그인 여부에 따른 에러 문구 분기
+        if (!user) {
+          setError("로그인이 필요합니다");
+        } else {
+          setError("모임을 불러오는 데 실패했습니다");
+        }
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
       }
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  },
-  [user]
-);
+    },
+    [user],
+  );
 
-  
   useEffect(() => {
     fetchMeetings(0);
   }, [fetchMeetings]);
@@ -150,27 +148,26 @@ export default function CreateEntryPage() {
   };
 
   // 1/30[유리] - 카카오 로그인 직접 호출 (DOM 의존 제거)
-const handleKakaoLogin = () => {
-  const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
-  const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
+  const handleKakaoLogin = () => {
+    const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+    const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
 
-  if (!REST_API_KEY || !REDIRECT_URI) {
-    alert("카카오 로그인 설정이 완료되지 않았습니다.");
-    return;
-  }
+    if (!REST_API_KEY || !REDIRECT_URI) {
+      alert("카카오 로그인 설정이 완료되지 않았습니다.");
+      return;
+    }
 
-  const redirectPath = pathname + location.search;
+    const redirectPath = pathname + location.search;
 
-  const kakaoAuthUrl =
-    "https://kauth.kakao.com/oauth/authorize" +
-    `?client_id=${REST_API_KEY}` +
-    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-    "&response_type=code" +
-    `&state=${encodeURIComponent(redirectPath)}`;
+    const kakaoAuthUrl =
+      "https://kauth.kakao.com/oauth/authorize" +
+      `?client_id=${REST_API_KEY}` +
+      `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+      "&response_type=code" +
+      `&state=${encodeURIComponent(redirectPath)}`;
 
-  window.location.href = kakaoAuthUrl;
-};
-  
+    window.location.href = kakaoAuthUrl;
+  };
 
   const goToEditPage = (uuid: string) => {
     // 1/30[유리] - 수정 버튼: Step1부터 기존 데이터 로드
@@ -184,7 +181,7 @@ const handleKakaoLogin = () => {
     });
     const data = await res.json();
     router.push(
-      `/meetings/new/step1-basic?meetingUuid=${data?.data?.meeting?.meetingUuid}&copied=true`
+      `/meetings/new/step1-basic?meetingUuid=${data?.data?.meeting?.meetingUuid}&copied=true`,
     );
   };
 
@@ -200,7 +197,7 @@ const handleKakaoLogin = () => {
 
       // 1/30[유리] - 삭제 후 페이지 이동 없이 리스트 갱신
       setExistingMeetings((prev) =>
-        prev.filter((item) => item.meeting.meetingUuid !== uuid)
+        prev.filter((item) => item.meeting.meetingUuid !== uuid),
       );
 
       // /2[유리] - 삭제 후 총 개수(pageInfo.totalElements) 동기화
@@ -225,21 +222,17 @@ const handleKakaoLogin = () => {
     return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${d
       .getHours()
       .toString()
-      .padStart(2, "0")}:${d
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")}`;
+      .padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
   };
 
-  
   let listState: ReactNode = null;
   if (isLoading) listState = <LoadingState />;
-    else if (error) {
-      listState = (
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--danger-soft)] px-4 py-6 text-center space-y-4">
-          <p className="text-sm text-[var(--danger)]">{error}</p>
+  else if (error) {
+    listState = (
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--danger-soft)] px-4 py-6 text-center space-y-4">
+        <p className="text-sm text-[var(--danger)]">{error}</p>
 
-          {error === "로그인이 필요합니다" && (
+        {error === "로그인이 필요합니다" && (
           <Button
             onClick={handleKakaoLogin}
             className="bg-[var(--kakao-yellow)] text-black"
@@ -247,12 +240,11 @@ const handleKakaoLogin = () => {
             카카오 로그인
           </Button>
         )}
-        </div>
-      );
-    } else if (existingMeetings.length === 0) {
-      listState = <EmptyState />;
+      </div>
+    );
+  } else if (existingMeetings.length === 0) {
+    listState = <EmptyState />;
   }
-  
 
   return (
     <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] pt-4 pb-28">
@@ -285,9 +277,12 @@ const handleKakaoLogin = () => {
               {existingMeetings.map(({ meeting }) => {
                 const isOrganizer = user?.id === meeting.organizerId;
                 const isCompleted = meeting.status === "COMPLETED";
-                
+
                 return (
-                  <div key={meeting.meetingUuid} className="py-3 overflow-x-hidden">
+                  <div
+                    key={meeting.meetingUuid}
+                    className="py-3 overflow-x-hidden"
+                  >
                     <div className="flex gap-4 items-start">
                       <div className="relative w-9 h-9 rounded-full bg-[var(--primary-soft)] flex items-center justify-center">
                         <Users className="h-5 w-5 text-[var(--primary)]" />
@@ -320,107 +315,122 @@ const handleKakaoLogin = () => {
 
                       {/* ===== Actions ===== */}
                       <div className="shrink-0">
-                      <div className="hidden sm:flex gap-2">
-                        {isOrganizer && !isCompleted && (
+                        <div className="hidden sm:flex gap-2">
+                          {isOrganizer && !isCompleted && (
+                            <Button
+                              size="sm"
+                              className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
+                              onClick={() => goToEditPage(meeting.meetingUuid!)}
+                            >
+                              수정
+                            </Button>
+                          )}
+
                           <Button
                             size="sm"
                             className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
                             onClick={() =>
-                              goToEditPage(meeting.meetingUuid!)
+                              goToConfirmPage(meeting.meetingUuid!)
                             }
                           >
-                            수정
+                            조회
                           </Button>
-                        )}
 
-                        <Button
-                          size="sm"
-                          className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
-                          onClick={() =>
-                            goToConfirmPage(meeting.meetingUuid!)
-                          }
-                        >
-                          조회
-                        </Button>
-
-                        <Button
-                          size="sm"
-                          className="bg-[var(--primary-base)] text-[var(--primary)] rounded"
-                          onClick={() => handleCopy(meeting.meetingUuid!)}
-                        >
-                          복사
-                        </Button>
-
-                        {isOrganizer && (
                           <Button
                             size="sm"
-                            className="bg-[var(--danger-soft)] text-[var(--danger)] rounded"
-                            onClick={() =>
-                              handleDelete(
-                                meeting.meetingUuid!,
-                                meeting.organizerId
-                              )
-                            }
+                            className="bg-[var(--primary-base)] text-[var(--primary)] rounded"
+                            onClick={() => handleCopy(meeting.meetingUuid!)}
                           >
-                            삭제
+                            복사
                           </Button>
-                        )}
-                      </div>
-                      
-                      {/* ===== Mobile Dropdown ===== */}
-                      <div className="sm:hidden">
-                        <DropdownMenu  modal={false}>
-                          <DropdownMenuTrigger asChild>
-                            <button
+
+                          {isOrganizer && (
+                            <Button
+                              size="sm"
+                              className="bg-[var(--danger-soft)]
+                                          text-[var(--danger)]
+                                          rounded
+                                          hover:bg-[var(--danger-soft)]
+                                          hover:text-black"
+                              onClick={() =>
+                                handleDelete(
+                                  meeting.meetingUuid!,
+                                  meeting.organizerId,
+                                )
+                              }
+                            >
+                              삭제
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* ===== Mobile Dropdown ===== */}
+                        <div className="sm:hidden">
+                          <DropdownMenu modal={false}>
+                            <DropdownMenuTrigger asChild>
+                              <button
                                 className="p-2 rounded-md hover:bg-[var(--bg-soft)]
                               "
-                              aria-label="더보기"
-                            >
-                              <MoreHorizontal className="h-5 w-5 text-[var(--text)]" />
-                            </button>
-                          </DropdownMenuTrigger>
+                                aria-label="더보기"
+                              >
+                                <MoreHorizontal className="h-5 w-5 text-[var(--text)]" />
+                              </button>
+                            </DropdownMenuTrigger>
 
-                          <DropdownMenuPortal>
-                            <DropdownMenuContent
-                              align="end"
-                              className="bg-[var(--bg)] border border-[var(--border)] shadow-md overflow-hidden"
-                            >
-                              {isOrganizer && (
+                            <DropdownMenuPortal>
+                              <DropdownMenuContent
+                                align="end"
+                                className="bg-[var(--bg)] border border-[var(--border)] shadow-md overflow-hidden"
+                              >
+                                {isOrganizer && (
                                   <DropdownMenuItem
                                     className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
-                                    onClick={() => goToEditPage(meeting.meetingUuid!)}
+                                    onClick={() =>
+                                      goToEditPage(meeting.meetingUuid!)
+                                    }
                                   >
-                                  수정
+                                    수정
+                                  </DropdownMenuItem>
+                                )}
+
+                                <DropdownMenuItem
+                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  onClick={() =>
+                                    goToConfirmPage(meeting.meetingUuid!)
+                                  }
+                                >
+                                  조회
                                 </DropdownMenuItem>
-                              )}
 
                                 <DropdownMenuItem
                                   className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
-                                  onClick={() => goToConfirmPage(meeting.meetingUuid!)}>
-                                조회
-                              </DropdownMenuItem>
+                                  onClick={() =>
+                                    handleCopy(meeting.meetingUuid!)
+                                  }
+                                >
+                                  복사
+                                </DropdownMenuItem>
 
-                                <DropdownMenuItem
-                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
-                                  onClick={() => handleCopy(meeting.meetingUuid!)}>
-                                복사
-                              </DropdownMenuItem>
-
-                              {isOrganizer && (
+                                {isOrganizer && (
                                   <DropdownMenuItem
                                     className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
-                                  onClick={() => handleDelete(meeting.meetingUuid!, meeting.organizerId)}
-                                >
-                                  삭제
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenuPortal>
-                        </DropdownMenu>
+                                    onClick={() =>
+                                      handleDelete(
+                                        meeting.meetingUuid!,
+                                        meeting.organizerId,
+                                      )
+                                    }
+                                  >
+                                    삭제
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenuPortal>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </div>
-                      </div>
-                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -443,8 +453,8 @@ const handleKakaoLogin = () => {
             <p className="text-xs text-[var(--text-subtle)]">
               {existingMeetings.length} 개 / 총 {pageInfo.totalElements} 개
             </p>
-            </div>
-          )}
+          </div>
+        )}
       </div>
     </main>
   );
