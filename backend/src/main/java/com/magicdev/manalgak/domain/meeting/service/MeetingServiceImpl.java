@@ -102,7 +102,7 @@ public class MeetingServiceImpl implements MeetingService {
 
         Page<Meeting> meetingsPage = meetingRepository.findByIdIn(
                 meetingIds, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                        Sort.by(Sort.Direction.DESC, "meetingTime").and(Sort.by(Sort.Direction.ASC, "id"))
+                        Sort.by(Sort.Direction.DESC, "id")
                 )
         );
 
