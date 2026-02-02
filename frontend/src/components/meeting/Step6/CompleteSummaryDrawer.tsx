@@ -44,37 +44,47 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
     window.removeEventListener('pointerup', onPointerUp)
   }
 
+
   return (
     <Drawer open modal={false}>
       <DrawerContent
-        // ✅ 상태 기반 bottom
-        style={{ bottom }}
+    style={{ bottom }}
         className="
-        app-container 
-          z-20
-          rounded-t-3xl
-          bg-[var(--bg)]
+      app-container z-20
+      left-0 right-0 translate-x-0
+      border border-[var(--border)] bg-[var(--bg)]
+      shadow-none
+      p-0
+      pointer-events-none
+    "
+  >
+        {/* ✅ 실제 패널 (이것만 클릭/드래그/스크롤) */}
+    <div
+      className="
+        pointer-events-auto
+        app-container
+        mx-auto
+        w-full
+        max-w-[var(--app-max-width)]
+        rounded-t-3xl
+        bg-transparent 
+      "
+    >
+      {/* 드래그 핸들 */}
+      <div
+        onPointerDown={onPointerDown}
+        className="
           mx-auto
-          w-full
-          max-w-[var(--app-max-width)]
+          mb-0
+          h-1.5
+          w-40
+          rounded-full
+          bg-[var(--border)]
+          cursor-grab
+          active:cursor-grabbing
+          touch-pan-y
         "
-      >
-        {/* 드래그 핸들 */}
-        <div
-          onPointerDown={onPointerDown}
-          className="
-            mx-auto
-            mt-2
-            mb-1
-            h-1.5
-            w-40
-            rounded-full
-            bg-[var(--border)]
-            cursor-grab
-            active:cursor-grabbing
-            
-          "
-        />
+      />
 
         <DrawerHeader className="pb-2">
           <DrawerTitle className="sr-only">
@@ -85,9 +95,10 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
           </DrawerDescription>
         </DrawerHeader>
 
-        <div className="overflow-y-auto pb-[calc(24px+env(safe-area-inset-bottom))]">
+        <div className="overflow-y-auto pb-[calc(0px+env(safe-area-inset-bottom))] touch-pan-y">
           <CompleteSummaryCard meeting={meeting} />
-        </div>
+          </div>
+          </div>
       </DrawerContent>
     </Drawer>
   )

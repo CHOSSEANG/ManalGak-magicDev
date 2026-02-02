@@ -11,10 +11,10 @@ import { Button } from '@/components/ui/button'
 import {
   Users,
   Calendar,
-  Coffee,
   MapPinned,
   Phone,
   Send,
+  Coffee,
 } from 'lucide-react'
 
 export interface MeetingSummary {
@@ -222,22 +222,19 @@ const handleDirection = () => {
           </div>
 
           {/* 장소 */}
-        <div className="flex gap-4">
-            <Coffee className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
-            {/* <p className="text-xs font-light text-[var(--wf-accent)]">
-              장소명
-            </p> */}
+          <div className="flex gap-4">
+              <Coffee className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
 
-            {place ? (
-              <p className="">
-                {placeName}
-              </p>
-            ) : (
-              <p className="text-xs text-[var(--wf-warning)]">
-                아직 장소를 선택하지 않았습니다
-              </p>
-            )}
-        </div>
+              {place ? (
+                <p className="">
+                  {placeName}
+                </p>
+              ) : (
+                <p className="text-xs text-[var(--wf-warning)]">
+                  아직 장소를 선택하지 않았습니다
+                </p>
+              )}
+          </div>
 
           {/* 주소 + 길찾기 */}
           <div className="flex items-start gap-4">
@@ -252,72 +249,56 @@ const handleDirection = () => {
                 {place ? address : '-'}
               </p>
             </div>
-            <button type="button" onClick={handleDirection}>
-              <Badge
-                variant="secondary"
-                className="
-                  cursor-pointer
-                  gap-1 px-4 py-2 rounded-full
-                  bg-[--wf-highlight]
-                "
-              >
-                길찾기
-              </Badge>
-            </button>
           </div>
 
-          {/* 전화 */}
+          {/* 전화 
           <div className="flex gap-4">
               <Phone className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
-            {/* <p className="text-xs font-light text-[var(--wf-accent)]">
-                문의 전화번호
-              </p> */}
               <p className="text-base font-medium">
                 {place ? phoneNumber : '-'}
               </p>
-          </div>
+          </div>*/}
         </div>
       </StepCard>
 
       {/* CTA */}
-      {/* CTA */}
-<div className="flex gap-3 px-5 pb-3">
-  {/* 링크 보내기 → 카카오 메시지 */}
-  <Button
-    type="button"
-    onClick={fallbackShare}
-    variant="outline"
-    className="
-      flex items-center gap-2 rounded-xl
-      border-[var(--wf-border)]
-      bg-[var(--wf-surface)]
-      px-4 py-6
-      text-sm font-medium text-[var(--wf-text)]
-    "
-  >
-    <Send className="h-4 w-4" />
-    링크 보내기
-  </Button>
+      <div className="flex gap-3 px-0 pb-0">
+        {/* 링크 보내기 → 카카오 메시지 */}
+        <Button
+          type="button"
+          onClick={fallbackShare}
+          variant="outline"
+          className="
+            flex items-center gap-2 rounded-xl
+            border-[var(--wf-border)]
+            bg-[var(--wf-surface)]
+            px-4 py-6
+            text-sm font-medium text-[var(--wf-text)]
+          "
+        >
+          <Send className="h-4 w-4" />
+          링크 보내기
+        </Button>
 
-  {/* 확정 장소 메시지 전송 → 링크 공유 */}
-  <Button
-    type="button"
-    onClick={handleSendKakao}
-    className="
-      group flex flex-1 items-center justify-center gap-2
-      rounded-xl
-      bg-[var(--wf-highlight)]
-      hover:bg-[var(--wf-accent)]
-      py-6
-      text-lg font-bold text-[var(--wf-text)]
-      shadow-xl shadow-yellow-500/20
-      transition active:scale-[0.99]
-    "
-  >
-    카카오톡
-    <Send className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-  </Button>
-</div>
+          {/* 확정 장소 메시지 전송 → 링크 공유 */}
+          <Button
+            type="button"
+            onClick={handleSendKakao}
+            className="
+              group flex flex-1 items-center justify-center gap-2
+              rounded-xl
+              bg-[var(--wf-highlight)]
+              hover:bg-[var(--wf-accent)]
+              py-6
+              text-lg font-bold text-[var(--wf-text)]
+              shadow-xl shadow-yellow-500/20
+              transition active:scale-[0.99]
+            "
+          >
+            카카오톡
+            <Send className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+          </Button>
+        </div>
     </section>
   )
 }
