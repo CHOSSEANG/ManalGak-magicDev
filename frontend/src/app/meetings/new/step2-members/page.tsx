@@ -134,7 +134,7 @@ function Step3MembersContent(): JSX.Element {
   const [myParticipantId, setMyParticipantId] = useState<number | null>(null);
   const [meetingData, setMeetingData] = useState<MeetingData | null>(null);
   const [isExpired, setIsExpired] = useState<boolean>(false);
-
+  const [isLimited, setIsLimited] = useState<boolean>(false);
   const joinedRef = useRef(false);
 
   const isReadonly = meetingData?.status === "COMPLETED";
@@ -147,8 +147,19 @@ function Step3MembersContent(): JSX.Element {
   // =====================
   // 모임 조회 + 참여자 생성
   // =====================
+
   useEffect(() => {
-    if (!user || !meetingUuid || joinedRef.current) return;
+    // user가 없어도 일단 loading을 false로 만들어야 함
+    if (!meetingUuid) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (!user|| joinedRef.current) {
+      setIsLoading(false);
+      return;
+    }
+
     joinedRef.current = true;
 
     const fetchMeeting = async (): Promise<void> => {
@@ -199,6 +210,9 @@ function Step3MembersContent(): JSX.Element {
 
               if (errorCode === "MEETING_EXPIRED") {
                 setIsExpired(true);
+              }
+              if (errorCode === "MAX_PARTICIPANTS_EXCEEDED") {
+                setIsLimited(true);
               }
             }
           }
@@ -256,6 +270,26 @@ function Step3MembersContent(): JSX.Element {
     );
   }
 
+    if (isLimited) {
+      return (
+        <main className="flex min-h-[60vh] items-center justify-center p-6">
+          <Card className="w-full max-w-md text-center bg-[var(--bg-soft)] shadow-none">
+            <CardHeader>
+              <CardTitle>참여자 수 제한이 있습니다.</CardTitle>
+              <CardDescription>
+                모임 당 최대 10명까지 참여하실 수 있습니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => router.push("/meetings/new")}>
+                모임 리스트로 이동
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      );
+    }
+
   // =====================
   // 정상 화면
   // =====================
@@ -287,7 +321,7 @@ function Step3MembersContent(): JSX.Element {
         </Button>
 
         <p className="text-xs text-[var(--text-subtle)]">
-          참여자 리스트에는 현재 로그인한 사용자만 표시됩니다.
+          참여자 리스트에는 현재 참여한 사용자만 표시됩니다.
         </p>
         {/* 1/30[유리] - 참여자 표시 기준 안내 */}
 
