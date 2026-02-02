@@ -342,22 +342,16 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
 
       setLoadingRoutes((prev) => ({ ...prev, [placeId]: true }))
       try {
-        console.log('[이동시간 조회] 시작:', { meetingUuid, placeId, latitude, longitude })
         const response = (await calculateRoutes(meetingUuid, {
           latitude,
           longitude,
         })) as CommonResponse<RouteResponse>
 
-        console.log('[이동시간 조회] 응답:', response)
         if (response?.data) {
           const data = response.data
-          console.log('[이동시간 조회] 캐시 저장:', { placeId, data })
           setRouteCache((prev) => ({ ...prev, [placeId]: data }))
-        } else {
-          console.warn('[이동시간 조회] 응답에 data 없음:', response)
         }
       } catch (error) {
-        console.error('[이동시간 조회] 에러:', error)
         logClientError('이동시간 조회 실패', error)
       } finally {
         setLoadingRoutes((prev) => ({ ...prev, [placeId]: false }))
