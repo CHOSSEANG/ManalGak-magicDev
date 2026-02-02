@@ -143,7 +143,7 @@ function Step3MembersContent(): JSX.Element {
   const prevHref = `/meetings/new/step1-basic?meetingUuid=${meetingUuid}${
     readonlyParam ? "&readonly=true" : ""
   }`;
-  const userId = user?.id;
+
 
   // =====================
   // 모임 조회 + 참여자 생성
@@ -155,6 +155,7 @@ function Step3MembersContent(): JSX.Element {
           setIsLoading(false);
           return;
      }
+    const userId = user?.id;
     joinedRef.current = true;
 
     const fetchMeeting = async (): Promise<void> => {
@@ -218,7 +219,7 @@ function Step3MembersContent(): JSX.Element {
     };
 
     void fetchMeeting();
-  }, [meetingUuid, userId]);
+  }, [meetingUuid, user]);
 
   // =====================
   // 예외 케이스 UI
@@ -299,14 +300,21 @@ function Step3MembersContent(): JSX.Element {
   // =====================
   return (
     <>
-      <main className="mx-auto max-w-xl space-y-6">
-        <section>
+      <main className="
+    bg-[var(--bg)]
+    border-t border-[var(--border)]
+    pb-[var(--bottom-cta-space2)]
+  ">    
+
+        <section className="my-3">
           <h2 className="text-lg font-semibold">참여자</h2>
           <p className="text-sm text-[var(--text-subtle)]">
             멤버를 초대하세요.
           </p>
-        </section>
+          </section>
 
+
+        <div className="fixed bottom-[var(--bottom-nav-height2)] left-0 right-0 z-30 px-4 pb-safe bg-[var(--bg)]">
         <Button
           className="w-full gap-2 py-6 rounded-xl bg-[var(--kakao-yellow)] text-black"
           disabled={isReadonly || !isOrganizer}
@@ -322,32 +330,24 @@ function Step3MembersContent(): JSX.Element {
           {/* 1/30[유리] - 카카오 컬러 토큰 적용 */}
           <Send size={18} />
           참여 멤버 초대
-        </Button>
-
-        <p className="text-xs text-[var(--text-subtle)]">
-          참여자 리스트에는 현재 참여한 사용자만 표시됩니다.
-        </p>
+          </Button>
+          </div>
         {/* 1/30[유리] - 참여자 표시 기준 안내 */}
-
-        <Card className="bg-[var(--bg-soft)] shadow-none">
-          {/* 1/30[유리] - 교통편/주소 비노출 및 닉네임 중심 안내 */}
-          <CardContent className="text-sm text-[var(--text-subtle)]">
-            이 단계에서는 닉네임을 기준으로 참여자가 표시됩니다.
-          </CardContent>
-        </Card>
 
         <MemberList
           meetingUuid={meetingUuid}
-          userId={userId!}
+          userId={user.id}
           onMyParticipantResolved={(id) => {
             if (!myParticipantId) setMyParticipantId(id);
           }}
           readonly={isReadonly}
         />
+        <div  className="bottom-[var(--bottom-cta-space2)]"/>
       </main>
 
-      <div className="mt-10">
-        {/* 1/30[유리] - 하단 버튼 영역 상단 여백 추가 */}
+
+              {/* ===== Step Navigation Fixed (하단 고정) ===== */}
+      <div className="app-container fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
         <StepNavigation
           prevHref={prevHref}
           nextHref={`/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`}

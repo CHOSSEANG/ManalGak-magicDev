@@ -1,6 +1,6 @@
-// src/components/member/MemberSummaryGrid.tsx
+// src/components/meeting/Step2/MemberSummaryGrid.tsx
 import StepCard from "@/components/meeting/StepCard";
-import { Member } from "../meeting/Step2/Step2MemberList";
+import { Member } from "./Step2MemberList";
 
 // shadcn/ui
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

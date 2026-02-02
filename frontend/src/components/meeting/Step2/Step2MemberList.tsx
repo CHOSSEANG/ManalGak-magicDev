@@ -1,11 +1,11 @@
-// src/components/meeting/Step3/MemberList.tsx
+// src/components/meeting/Step2/MemberList.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import MemberStatusList from "@/components/member/MemberStatusList";
+import MemberStatusList from "@/components/meeting/Step2/MemberStatusList";
 
 interface MemberListProps {
   meetingUuid: string;

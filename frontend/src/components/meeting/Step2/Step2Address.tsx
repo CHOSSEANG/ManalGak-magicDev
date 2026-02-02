@@ -1,4 +1,4 @@
-// src/components/map/Step2Address.tsx
+// src/components/meeting/Step2/Step2Address.tsx
 "use client";
 
 import { useState } from "react";
