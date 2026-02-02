@@ -38,6 +38,9 @@ import {
   Clock,
   Car,
   Train,
+  ExternalLink,
+  Phone,
+  MapPinned,
   type LucideIcon,
 } from 'lucide-react'
 import { calculateRoutes } from '@/lib/api/route'
@@ -226,6 +229,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
+  const [isVoteLoading, setIsVoteLoading] = useState(true)  // 투표 데이터 로딩 상태
   const [isCreatingVote, setIsCreatingVote] = useState(false)
   const [isVoting, setIsVoting] = useState(false)
   const [organizerId, setOrganizerId] = useState<number | null>(null)
@@ -247,10 +251,20 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const loadingRoutesRef = useRef(loadingRoutes)
   const [showTravelTimeModal, setShowTravelTimeModal] = useState(false)
   const [selectedPlaceForDetail, setSelectedPlaceForDetail] = useState<string | null>(null)
+  const showTravelTimeModalRef = useRef(showTravelTimeModal)
+  const selectedPlaceForDetailRef = useRef(selectedPlaceForDetail)
 
   useEffect(() => {
     routeCacheRef.current = routeCache
   }, [routeCache])
+
+  useEffect(() => {
+    showTravelTimeModalRef.current = showTravelTimeModal
+  }, [showTravelTimeModal])
+
+  useEffect(() => {
+    selectedPlaceForDetailRef.current = selectedPlaceForDetail
+  }, [selectedPlaceForDetail])
 
   useEffect(() => {
     loadingRoutesRef.current = loadingRoutes
@@ -409,6 +423,34 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
           setMapRefreshKey((p) => p + 1)
           // 추천 장소 변경 시 이동시간 캐시 초기화
           setRouteCache({})
+
+          // 모달이 열려있으면 해당 장소의 이동시간 다시 조회
+          if (showTravelTimeModalRef.current && selectedPlaceForDetailRef.current) {
+            const place = recommendedPlacesRef.current.find(
+              (p) => p.id === selectedPlaceForDetailRef.current
+            )
+            if (place?.latitude && place?.longitude) {
+              // 약간의 딜레이 후 재조회 (추천장소 갱신 후)
+              setTimeout(() => {
+                setLoadingRoutes((prev) => ({ ...prev, [place.id]: true }))
+                calculateRoutes(meetingUuid, {
+                  latitude: place.latitude!,
+                  longitude: place.longitude!,
+                }).then((response) => {
+                  const res = response as CommonResponse<RouteResponse>
+                  if (res?.data) {
+                    const data = res.data
+                    setRouteCache((prev) => ({ ...prev, [place.id]: data }))
+                  }
+                }).catch((err) => {
+                  logClientError('모달 이동시간 재조회 실패', err)
+                }).finally(() => {
+                  setLoadingRoutes((prev) => ({ ...prev, [place.id]: false }))
+                })
+              }, 500)
+            }
+          }
+
           if (voteDataRef.current) {
             setIsNewPlaceAvailable(true)
           }
@@ -461,6 +503,32 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     [placeSource]
   )
 
+  // 프리페칭: 추천장소 로드 시 이동시간 미리 조회
+  const recommendedPlacesRef = useRef(recommendedPlaces)
+  useEffect(() => {
+    recommendedPlacesRef.current = recommendedPlaces
+  }, [recommendedPlaces])
+
+  useEffect(() => {
+    if (!meetingUuid || recommendedPlaces.length === 0) return
+
+    // 각 장소의 이동시간을 순차적으로 프리페칭 (API 부하 방지)
+    const prefetchTravelTimes = async () => {
+      for (const place of recommendedPlaces) {
+        if (place.latitude && place.longitude) {
+          // 캐시에 없고 로딩 중이 아닌 경우에만 조회
+          if (!routeCacheRef.current[place.id] && !loadingRoutesRef.current[place.id]) {
+            await fetchTravelTimes(place.id, place.latitude, place.longitude)
+            // API 부하 방지를 위해 200ms 딜레이
+            await new Promise((resolve) => setTimeout(resolve, 200))
+          }
+        }
+      }
+    }
+
+    prefetchTravelTimes()
+  }, [meetingUuid, recommendedPlaces, fetchTravelTimes])
+
   const placeSignature = useMemo(
     () => recommendedPlaces.map((p) => p.name).sort().join('|'),
     [recommendedPlaces]
@@ -507,7 +575,10 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     let cancelled = false
     const initFetchVote = async () => {
       const fetchedVote = await fetchVote()
-      if (!cancelled && fetchedVote) setVoteData(fetchedVote)
+      if (!cancelled) {
+        if (fetchedVote) setVoteData(fetchedVote)
+        setIsVoteLoading(false)  // 로딩 완료
+      }
     }
     initFetchVote()
     return () => {
@@ -687,7 +758,8 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
 
           {/* 투표 중앙 CTA */}
           {/* 1/30[유리] - 투표 가능 시 지도 중앙 CTA(danger) */}
-          {hasVote && (
+          {/* 투표 데이터 로딩 완료 후에만 버튼 표시 (깜빡임 방지) */}
+          {!isVoteLoading && hasVote && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <Button
                 type="button"
@@ -968,23 +1040,62 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
       >
         {selectedPlaceForDetail && (
           <div className="space-y-4">
-            {/* 매장 정보 요약 */}
+            {/* 매장 정보 */}
             {selectedPlaceDetail && (
-              <div className="flex items-center gap-3 mb-2">
-                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
-                  {(() => {
-                    const Icon = selectedPlaceDetail.icon || Coffee
-                    return <Icon className="h-7 w-7 text-[var(--danger)]" />
-                  })()}
+              <div className="rounded-xl border border-[var(--border)] p-4 bg-[var(--bg)]">
+                {/* 매장명과 아이콘 */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                    {(() => {
+                      const Icon = selectedPlaceDetail.icon || Coffee
+                      return <Icon className="h-7 w-7 text-[var(--danger)]" />
+                    })()}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[var(--text)]">
+                      {selectedPlaceDetail.name}
+                    </h3>
+                    <p className="text-xs text-[var(--text-subtle)]">
+                      {selectedPlaceDetail.categoryGroupName || selectedPlaceDetail.category}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-[var(--text)]">
-                    {selectedPlaceDetail.name}
-                  </h3>
-                  <p className="text-xs text-[var(--text-subtle)]">
-                    {selectedPlaceDetail.address || selectedPlaceDetail.stationName}
-                  </p>
-                </div>
+
+                {/* 주소 */}
+                {(selectedPlaceDetail.roadAddress || selectedPlaceDetail.address) && (
+                  <div className="flex items-start gap-2 mb-2">
+                    <MapPinned className="h-4 w-4 text-[var(--text-subtle)] mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-[var(--text)]">
+                      {selectedPlaceDetail.roadAddress || selectedPlaceDetail.address}
+                    </p>
+                  </div>
+                )}
+
+                {/* 전화번호 */}
+                {selectedPlaceDetail.phone && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <Phone className="h-4 w-4 text-[var(--text-subtle)] flex-shrink-0" />
+                    <a
+                      href={`tel:${selectedPlaceDetail.phone}`}
+                      className="text-sm text-[var(--primary)] hover:underline"
+                    >
+                      {selectedPlaceDetail.phone}
+                    </a>
+                  </div>
+                )}
+
+                {/* 카카오맵 길찾기 버튼 */}
+                {selectedPlaceDetail.placeUrl && (
+                  <a
+                    href={selectedPlaceDetail.placeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#FEE500] text-[#191919] text-sm font-medium hover:bg-[#FAE100] transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    카카오맵에서 보기
+                  </a>
+                )}
               </div>
             )}
 
