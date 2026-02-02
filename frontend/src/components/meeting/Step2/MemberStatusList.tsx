@@ -1,10 +1,10 @@
-// src/components/meeting/MemberStatusList.tsx
+// src/components/metting/Step2/MemberStatusList.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
-import { Member } from "../meeting/Step2/Step2MemberList";
-import { TransportMode } from "../meeting/Step2/Step2MemberList";
+import { Member } from "./Step2MemberList";
+import { TransportMode } from "./Step2MemberList";
 
 // shadcn/ui
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

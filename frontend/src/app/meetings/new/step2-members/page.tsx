@@ -299,7 +299,7 @@ function Step3MembersContent(): JSX.Element {
   // =====================
   return (
     <>
-      <main className="mx-auto max-w-xl space-y-6">
+      <main className="mx-auto max-w-xl space-y-6 border-t border-[var(--border)] pt-3">
         <section>
           <h2 className="text-lg font-semibold">참여자</h2>
           <p className="text-sm text-[var(--text-subtle)]">
@@ -307,6 +307,7 @@ function Step3MembersContent(): JSX.Element {
           </p>
         </section>
 
+        <div className="fixed bottom-[var(--bottom-nav-height2)] left-0 right-0 z-30 px-4 pb-safe bg-[var(--bg)]">
         <Button
           className="w-full gap-2 py-6 rounded-xl bg-[var(--kakao-yellow)] text-black"
           disabled={isReadonly || !isOrganizer}
@@ -322,7 +323,8 @@ function Step3MembersContent(): JSX.Element {
           {/* 1/30[유리] - 카카오 컬러 토큰 적용 */}
           <Send size={18} />
           참여 멤버 초대
-        </Button>
+          </Button>
+          </div>
         {/* 1/30[유리] - 참여자 표시 기준 안내 */}
 
         <MemberList
