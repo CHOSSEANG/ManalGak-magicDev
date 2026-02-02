@@ -39,6 +39,7 @@
   --kakao-yellow-soft: #FFF7CC;
 
   /* ===== Layout ===== */
+  --app-max-width: 1024px;
   --bottom-cta-height: calc(0px + env(safe-area-inset-bottom));
 
   --bottom-nav-height: calc(80px + env(safe-area-inset-bottom));

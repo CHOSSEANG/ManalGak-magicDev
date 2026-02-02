@@ -45,8 +45,7 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
   }
 
   return (
-    <Drawer open>
-      전체 
+    <Drawer open modal={false}>
       <DrawerContent
         // ✅ 상태 기반 bottom
         style={{ bottom }}
@@ -73,6 +72,7 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
             bg-[var(--border)]
             cursor-grab
             active:cursor-grabbing
+            
           "
         />
 

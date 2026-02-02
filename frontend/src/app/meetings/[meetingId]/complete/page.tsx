@@ -92,15 +92,15 @@ export default function MeetingCompletePage({ params }: PageProps) {
       <section className="pointer-events-none absolute left-0 right-0 top-1 z-10">
         <div className="mx-auto max-w-[var(--app-max-width)] px-4 py-3">
           <h1 className="text-left text-lg font-semibold tracking-tight text-[var(--text)] bg-[var(--primary-soft)">
-            모임 확정
+            📍확정장소 이름 
           </h1>
           <p className="mt-1 text-left text-xs text-[var(--text-subtle)] bg-[var(--primary-soft)">
-            확정된 장소와 이동 정보를 확인하세요.
+            확정 장소 주소 
           </p>
-        </div>
+        </div> 
       </section>
 
-      <div className="relative z-20 mx-auto max-w-[var(--app-max-width)] pb-[calc(96px+env(safe-area-inset-bottom))]">
+      <div className="pointer-events-none relative z-20 mx-auto max-w-[var(--app-max-width)] pb-[calc(96px+env(safe-area-inset-bottom))]">
         <CompleteSummaryDrawer meeting={meeting} />
       </div>
     </main>
