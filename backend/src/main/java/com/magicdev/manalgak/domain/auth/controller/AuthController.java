@@ -21,7 +21,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Optional;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 
 @Tag(name = "Auth", description = "로그인 API")
 @Slf4j
@@ -33,19 +34,20 @@ public class AuthController {
     private String loginSuccessUrl;
 
     private final KakaoLoginService kakaoLoginService;
-
     private final UserService userService;
+    private final Environment environment;
 
     @Operation(summary = "카카오 로그인 콜백", description = "카카오 로그인 후 redirect되는 콜백 URL입니다.")
     @GetMapping("/auth/kakao/callback")
-    public ResponseEntity<?> kakaoCallback( @RequestParam("code") String code) {
+    public ResponseEntity<?> kakaoCallback(@RequestParam("code") String code) {
         String jwtToken = kakaoLoginService.login(code);
+        boolean isLocal = environment.acceptsProfiles(Profiles.of("local"));
 
-        ResponseCookie cookie = ResponseCookie.from("token",jwtToken)
+        ResponseCookie cookie = ResponseCookie.from("token", jwtToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(!isLocal)  // local: false, dev/prod: true
                 .path("/")
-                .sameSite("None")
+                .sameSite(isLocal ? "Lax" : "None")  // local: Lax, dev/prod: None
                 .build();
 
         return ResponseEntity.status(HttpStatus.FOUND)
@@ -72,13 +74,14 @@ public class AuthController {
     @Operation(summary = "로그아웃", description = "해당 웹을 로그아웃합니다.")
     @GetMapping("/auth/logout")
     public ResponseEntity<CommonResponse<Void>> logout(HttpServletResponse response) {
+        boolean isLocal = environment.acceptsProfiles(Profiles.of("local"));
 
-        ResponseCookie cookie = ResponseCookie.from("token",null)
+        ResponseCookie cookie = ResponseCookie.from("token", null)
                 .httpOnly(true)
-                .secure(true)
+                .secure(!isLocal)
                 .path("/")
                 .maxAge(0)
-                .sameSite("Lax")
+                .sameSite(isLocal ? "Lax" : "None")
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
