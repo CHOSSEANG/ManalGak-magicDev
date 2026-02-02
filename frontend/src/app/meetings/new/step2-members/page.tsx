@@ -335,8 +335,9 @@ function Step3MembersContent(): JSX.Element {
         />
       </main>
 
-      <div className="mt-10">
-        {/* 1/30[유리] - 하단 버튼 영역 상단 여백 추가 */}
+
+              {/* ===== Step Navigation Fixed (하단 고정) ===== */}
+      <div className="fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
         <StepNavigation
           prevHref={prevHref}
           nextHref={`/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`}

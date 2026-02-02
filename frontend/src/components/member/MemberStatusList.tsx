@@ -188,16 +188,7 @@ export default function MemberStatusList({ members, onPersonalChange }: Props) {
 
   return (
     <div className="space-y-4">
-      <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base text-[var(--text)]">
-            참여자 리스트
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-[var(--text-subtle)]">
-          참여자 정보와 교통수단을 확인할 수 있습니다.
-        </CardContent>
-      </Card>
+      
 
       {mySection}
       {othersSection}
