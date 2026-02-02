@@ -32,7 +32,7 @@ export default function WireframeModal({
         fixed inset-0 z-[9999]
         flex items-center justify-center
         px-3
-        bg-[var(--neutral-soft)]
+        bg-[color:var(--neutral-soft)/0.8]
       "
       role="dialog"
       aria-modal="true"

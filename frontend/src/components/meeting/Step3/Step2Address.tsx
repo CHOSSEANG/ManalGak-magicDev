@@ -1,11 +1,12 @@
-// src/components/meeting/Step2/Step2Address.tsx
+// src/components/meeting/Step3/Step2Address.tsx
 "use client";
 
 import { useState } from "react";
-import { Bus, Car, Bookmark } from "lucide-react";
+import { Bus, Car } from "lucide-react";
 import WireframeModal from "@/components/ui/WireframeModal";
 import AddressSearch from "@/components/map/AddressSearch";
 import BookmarkAddressModal from "@/components/map/BookmarkAddressModal";
+import { Input } from "@/components/ui/input";
 
 // shadcn/ui
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,58 +57,41 @@ export default function Step2Address({
     inputCursor = "cursor-not-allowed";
   }
 
-  const getTransportCardClass = (key: TransportMode) => {
-    let base =
-      "flex w-full items-center justify-center gap-2 rounded-full border py-4 text-normal transition";
-    if (transport === key) {
-      base += " bg-[var(--neutral-soft)] border-[var(--border)]";
-    } else {
-      base += " border-[var(--border)]";
-    }
-    if (readonly) {
-      base += " cursor-not-allowed opacity-70";
-    }
-    return base;
-  };
+const getTransportCardClass = (key: TransportMode) => {
+  let base =
+    "flex w-full items-center justify-center gap-2 rounded-full border py-4 text-normal transition";
+
+  if (transport === key) {
+    base +=
+      " bg-[var(--primary)] text-[var(--primary-soft)] border-[var(--primary)]";
+  } else {
+    base += " border-[var(--border)]";
+  }
+
+  if (readonly) {
+    base += " cursor-not-allowed opacity-70";
+  }
+
+  return base;
+};
+
 
   return (
     <>
       <div className="space-y-4">
         {/* 출발지 */}
-        <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base text-[var(--text)]">
-              나의 출발지 입력
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {!readonly && (
-              <div className="flex items-center justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setActiveAddressType("origin");
-                    setBookmarkOpen(true);
-                  }}
-                  className="gap-1 border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
-                >
-                  <Bookmark className="h-3 w-3" />
-                  가져오기
-                </Button>
-              </div>
-            )}
+        <div className="p-3 border-y border-[var(--border)] bg-[var(--bg-soft)]">
 
-            <div className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--neutral-soft)] px-3 py-2">
-              <input
+            <div className="flex items-center gap-2">
+              <Input
                 type="text"
                 value={originAddress}
                 onChange={(e) => {
                   if (!readonly) setOriginAddress(e.target.value);
                 }}
                 placeholder="출발지를 입력해 주세요"
-                className={`flex-1 bg-transparent text-sm text-[var(--text)] outline-none ${inputCursor}`}
-                disabled={readonly} // ⭐ readonly면 비활성화
+                disabled={readonly}
+                className={`h-10 flex-1 rounded-xl ${inputCursor}`}
               />
               {!readonly && (
                 <Button
@@ -117,9 +101,9 @@ export default function Step2Address({
                     setSearchAddressOpen(true);
                   }}
                   variant="outline"
-                  className="shrink-0 border-[var(--border)] bg-[var(--bg)] text-xs text-[var(--text)]"
+                  className="shrink-0 border-[var(--border)] rounded-xl py-5 bg-[var(--primary-base)] text-[var(--primary-soft)]"
                 >
-                  주소 검색
+                  검색
                 </Button>
               )}
             </div>
@@ -130,11 +114,10 @@ export default function Step2Address({
                 <span>출발지를 변경하면 추천 장소가 다시 계산됩니다</span>
               </p>
             )}
-          </CardContent>
-        </Card>
+        </div>
 
         {/* 교통수단 */}
-        <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
+        <div className="border-v border-[var(--border)] bg-[var(--bg-soft)]">
           <CardHeader className="pb-3">
             <CardTitle className="text-base text-[var(--text)]">
               나의 교통수단 선택
@@ -149,7 +132,7 @@ export default function Step2Address({
               disabled={readonly}
               className={getTransportCardClass("CAR")}
             >
-              <Car className="h-6 w-6 text-[var(--primary)]" />
+              <Car className="h-6 w-6  text-current" />
               자동차
             </button>
 
@@ -161,11 +144,11 @@ export default function Step2Address({
               disabled={readonly}
               className={getTransportCardClass("PUBLIC")}
             >
-              <Bus className="h-6 w-6 text-[var(--primary)]" />
+              <Bus className="h-6 w-6  text-current" />
               대중교통
             </button>
           </CardContent>
-        </Card>
+        </div>
 
         {/* 주소 검색 모달 (readonly면 열리지 않음) */}
         {!readonly && (

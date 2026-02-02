@@ -47,7 +47,7 @@ export default function BookmarkAddressModal({
   return (
     <WireframeModal
       open={open}
-      title="저장된 주소 가져오기"
+      title="북마크 주소"
       onClose={onClose}
     >
       {/* 설명 + 리스트를 하나의 그룹으로 */}
@@ -66,12 +66,13 @@ export default function BookmarkAddressModal({
                       onSelect(addr.address)
                       onClose()
                     }}
-                    className="w-full flex items-center rounded-xl border border-[var(--wf-border)] bg-[var(--wf-muted)] px-4 py-3 text-sm hover:bg-[var(--wf-accent)]"
+                    className="w-full items-center rounded-xl border border-[var(--wf-border)] bg-[var(--primary)] text-[var(--primary-soft)
+                    px-4 py-3 text-sm hover:bg-[--primary-base)]"
                   >
                     {/* 카테고리 영역 */}
-                    <div className="w-20 text-left font-medium">({addr.category || '-'})</div>
+                    <p className="text-base font-bold text-[var(--primary-soft)]">{addr.category || '-'}</p>
                     {/* 주소 영역 */}
-                    <div className="flex-1 text-left truncate">{addr.address}</div>
+                    <p className="truncate text-[var(--primary-base)]">{addr.address}</p>
                   </button>
                 </li>
               ))
