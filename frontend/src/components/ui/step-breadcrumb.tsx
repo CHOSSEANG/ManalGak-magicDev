@@ -67,7 +67,12 @@ export function Breadcrumb({
                     router.push(`${basePath}${query}`);
                   }}
                   // 간격(gap)도 요소가 커진 만큼 아주 조금 넓힘 (1.5 = 6px)
-                  className="group flex items-center gap-1 md:gap-3"
+                  className="
+                    group flex
+                    flex-col xs:flex-row
+                    items-center
+                    gap-0.5 xs:gap-1 md:gap-3
+                  "
                 >
                   {/* 동그라미 */}
                   <span
