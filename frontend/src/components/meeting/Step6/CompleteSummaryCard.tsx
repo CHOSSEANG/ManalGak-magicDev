@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useParams } from 'next/navigation'
 import StepCard from '@/components/meeting/StepCard'
-import { Badge } from "@/components/ui/badge"
+// import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
 
 import {
@@ -189,11 +189,11 @@ const fallbackShare = async () => {
 }
   
 
-const handleDirection = () => {
-    if (!placeName || lat === null || lng === null) return
-    const url = `https://map.kakao.com/link/to/${encodeURIComponent(placeName)},${lat},${lng}`
-    window.open(url, '_blank')
-}
+// const handleDirection = () => {
+//     if (!placeName || lat === null || lng === null) return
+//     const url = `https://map.kakao.com/link/to/${encodeURIComponent(placeName)},${lat},${lng}`
+//     window.open(url, '_blank')
+// }
 
   return (
     <section className="space-y-4">
@@ -251,13 +251,13 @@ const handleDirection = () => {
             </div>
           </div>
 
-          {/* 전화 
+          {/* 전화 */}
           <div className="flex gap-4">
               <Phone className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
               <p className="text-base font-medium">
                 {place ? phoneNumber : '-'}
               </p>
-          </div>*/}
+          </div>
         </div>
       </StepCard>
 
