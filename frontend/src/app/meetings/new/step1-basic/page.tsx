@@ -62,9 +62,10 @@ function Step1Content() {
     return `/meetings/new/step2-members?meetingUuid=${resultMeetingUuid}`;
   };
 
+  
   return (
     <>
-      <main className="bg-[var(--bg)]">
+      <main className="bg-[var(--bg)] border-t border-[var(--border)]">
         <div className="mx-auto max-w-3xl space-y-6">
           <section className=" pb-24">
             {isCopied && (
@@ -92,11 +93,14 @@ function Step1Content() {
         </div>
       </main>
 
-      <StepNavigation 
-        prevHref="/meetings/new"
-        nextHref="/meetings/new/step2-members"
-        onNext={handleNext}
-      />
+      {/* ===== Step Navigation Fixed (하단 고정) ===== */}
+      <div className="fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
+        <StepNavigation
+          prevHref="/meetings/new"
+          nextHref="/meetings/new/step2-members"
+          onNext={handleNext}
+        />
+      </div>
     </>
   );
 }
