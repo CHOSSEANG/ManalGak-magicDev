@@ -194,16 +194,6 @@ function pickIconById(category: PlaceCategory, id: string): LucideIcon {
   return icons[hash % icons.length]
 }
 
-/* ================= FE 더미 추천장소 (fallback) ================= */
-const rawPlaces: Omit<RecommendedPlace, 'icon'>[] = [
-  { id: 'p1', name: '추천 카페', category: 'cafe', stationName: '을지로입구역', walkingMinutes: 5 },
-  { id: 'p2', name: '추천 식당 A', category: 'restaurant', stationName: '종각역', walkingMinutes: 7 },
-  { id: 'p3', name: '추천 식당 B', category: 'restaurant', stationName: '종로3가역', walkingMinutes: 10 },
-  { id: 'p4', name: '추천 전시관', category: 'culture', stationName: '을지로3가역', walkingMinutes: 12 },
-  { id: 'p5', name: '추천 명소', category: 'tour', stationName: '명동역', walkingMinutes: 15 },
-  { id: 'p6', name: '추천 카페 B', category: 'cafe', stationName: '시청역', walkingMinutes: 8 },
-]
-
 /* ================= 컴포넌트 ================= */
 
 export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
@@ -217,8 +207,9 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const [showVoteModal, setShowVoteModal] = useState(false)
 
   const [, setMiddlePoint] = useState<MiddlePoint | null>(null)
-  const [placeSource, setPlaceSource] =
-    useState<Omit<RecommendedPlace, 'icon'>[]>(rawPlaces)
+  const [placeSource, setPlaceSource] = useState<
+    Omit<RecommendedPlace, 'icon'>[]
+  >([])
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
@@ -258,18 +249,16 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         })
       }
 
-      if (apiPlaces.length >= 6) {
-        const parsedPlaces = apiPlaces
-          .map(parseApiPlace)
-          .filter(
-            (place): place is Omit<RecommendedPlace, 'icon'> => place !== null
-          )
-        if (parsedPlaces.length >= 6) {
-          setPlaceSource(parsedPlaces.slice(0, 6))
-          setHasInitiallyLoaded(true)
-        }
-      }
+      const parsedPlaces = apiPlaces
+        .map(parseApiPlace)
+        .filter(
+          (place): place is Omit<RecommendedPlace, 'icon'> => place !== null
+        )
+      setPlaceSource(parsedPlaces.slice(0, 6))
+      setHasInitiallyLoaded(true)
     } catch {
+      setPlaceSource([])
+      setHasInitiallyLoaded(true)
       try {
         const res = await axios.get(
           `${API_BASE_URL}/v1/meetings/${meetingUuid}/middle-point`,
@@ -578,7 +567,8 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     voteButtonLabel = '새 추천 장소! 투표 갱신'
   else if (voteData?.options?.length) voteButtonLabel = '투표하기'
 
-  const isVoteDisabled = isCreatingVote || (!isHost && !hasVote)
+  const isVoteDisabled =
+    isCreatingVote || recommendedPlaces.length === 0 || (!isHost && !hasVote)
 
   let confirmLabel = '추천 장소 확정'
   if (isConfirming) confirmLabel = '확정 중...'
@@ -653,6 +643,12 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
           <div className="flex items-center justify-center rounded-lg border border-[var(--border)] py-10">
             <span className="text-sm text-[var(--text-subtle)]">
               추천 장소를 찾고 있어요...
+            </span>
+          </div>
+        ) : recommendedPlaces.length === 0 ? (
+          <div className="flex items-center justify-center rounded-lg border border-[var(--border)] py-10">
+            <span className="text-sm text-[var(--text-subtle)]">
+              추천 장소 데이터가 없어요. 잠시 후 다시 시도해주세요.
             </span>
           </div>
         ) : (

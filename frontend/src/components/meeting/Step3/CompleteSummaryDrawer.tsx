@@ -9,31 +9,50 @@ import {
   DrawerFooter,
 } from '@/components/ui/drawer'
 import { X } from 'lucide-react'
-import PlaceInfoSection from '@/components/meeting/Step3/PlaceInfoSection'
+import PlaceInfoSection, {
+  PlaceInfo,
+} from '@/components/meeting/Step3/PlaceInfoSection'
 import TravelTimeSection from '@/components/meeting/Step3/TravelTimeSection'
 
 // shadcn/ui
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-interface MemberTravel {
+export interface MemberTravel {
   name: string
   minutes: number
   transfers: number
 }
 
+export interface ConfirmedPlaceSummary extends PlaceInfo {
+  stationName?: string | null
+  walkingMinutes?: number | null
+  kakaoMapUrl?: string | null
+}
+
 interface Props {
   open: boolean
   onClose: () => void
+  place?: ConfirmedPlaceSummary | null
+  members?: MemberTravel[]
 }
 
-export default function CompleteSummaryDrawer({ open, onClose }: Props) {
-  const members: MemberTravel[] = [
-    { name: '나', minutes: 35, transfers: 1 },
-    { name: '현수', minutes: 25, transfers: 2 },
-    { name: '영희', minutes: 24, transfers: 1 },
-    { name: '민수', minutes: 28, transfers: 1 },
-  ]
+export default function CompleteSummaryDrawer({
+  open,
+  onClose,
+  place,
+  members,
+}: Props) {
+  const walkingMinutes =
+    typeof place?.walkingMinutes === 'number' ? place.walkingMinutes : null
+  const stationName = place?.stationName?.trim() || null
+  const walkSummary =
+    stationName && walkingMinutes != null
+      ? `${stationName}에서 도보 ${walkingMinutes}분`
+      : null
+
+  const kakaoMapUrl = place?.kakaoMapUrl?.trim() || null
+  const canOpenKakaoMap = Boolean(kakaoMapUrl)
 
   return (
     <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
@@ -62,10 +81,12 @@ export default function CompleteSummaryDrawer({ open, onClose }: Props) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <PlaceInfoSection />
-              <p className="text-sm text-[var(--text-subtle)]">
-                을지로입구역에서 도보 5분
-              </p>
+              <PlaceInfoSection place={place} />
+              {walkSummary && (
+                <p className="text-sm text-[var(--text-subtle)]">
+                  {walkSummary}
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -76,14 +97,21 @@ export default function CompleteSummaryDrawer({ open, onClose }: Props) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <TravelTimeSection members={members} />
+              <TravelTimeSection members={members ?? []} />
             </CardContent>
           </Card>
         </div>
 
         {/* Footer CTA */}
         <DrawerFooter className="border-t border-[var(--border)] bg-[var(--bg)]">
-          <Button className="h-12 w-full bg-[var(--primary)] text-[var(--primary-foreground)]">
+          <Button
+            disabled={!canOpenKakaoMap}
+            onClick={() => {
+              if (!kakaoMapUrl) return
+              window.open(kakaoMapUrl, '_blank', 'noopener,noreferrer')
+            }}
+            className="h-12 w-full bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40"
+          >
             카카오맵에서 길찾기
           </Button>
         </DrawerFooter>
