@@ -99,12 +99,10 @@ export default function Step4Map({
       if (!maps) return
 
       // 지도 생성
-      const map = new maps.Map(mapRef.current!, {
+      mapInstanceRef.current = new maps.Map(mapRef.current!, {
         center: new maps.LatLng(routeData.midpoint.lat, routeData.midpoint.lng),
         level: 6,
       })
-
-      mapInstanceRef.current = map
       setIsMapLoaded(true)
     })
   }, [routeData])
@@ -149,7 +147,7 @@ export default function Step4Map({
             overflow:hidden;
           ">
             ${participant.profileImageUrl
-              ? `<img src="${participant.profileImageUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.textContent='${participant.nickName.charAt(0)}';" />`
+              ? `<img src="${participant.profileImageUrl}" alt="${participant.nickName}" style="width:100%;height:100%;object-fit:cover;" />`
               : participant.nickName.charAt(0)
             }
           </div>

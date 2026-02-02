@@ -337,15 +337,6 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     [fetchTravelTimes]
   )
 
-  const handleShowTravelTimeDetail = useCallback(
-    (placeId: string, e: React.MouseEvent) => {
-      e.stopPropagation()
-      setSelectedPlaceForDetail(placeId)
-      setShowTravelTimeModal(true)
-    },
-    []
-  )
-
   /* ================= WebSocket ================= */
 
   const voteDataRef = useRef(voteData)
