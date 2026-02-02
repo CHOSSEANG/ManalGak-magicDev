@@ -178,6 +178,19 @@ export default function CreateEntryPage() {
       setExistingMeetings((prev) =>
         prev.filter((item) => item.meeting.meetingUuid !== uuid)
       );
+
+      // /2[유리] - 삭제 후 총 개수(pageInfo.totalElements) 동기화
+      setPageInfo((prev) => {
+        if (!prev) return prev;
+
+        const newTotalElements = Math.max(0, prev.totalElements - 1);
+
+        return {
+          ...prev,
+          totalElements: newTotalElements,
+          empty: newTotalElements === 0,
+        };
+      });
     } catch {
       alert("모임 삭제에 실패했습니다.");
     }
