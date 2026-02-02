@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 
 import { getMeetingDetail } from '@/lib/api/meeting'
-import { getCandidatePlaces } from '@/lib/api/place'
+import { getCandidatePlaces, getSelectedPlace } from '@/lib/api/place'
 import type { CommonResponse } from '@/types/api'
 import type { MeetingDetailResponse } from '@/types/meeting'
-import type { PlaceResponse, PlaceCandidate } from '@/types/place'
+import type { PlaceResponse, PlaceCandidate, SelectedPlace } from '@/types/place'
 
 export interface MeetingCompleteViewModel {
   meetingName?: string
@@ -60,7 +60,8 @@ export const useMeetingComplete = (
             ? meetingData?.totalParticipants
             : meetingData?.participants?.length
 
-        let placeData: PlaceCandidate | undefined
+        // 장소 정보 조회: candidateId가 있으면 후보 조회, 없으면 확정된 장소 조회
+        let placeData: PlaceCandidate | SelectedPlace | undefined
         if (isNumber(candidateId)) {
           const placeResponse =
             (await getCandidatePlaces(
@@ -68,6 +69,11 @@ export const useMeetingComplete = (
               candidateId
             )) as CommonResponse<PlaceResponse>
           placeData = placeResponse?.data?.places?.[0]
+        } else {
+          // candidateId가 없으면 확정된 장소 조회
+          const selectedPlaceResponse =
+            (await getSelectedPlace(meetingId)) as CommonResponse<SelectedPlace>
+          placeData = selectedPlaceResponse?.data
         }
 
         const viewModel: MeetingCompleteViewModel = {
