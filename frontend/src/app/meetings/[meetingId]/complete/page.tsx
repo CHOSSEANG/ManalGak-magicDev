@@ -1,7 +1,7 @@
 // src/app/meetings/[meetingId]/complete/page.tsx
 "use client";
 
-import { use } from "react";
+import { use, useEffect  } from "react";
 import { useSearchParams } from "next/navigation";
 import CompleteSummaryDrawer from "@/components/meeting/Step6/CompleteSummaryDrawer";
 import CompleteMapSection from "@/components/meeting/Step6/CompleteMapSection";
@@ -22,6 +22,21 @@ export default function MeetingCompletePage({ params }: PageProps) {
   // ✅ 모든 Hook은 최상단
   // =========================
   const { user } = useUser();
+
+    useEffect(() => {
+      // 🔒 페이지 전체 스크롤 잠금
+      const originalOverflow = document.body.style.overflow;
+      const originalHeight = document.body.style.height;
+
+      document.body.style.overflow = "hidden";
+      document.body.style.height = "100dvh";
+
+      return () => {
+        // 🔓 페이지 벗어날 때 원복
+        document.body.style.overflow = originalOverflow;
+        document.body.style.height = originalHeight;
+      };
+    }, []);
 
   // ✅ Next.js 15 방식
   const { meetingId } = use(params);
@@ -64,7 +79,7 @@ export default function MeetingCompletePage({ params }: PageProps) {
   };
 
   return (
-    <main className="relative min-h-[100dvh] w-full overflow-visible bg-[var(--bg)]">
+    <main className="relative h-[100dvh] w-full overflow-hidden bg-[var(--bg)]">
       {/* 배경 지도 */}
       <CompleteMapSection
         meetingUuid={meetingId}
