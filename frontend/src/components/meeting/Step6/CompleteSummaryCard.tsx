@@ -197,7 +197,7 @@ const handleDirection = () => {
 
   return (
     <section className="space-y-4">
-      <StepCard className="space-y-5 rounded-2xl p-6 shadow-sm">
+      <StepCard className="space-y-5 rounded-2xl border-none shadow-none">
         <div className="space-y-4">
           {/* 모임명 */}
           <div className="flex gap-4">
@@ -281,7 +281,7 @@ const handleDirection = () => {
 
       {/* CTA */}
       {/* CTA */}
-<div className="flex gap-3">
+<div className="flex gap-3 px-5 pb-3">
   {/* 링크 보내기 → 카카오 메시지 */}
   <Button
     type="button"
@@ -314,29 +314,10 @@ const handleDirection = () => {
       transition active:scale-[0.99]
     "
   >
-    확정 장소 메시지 전송
+    카카오톡
     <Send className="h-5 w-5 transition-transform group-hover:translate-x-1" />
   </Button>
 </div>
-        {/* {isOrganizer ? (
-          <button
-            onClick={handleSendKakao}
-            className="group flex w-full items-center justify-center gap-2 rounded-2xl
-            bg-[var(--wf-highlight)] hover:bg-[var(--wf-accent)]
-            py-4 text-lg font-bold text-[var(--wf-text)]
-            shadow-xl shadow-yellow-500/20 transition active:scale-[0.99]"
-          >
-            확정 장소 메시지 전송
-            <Send className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </button>
-        ) : (
-          <div className="flex w-full items-center justify-center rounded-2xl
-            border border-[var(--wf-border)] bg-[var(--wf-surface)]
-            py-4 text-sm text-[var(--wf-subtle)]"
-          >
-            확정 메시지는 <span className="mx-1 font-semibold">모임장</span>만 전송할 수 있어요
-          </div>
-        )} */}
     </section>
   )
 }
