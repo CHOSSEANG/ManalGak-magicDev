@@ -150,22 +150,41 @@ export default function CreateEntryPage() {
     );
   };
 
-  const handleDelete = async (uuid: string, organizerId: number) => {
-    if (user?.id !== organizerId) {
-      alert("모임장이 아닙니다.");
-      return;
-    }
+const handleDelete = async (uuid: string, organizerId: number) => {
+  if (user?.id !== organizerId) {
+    alert("모임장이 아닙니다.");
+    return;
+  }
 
-    if (!confirm("정말 이 모임을 삭제하시겠어요?")) return;
+  if (!confirm("정말 이 모임을 삭제하시겠어요?")) return;
 
+  try {
     await axios.delete(`${API_BASE_URL}/v1/meetings/${uuid}`, {
       withCredentials: true,
     });
 
+    // ✅ 리스트에서 제거
     setExistingMeetings((prev) =>
       prev.filter((item) => item.meeting.meetingUuid !== uuid)
     );
-  };
+
+    // ✅ 페이지네이션 정보 갱신
+    setPageInfo((prev) => {
+      if (!prev) return prev;
+
+      const nextTotal = Math.max(0, prev.totalElements - 1);
+
+      return {
+        ...prev,
+        totalElements: nextTotal,
+        empty: nextTotal === 0,
+      };
+    });
+  } catch (err) {
+    console.error("모임 삭제 실패:", err);
+    alert("모임 삭제에 실패했습니다.");
+  }
+};
 
   const formatDateTime = (dateString: string) => {
     const d = new Date(dateString);
