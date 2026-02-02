@@ -31,6 +31,7 @@ export default function CompleteMapSection({
     ? [{ lat: lat as number, lng: lng as number }]
     : []
 
+  
   return (
     <div className="absolute inset-0 z-0">
       {/* 지도 영역은 100% 높이를 유지해야 함 */}

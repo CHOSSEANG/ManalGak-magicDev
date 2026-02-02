@@ -3,16 +3,8 @@
 
 import { useEffect, useMemo, useRef } from 'react'
 
-type KakaoLatLng = unknown
-type KakaoLatLngBounds = { extend: (latlng: KakaoLatLng) => void }
-type KakaoMapInstance = {
-  relayout: () => void
-  setCenter: (center: KakaoLatLng) => void
-  setBounds: (bounds: KakaoLatLngBounds) => void
-}
-type KakaoMarker = { setMap: (map: KakaoMapInstance | null) => void }
-
 type LatLng = { lat: number; lng: number }
+type KakaoMapWithZoomable = KakaoMapInstance & { setZoomable: (zoomable: boolean) => void }
 
 const FALLBACK_CENTER = { lat: 37.5665, lng: 126.978 }
 
@@ -34,7 +26,7 @@ export default function KakaoMap({
   const mapRef = useRef<HTMLDivElement>(null)
   // eslint: narrow map refs to avoid any
   const mapInstanceRef = useRef<KakaoMapInstance | null>(null)
-  const markersRef = useRef<KakaoMarker[]>([])
+  const markersRef = useRef<KakaoMapMarker[]>([])
 
   const initialCenter = useMemo(
     () => center ?? markers[0] ?? FALLBACK_CENTER,
@@ -61,6 +53,10 @@ export default function KakaoMap({
         center: kakaoCenter,
         level,
       })
+
+      // ✅ 배경 지도 제스처 활성화
+      map.setDraggable(true)
+      ;(map as unknown as KakaoMapWithZoomable).setZoomable(true)
 
       mapInstanceRef.current = map
 
