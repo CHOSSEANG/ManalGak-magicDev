@@ -143,6 +143,7 @@ function Step3MembersContent(): JSX.Element {
   const prevHref = `/meetings/new/step1-basic?meetingUuid=${meetingUuid}${
     readonlyParam ? "&readonly=true" : ""
   }`;
+  const userId = user?.id;
 
   // =====================
   // 모임 조회 + 참여자 생성
@@ -150,16 +151,10 @@ function Step3MembersContent(): JSX.Element {
 
   useEffect(() => {
     // user가 없어도 일단 loading을 false로 만들어야 함
-    if (!meetingUuid) {
-      setIsLoading(false);
-      return;
-    }
-
-    if (!user|| joinedRef.current) {
-      setIsLoading(false);
-      return;
-    }
-
+     if (!meetingUuid || !user || joinedRef.current) {
+          setIsLoading(false);
+          return;
+     }
     joinedRef.current = true;
 
     const fetchMeeting = async (): Promise<void> => {
@@ -175,8 +170,8 @@ function Step3MembersContent(): JSX.Element {
         setMeetingData(data);
 
         const myParticipant = data.participants.find(
-          (p) => p.userId === user.id
-        );
+           (p) => p.userId === userId
+         );
 
         if (myParticipant) {
           setMyParticipantId(myParticipant.participantId);
@@ -197,7 +192,7 @@ function Step3MembersContent(): JSX.Element {
             setMeetingData(updatedData);
 
             const newParticipant = updatedData.participants.find(
-              (p) => p.userId === user.id
+              (p) => p.userId === userId
             );
             if (newParticipant) {
               setMyParticipantId(newParticipant.participantId);
@@ -223,14 +218,14 @@ function Step3MembersContent(): JSX.Element {
     };
 
     void fetchMeeting();
-  }, [meetingUuid, user]);
+  }, [meetingUuid, userId]);
 
   // =====================
   // 예외 케이스 UI
   // =====================
   if (!meetingUuid) return <RequireMeeting />;
 
-  if (loading || isLoading) {
+  if (loading) {
     return (
       <div className="mx-auto max-w-xl space-y-4 py-20">
         <Skeleton className="h-24 w-full rounded-xl bg-[var(--neutral-soft)]" />
@@ -244,6 +239,15 @@ function Step3MembersContent(): JSX.Element {
     localStorage.setItem("loginRedirect", currentUrl);
     return <LoginRequired />;
   }
+
+    if (isLoading) {
+      return (
+        <div className="mx-auto max-w-xl space-y-4 py-20">
+          <Skeleton className="h-24 w-full rounded-xl bg-[var(--neutral-soft)]" />
+          <Skeleton className="h-40 w-full rounded-xl bg-[var(--neutral-soft)]" />
+        </div>
+      );
+    }
 
   if (meetingData?.status === "COMPLETED") {
     return <CompletedMeetingNotice meetingUuid={meetingUuid} />;
@@ -334,7 +338,7 @@ function Step3MembersContent(): JSX.Element {
 
         <MemberList
           meetingUuid={meetingUuid}
-          userId={user.id}
+          userId={userId!}
           onMyParticipantResolved={(id) => {
             if (!myParticipantId) setMyParticipantId(id);
           }}
