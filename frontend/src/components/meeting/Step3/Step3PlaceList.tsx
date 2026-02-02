@@ -205,9 +205,9 @@ function pickIconById(category: PlaceCategory, id: string): LucideIcon {
 }
 
 function logClientError(message: string, error: unknown) {
-  if (process.env.NODE_ENV === 'development') {
-    console.error(message, error)
-  }
+  // 프로덕션에서도 오류 추적을 위해 항상 로깅
+  console.error(`[Step3] ${message}`, error)
+  // TODO: 필요 시 외부 로깅 서비스(Sentry 등)로 전송 가능
 }
 
 /* ================= 컴포넌트 ================= */
