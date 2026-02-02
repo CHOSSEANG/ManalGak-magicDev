@@ -41,14 +41,8 @@ public class AuthController {
     @GetMapping("/auth/kakao/callback")
     public ResponseEntity<?> kakaoCallback(@RequestParam("code") String code) {
         String jwtToken = kakaoLoginService.login(code);
-        boolean isLocal = environment.acceptsProfiles(Profiles.of("local"));
 
-        ResponseCookie cookie = ResponseCookie.from("token", jwtToken)
-                .httpOnly(true)
-                .secure(!isLocal)  // local: false, dev/prod: true
-                .path("/")
-                .sameSite(isLocal ? "Lax" : "None")  // local: Lax, dev/prod: None
-                .build();
+        ResponseCookie cookie = buildTokenCookie(jwtToken);
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -74,20 +68,35 @@ public class AuthController {
     @Operation(summary = "로그아웃", description = "해당 웹을 로그아웃합니다.")
     @GetMapping("/auth/logout")
     public ResponseEntity<CommonResponse<Void>> logout(HttpServletResponse response) {
-        boolean isLocal = environment.acceptsProfiles(Profiles.of("local"));
-
-        ResponseCookie cookie = ResponseCookie.from("token", null)
-                .httpOnly(true)
-                .secure(!isLocal)
-                .path("/")
-                .maxAge(0)
-                .sameSite(isLocal ? "Lax" : "None")
-                .build();
+        ResponseCookie cookie = buildExpiredCookie();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok(CommonResponse.success(null));
     }
 
+    private boolean isLocalProfile() {
+        return environment.acceptsProfiles(Profiles.of("local"));
+    }
 
+    private ResponseCookie buildTokenCookie(String token) {
+        boolean isLocal = isLocalProfile();
+        return ResponseCookie.from("token", token)
+                .httpOnly(true)
+                .secure(!isLocal)
+                .path("/")
+                .sameSite(isLocal ? "Lax" : "None")
+                .build();
+    }
+
+    private ResponseCookie buildExpiredCookie() {
+        boolean isLocal = isLocalProfile();
+        return ResponseCookie.from("token", null)
+                .httpOnly(true)
+                .secure(!isLocal)
+                .path("/")
+                .maxAge(0)
+                .sameSite(isLocal ? "Lax" : "None")
+                .build();
+    }
 }

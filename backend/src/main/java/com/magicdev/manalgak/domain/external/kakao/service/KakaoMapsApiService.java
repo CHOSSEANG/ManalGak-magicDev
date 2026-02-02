@@ -12,13 +12,17 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class KakaoMapsApiService {
+
+    private static final int API_TIMEOUT_SECONDS = 10;
 
     private final KakaoMapsClient kakaoMapsClient;
 
@@ -80,9 +84,16 @@ public class KakaoMapsApiService {
         return futures.stream()
                 .map(f -> {
                     try {
-                        return f.get(10, TimeUnit.SECONDS);
-                    } catch (Exception e) {
-                        log.warn("카카오 모빌리티 API 타임아웃 또는 오류: {}", e.getMessage());
+                        return f.get(API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    } catch (TimeoutException e) {
+                        log.warn("카카오 모빌리티 API 타임아웃: {}", e.getMessage());
+                        return null;
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        log.warn("카카오 모빌리티 API 호출 인터럽트: {}", e.getMessage());
+                        return null;
+                    } catch (ExecutionException e) {
+                        log.warn("카카오 모빌리티 API 실행 오류: {}", e.getMessage());
                         return null;
                     }
                 })

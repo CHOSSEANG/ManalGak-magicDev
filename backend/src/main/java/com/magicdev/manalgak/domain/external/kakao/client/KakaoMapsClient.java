@@ -10,6 +10,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -33,7 +34,8 @@ public class KakaoMapsClient {
 
     public KakaoDirectionsResponse getDirections(KakaoDirectionsRequest request) {
         String url = UriComponentsBuilder
-                .fromHttpUrl(kakaoMapsUrl + "/v1/directions")
+                .fromHttpUrl(kakaoMapsUrl)
+                .path("/v1/directions")
                 .queryParam("origin", request.getOrigin())
                 .queryParam("destination", request.getDestination())
                 .queryParam("priority", request.getPriority() != null ? request.getPriority() : "RECOMMEND")
@@ -66,7 +68,7 @@ public class KakaoMapsClient {
 
             return body;
 
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             log.error("카카오 모빌리티 API 호출 실패: {}", e.getMessage());
             return null;
         }

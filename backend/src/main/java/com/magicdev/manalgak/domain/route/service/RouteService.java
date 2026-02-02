@@ -20,9 +20,11 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -134,12 +136,19 @@ public class RouteService {
             throw new BusinessException(ErrorCode.INSUFFICIENT_PARTICIPANTS);
         }
 
-        List<Participant> publicParticipants = participants.stream()
+        List<Participant> validParticipants = participants.stream()
                 .filter(p -> p.getOrigin() != null
                         && p.getOrigin().getLatitude() != null
                         && p.getOrigin().getLongitude() != null)
-                .filter(p -> p.getType() == null || p.getType() == Participant.TransportType.PUBLIC)
                 .toList();
+
+        Map<Boolean, List<Participant>> partitioned = validParticipants.stream()
+                .collect(Collectors.partitioningBy(
+                        p -> p.getType() == Participant.TransportType.CAR
+                ));
+
+        List<Participant> publicParticipants = partitioned.get(false);
+        List<Participant> carParticipants = partitioned.get(true);
 
         List<RouteResponse.RouteInfo> publicRoutes = List.of();
         if (!publicParticipants.isEmpty()) {
@@ -157,13 +166,6 @@ public class RouteService {
                     destLat
             );
         }
-
-        List<Participant> carParticipants = participants.stream()
-                .filter(p -> p.getOrigin() != null
-                        && p.getOrigin().getLatitude() != null
-                        && p.getOrigin().getLongitude() != null)
-                .filter(p -> p.getType() == Participant.TransportType.CAR)
-                .toList();
 
         List<RouteResponse.CarRouteInfo> carRoutes = List.of();
         if (!carParticipants.isEmpty()) {
@@ -229,25 +231,10 @@ public class RouteService {
             return RouteResponse.RouteStatistics.builder().build();
         }
 
-        int avgTime = (int) (
-                (safeRoutes.stream().mapToInt(RouteResponse.RouteInfo::getTravelTime).sum()
-                        + safeCarRoutes.stream().mapToInt(RouteResponse.CarRouteInfo::getTravelTime).sum())
-                        / (double) (safeRoutes.size() + safeCarRoutes.size())
-        );
-
-        int maxTime = Math.max(
-                safeRoutes.stream().mapToInt(RouteResponse.RouteInfo::getTravelTime).max().orElse(0),
-                safeCarRoutes.stream().mapToInt(RouteResponse.CarRouteInfo::getTravelTime).max().orElse(0)
-        );
-
-        int minTime = safeRoutes.isEmpty()
-                ? safeCarRoutes.stream().mapToInt(RouteResponse.CarRouteInfo::getTravelTime).min().orElse(0)
-                : safeCarRoutes.isEmpty()
-                ? safeRoutes.stream().mapToInt(RouteResponse.RouteInfo::getTravelTime).min().orElse(0)
-                : Math.min(
-                        safeRoutes.stream().mapToInt(RouteResponse.RouteInfo::getTravelTime).min().orElse(0),
-                        safeCarRoutes.stream().mapToInt(RouteResponse.CarRouteInfo::getTravelTime).min().orElse(0)
-                );
+        IntSummaryStatistics travelTimeStats = IntStream.concat(
+                safeRoutes.stream().mapToInt(RouteResponse.RouteInfo::getTravelTime),
+                safeCarRoutes.stream().mapToInt(RouteResponse.CarRouteInfo::getTravelTime)
+        ).summaryStatistics();
 
         int totalTransfers = safeRoutes.stream()
                 .mapToInt(RouteResponse.RouteInfo::getTransferCount)
@@ -269,9 +256,9 @@ public class RouteService {
                 .orElse("");
 
         return RouteResponse.RouteStatistics.builder()
-                .averageTravelTime(avgTime)
-                .maxTravelTime(maxTime)
-                .minTravelTime(minTime)
+                .averageTravelTime((int) travelTimeStats.getAverage())
+                .maxTravelTime(travelTimeStats.getMax())
+                .minTravelTime(travelTimeStats.getMin())
                 .totalTransfers(totalTransfers)
                 .mostFrequentTransport(mostFrequentTransport)
                 .build();
