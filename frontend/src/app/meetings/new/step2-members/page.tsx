@@ -7,7 +7,7 @@ import axios from "axios";
 import { Send } from "lucide-react";
 
 import StepNavigation from "@/components/layout/StepNavigation";
-import { TransportMode } from "@/components/meeting/Step2/Step2Address";
+import { TransportMode } from "@/components/meeting/Step3/Step2Address";
 import MemberList from "@/components/meeting/Step2/Step2MemberList";
 import LoginRequired from "@/components/common/LoginRequired";
 import CompletedMeetingNotice from "@/components/common/CompletedMeetingNotice";
@@ -347,7 +347,7 @@ function Step3MembersContent(): JSX.Element {
 
 
               {/* ===== Step Navigation Fixed (하단 고정) ===== */}
-      <div className="app-container fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
+      <div className="app-container fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe">
         <StepNavigation
           prevHref={prevHref}
           nextHref={`/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`}

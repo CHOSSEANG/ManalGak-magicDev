@@ -32,58 +32,55 @@ export default function WireframeModal({
         fixed inset-0 z-[9999]
         flex items-center justify-center
         px-3
-        bg-black/40 backdrop-blur-[2px]
+        bg-[color:var(--neutral-soft)/0.8]
       "
-      onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md">
-        <Card
+      <Card
+        className="
+          w-full max-w-md
+          max-h-[85vh]
+          bg-[var(--bg)]
+          border border-[var(--border)]
+          rounded-2xl
+          shadow-lg
+          flex flex-col
+        "
+      >
+        {/* Header */}
+        <CardHeader
           className="
-            w-full
-            max-h-[85vh]
-            bg-[var(--bg)]
-            border border-[var(--border)]
-            rounded-2xl
-            shadow-xl
-            flex flex-col
-          "
-        >
-          {/* Header */}
-          <CardHeader
-            className="
             flex flex-row items-center justify-between
             px-5 py-4
             border-b border-[var(--border)]
             bg-[var(--bg)]
             sticky top-0 z-10
           "
+        >
+          <CardTitle className="text-base font-semibold text-[var(--text)]">
+            {title}
+          </CardTitle>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            aria-label="닫기"
           >
-            <CardTitle className="text-base font-semibold text-[var(--text)]">
-              {title}
-            </CardTitle>
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              aria-label="닫기"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-
-          {/* Content */}
-          <CardContent className="p-0 flex-1">
-            <ScrollArea className="h-full px-5 py-4 text-sm text-[var(--text)]">
-              {children}
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Content */}
+        <CardContent className="p-0 flex-1">
+          <ScrollArea className="h-full px-5 py-4 text-sm text-[var(--text)]">
+            {children}
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>,
     document.body
   )

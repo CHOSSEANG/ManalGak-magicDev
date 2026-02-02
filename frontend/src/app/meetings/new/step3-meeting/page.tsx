@@ -5,12 +5,17 @@ import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 
-import StepNavigation from "@/components/layout/StepNavigation";
-import Address, { TransportMode } from "@/components/meeting/Step2/Step2Address";
 import LoginRequired from "@/components/common/LoginRequired";
+import StepNavigation from "@/components/layout/StepNavigation";
+import Address, { TransportMode } from "@/components/meeting/Step3/Step2Address";
 import CompletedMeetingNotice from "@/components/common/CompletedMeetingNotice";
 import { useUser } from "@/context/UserContext";
 import RequireMeeting from "@/components/common/RequireMeeting";
+
+import { Button } from "@/components/ui/button";
+import { Bookmark } from "lucide-react";
+import BookmarkAddressModal from "@/components/map/BookmarkAddressModal";
+
 
 // shadcn/ui
 import { Skeleton } from "@/components/ui/skeleton";
@@ -126,9 +131,6 @@ function Step3MembersContent(): JSX.Element {
   const [myParticipantId, setMyParticipantId] = useState<number | null>(null);
   const [meetingData, setMeetingData] = useState<MeetingData | null>(null);
 
-  const [openFetchModal, setOpenFetchModal] = useState(false);
-  // 1/30[유리] - [가져오기] 버튼 모달 트리거 상태 추가
-
   const joinedRef = useRef(false);
 
   const isReadonly = meetingData?.status === "COMPLETED";
@@ -138,6 +140,18 @@ function Step3MembersContent(): JSX.Element {
   const prevHref = `/meetings/new/step2-members?meetingUuid=${meetingUuid}${
     readonlyParam ? "&readonly=true" : ""
   }`;
+
+  
+
+const [bookmarkOpen, setBookmarkOpen] = useState(false);
+
+const applyAddress = (address: string) => {
+  if (isReadonly) return;
+
+  setOriginAddress(address);
+  setBookmarkOpen(false);
+};
+
 
   // =====================
   // 모임 조회 + 참여자 생성
@@ -233,33 +247,42 @@ function Step3MembersContent(): JSX.Element {
   // =====================
   return (
     <>
-      <main className="mx-auto max-w-xl space-y-6">
+      <main className="
+            bg-[var(--bg)]
+            border-t border-[var(--border)]
+            pb-[var(--bottom-cta-space2)]
+          "> 
         {/* ===== Header ===== */}
-        <section className="space-y-1">
+        <section className="space-y-1 py-2">
           <h2 className="text-lg font-semibold text-[var(--text)]">
             출발지와 교통편을 선택하세요
           </h2>
-          <p className="text-sm text-[var(--text-subtle)]">
-            출발지·교통수단을 설정하세요.
-          </p>
         </section>
 
-        <div className="border-b border-[var(--border)]" />
-        {/* 1/30[유리] - 카드 UI 제거 후 구분선만 유지 */}
+       
 
         {/* 나의 출발지 입력 / 가져오기 */}
         <div className="flex items-center justify-between">
           {/* 1/30[유리] - 한 줄(Row) 정렬 */}
-          <span className="text-sm font-medium text-[var(--text)]">
-            나의 출발지 입력
-          </span>
-          <button
-            type="button"
-            onClick={() => setOpenFetchModal(true)}
-            className="rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-2 text-sm text-[var(--text)]"
-          >
-            가져오기
-          </button>
+          <h1 className="text-sm font-medium text-[var(--text)]">
+            나의 출발지
+          </h1>
+
+          {!isReadonly && (
+              <div className="flex items-center justify-end mb-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setBookmarkOpen(true);
+                  }}
+                  className="gap-1 py-5 rounded-full  border-[var(--border)] bg-[var(--primary)] text-[var(--primary-soft)]"
+                >
+                  <Bookmark className="h-3 w-3" />
+                  가져오기
+                </Button>
+              </div>
+            )}
           {/* 1/30[유리] - 모달 트리거 버튼 + rounded-full */}
         </div>
 
@@ -276,13 +299,13 @@ function Step3MembersContent(): JSX.Element {
           />
         )}
 
-        <div className="border-b border-[var(--border)]" />
-        {/* 1/30[유리] - 콘텐츠 하단 구분선 추가 */}
+
+
       </main>
 
       {/* 콘텐츠와 이전/다음 버튼 간 여백 */}
-      <div className="mt-10">
-        {/* 1/30[유리] - StepNavigation과 콘텐츠 사이 여백 추가 */}
+              {/* ===== Step Navigation Fixed (하단 고정) ===== */}
+      <div className="app-container fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
         <StepNavigation
           prevHref={prevHref}
           nextHref={`/meetings/new/step3-result?meetingUuid=${meetingUuid}`}
@@ -315,42 +338,21 @@ function Step3MembersContent(): JSX.Element {
         />
       </div>
 
-      {/* 모달 + 오버레이 */}
-      {openFetchModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* 1/30[유리] - 전체 배경 오버레이 (검정 70%) */}
-          <button
-            type="button"
-            aria-label="모달 닫기"
-            className="absolute inset-0 bg-black/70"
-            onClick={() => setOpenFetchModal(false)}
-          />
-          <div className="relative z-10 w-[min(92vw,420px)] rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-            {/* 1/30[유리] - 오버레이 위 모달 카드 */}
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-[var(--text)]">
-                출발지 가져오기
-              </p>
-              <button
-                type="button"
-                onClick={() => setOpenFetchModal(false)}
-                className="rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-3 py-1 text-sm"
-              >
-                닫기
-              </button>
-            </div>
+      
 
-            <div className="mt-3 border-b border-[var(--border)]" />
+      {!isReadonly && (
+        <BookmarkAddressModal
+          open={bookmarkOpen}
+          onClose={() => {
+            setBookmarkOpen(false);
+          }}
+          onSelect={applyAddress}
+        />
+      )}
 
-            <div className="mt-3 text-sm text-[var(--text-subtle)]">
-              가져오기 UI 전용 모달입니다. 실제 데이터 연동은 별도 구현이
-              필요합니다.
-            </div>
-          </div>
-        </div>
-      ) : null}
     </>
   );
+
 }
 
 // =====================
