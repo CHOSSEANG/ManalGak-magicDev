@@ -51,6 +51,42 @@ public class KakaoMobilityService {
             double originLat, double originLng,
             double destLat, double destLng
     ) {
+        KakaoDirectionsResponse response = callDirectionsApi(originLat, originLng, destLat, destLng);
+        if (response == null) {
+            return List.of(
+                    new double[]{originLat, originLng},
+                    new double[]{destLat, destLng}
+            );
+        }
+        return extractCoordinates(response);
+    }
+
+    /**
+     * 자동차 이동시간 조회
+     *
+     * @return CarRouteInfo (이동시간, 거리) 또는 null (실패 시)
+     */
+    public CarRouteInfo getCarTravelTime(
+            double originLat, double originLng,
+            double destLat, double destLng
+    ) {
+        KakaoDirectionsResponse response = callDirectionsApi(originLat, originLng, destLat, destLng);
+        if (response == null || !response.isSuccess()) {
+            return null;
+        }
+        return new CarRouteInfo(
+                response.getDurationInMinutes(),
+                response.getDistanceInMeters()
+        );
+    }
+
+    /**
+     * 카카오 모빌리티 API 호출 (공통)
+     */
+    private KakaoDirectionsResponse callDirectionsApi(
+            double originLat, double originLng,
+            double destLat, double destLng
+    ) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "KakaoAK " + kakaoApiKey);
 
@@ -66,19 +102,23 @@ public class KakaoMobilityService {
         try {
             ResponseEntity<KakaoDirectionsResponse> response =
                     restTemplate.exchange(url, HttpMethod.GET, entity, KakaoDirectionsResponse.class);
-
-            return extractCoordinates(response.getBody());
+            return response.getBody();
 
         } catch (Exception e) {
             log.error("카카오 모빌리티 API 호출 실패: origin=({}, {}), dest=({}, {}), error={}",
                     originLat, originLng, destLat, destLng, e.getMessage());
-
-            // 실패 시 직선 경로 반환 (fallback)
-            return List.of(
-                    new double[]{originLat, originLng},
-                    new double[]{destLat, destLng}
-            );
+            return null;
         }
+    }
+
+    /**
+     * 자동차 경로 정보 DTO
+     */
+    @lombok.Data
+    @lombok.AllArgsConstructor
+    public static class CarRouteInfo {
+        private int travelTimeMinutes;  // 이동시간 (분)
+        private int distanceMeters;     // 거리 (미터)
     }
 
     /**

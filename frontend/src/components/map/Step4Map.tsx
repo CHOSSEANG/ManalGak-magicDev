@@ -71,7 +71,10 @@ export default function Step4Map({
         )
         setRouteData(res.data?.data)
       } catch (err) {
-        console.error('경로 조회 실패:', err)
+        // 출발지 미입력 등의 이유로 경로 조회 실패 시 조용히 처리
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('경로 조회 실패 (출발지 미입력 가능성):', err)
+        }
         setError('경로를 불러오지 못했습니다.')
       } finally {
         setIsLoading(false)
@@ -96,12 +99,10 @@ export default function Step4Map({
       if (!maps) return
 
       // 지도 생성
-      const map = new maps.Map(mapRef.current!, {
+      mapInstanceRef.current = new maps.Map(mapRef.current!, {
         center: new maps.LatLng(routeData.midpoint.lat, routeData.midpoint.lng),
         level: 6,
       })
-
-      mapInstanceRef.current = map
       setIsMapLoaded(true)
     })
   }, [routeData])
@@ -146,7 +147,7 @@ export default function Step4Map({
             overflow:hidden;
           ">
             ${participant.profileImageUrl
-              ? `<img src="${participant.profileImageUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.textContent='${participant.nickName.charAt(0)}';" />`
+              ? `<img src="${participant.profileImageUrl}" alt="${participant.nickName}" style="width:100%;height:100%;object-fit:cover;" />`
               : participant.nickName.charAt(0)
             }
           </div>
