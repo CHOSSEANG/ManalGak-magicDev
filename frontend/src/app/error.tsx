@@ -5,7 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 
-export default function Error() {
+interface ErrorProps {
+  error: Error & { digest?: string };
+  reset: () => void;
+}
+
+export default function Error({ reset }: ErrorProps) {
   const router = useRouter();
 
   return (
@@ -22,13 +27,23 @@ export default function Error() {
             잠시 후 다시 시도해 주세요.
           </p>
 
-          <Button
-            type="button"
-            onClick={() => router.replace("/meetings/new")}
-            className="w-full"
-          >
-            모임 리스트로 이동
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => reset()}
+              className="flex-1"
+            >
+              다시 시도
+            </Button>
+            <Button
+              type="button"
+              onClick={() => router.replace("/meetings/new")}
+              className="flex-1"
+            >
+              모임 리스트로
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </main>

@@ -71,7 +71,10 @@ export default function Step4Map({
         )
         setRouteData(res.data?.data)
       } catch (err) {
-        console.error('경로 조회 실패:', err)
+        // 출발지 미입력 등의 이유로 경로 조회 실패 시 조용히 처리
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('경로 조회 실패 (출발지 미입력 가능성):', err)
+        }
         setError('경로를 불러오지 못했습니다.')
       } finally {
         setIsLoading(false)
