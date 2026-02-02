@@ -35,7 +35,12 @@ export default function Header() {
     <QueryClientProvider client={queryClient}>
       <>
         {/* Header Container */}
-        <Card className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]">
+        <Card className="sticky top-0 z-30
+              rounded-none
+              shadow-none
+              border-0
+              border-b border-[var(--border)]
+              bg-[var(--bg)]">
           <header className="flex h-14 items-center justify-between px-4">
             {/* LEFT : Logo */}
             <Tooltip>
