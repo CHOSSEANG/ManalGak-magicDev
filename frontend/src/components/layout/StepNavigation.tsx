@@ -57,16 +57,16 @@ export default function StepNavigation({
   }
 
   return (
-      <div className="flex w-full items-center justify-between">
+      <div className="flex w-full gap-3">
   {prevHref ? (
     <button
       type="button"
       onClick={() => router.push(prevHref)}
       disabled={loading}
-      className="flex items-center gap-2 rounded-xl
+      className="flex flex-1 items-center justify-center gap-2 rounded-xl
         border border-[var(--border)]
         bg-[var(--bg-soft)]
-        px-4 py-2 text-sm
+        px-4 py-4 text-sm
         hover:bg-[var(--neutral-soft)]
         disabled:opacity-50"
     >
@@ -82,10 +82,10 @@ export default function StepNavigation({
       type="button"
       onClick={handleNext}
       disabled={loading}
-      className="flex items-center gap-2 rounded-xl
+      className="flex flex-1 items-center justify-center gap-2 rounded-xl
         border border-[var(--border)]
         bg-[var(--primary)]
-        px-4 py-2 text-sm font-semibold
+        px-4 py-3 text-sm font-semibold
         text-[var(--primary-foreground)]
         hover:bg-[var(--primary)]
         disabled:opacity-50"
