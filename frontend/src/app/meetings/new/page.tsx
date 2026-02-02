@@ -219,7 +219,7 @@ export default function CreateEntryPage() {
   
 
   return (
-    <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6 pb-28">
+    <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] pt-4 pb-28">
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {/* ===== Header ===== */}
         <section className="space-y-1">
@@ -251,8 +251,8 @@ export default function CreateEntryPage() {
                 const isCompleted = meeting.status === "COMPLETED";
                 
                 return (
-                  <div key={meeting.meetingUuid} className="py-3">
-                    <div className="flex gap-4">
+                  <div key={meeting.meetingUuid} className="py-3 overflow-x-hidden">
+                    <div className="flex gap-4 items-start">
                       <div className="relative w-9 h-9 rounded-full bg-[var(--primary-soft)] flex items-center justify-center">
                         <Users className="h-5 w-5 text-[var(--primary)]" />
                       </div>
@@ -283,6 +283,7 @@ export default function CreateEntryPage() {
                       </div>
 
                       {/* ===== Actions ===== */}
+                      <div className="shrink-0">
                       <div className="hidden sm:flex gap-2">
                         {isOrganizer && !isCompleted && (
                           <Button
@@ -329,52 +330,52 @@ export default function CreateEntryPage() {
                           </Button>
                         )}
                       </div>
-
+                      
                       {/* ===== Mobile Dropdown ===== */}
-                      {/* ===== Mobile Dropdown ===== */}
-<div className="sm:hidden">
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <button
-        className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
-        aria-label="더보기"
-      >
-        <MoreHorizontal className="h-5 w-5 text-[var(--text)]" />
-      </button>
-    </DropdownMenuTrigger>
+                      <div className="sm:hidden">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
+                              aria-label="더보기"
+                            >
+                              <MoreHorizontal className="h-5 w-5 text-[var(--text)]" />
+                            </button>
+                          </DropdownMenuTrigger>
 
-    <DropdownMenuPortal>
-      <DropdownMenuContent
-        align="end"
-        className="bg-[var(--bg)] border border-[var(--border)] shadow-md"
-      >
-        {isOrganizer && (
-          <DropdownMenuItem onClick={() => goToEditPage(meeting.meetingUuid!)}>
-            수정
-          </DropdownMenuItem>
-        )}
+                          <DropdownMenuPortal>
+                            <DropdownMenuContent
+                              align="end"
+                              className="bg-[var(--bg)] border border-[var(--border)] shadow-md"
+                            >
+                              {isOrganizer && (
+                                <DropdownMenuItem onClick={() => goToEditPage(meeting.meetingUuid!)}>
+                                  수정
+                                </DropdownMenuItem>
+                              )}
 
-        <DropdownMenuItem onClick={() => goToConfirmPage(meeting.meetingUuid!)}>
-          조회
-        </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => goToConfirmPage(meeting.meetingUuid!)}>
+                                조회
+                              </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={() => handleCopy(meeting.meetingUuid!)}>
-          복사
-        </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleCopy(meeting.meetingUuid!)}>
+                                복사
+                              </DropdownMenuItem>
 
-        {isOrganizer && (
-          <DropdownMenuItem
-            onClick={() => handleDelete(meeting.meetingUuid!, meeting.organizerId)}
-          >
-            삭제
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenuPortal>
-  </DropdownMenu>
-</div>
+                              {isOrganizer && (
+                                <DropdownMenuItem
+                                  onClick={() => handleDelete(meeting.meetingUuid!, meeting.organizerId)}
+                                >
+                                  삭제
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenu>
+                      </div>
                     </div>
-                  </div>
+                      </div>
+                    </div>
                 );
               })}
             </div>
