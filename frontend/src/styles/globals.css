@@ -41,6 +41,8 @@
 
   /* ===== Layout ===== */
   --bottom-cta-height: calc(0px + env(safe-area-inset-bottom));
+  --bottom-nav-height: calc(80px + env(safe-area-inset-bottom));
+
 
   /* ===== Font ===== */
   --font-sans: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
