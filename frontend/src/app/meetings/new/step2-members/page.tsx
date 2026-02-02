@@ -323,18 +323,7 @@ function Step3MembersContent(): JSX.Element {
           <Send size={18} />
           참여 멤버 초대
         </Button>
-
-        <p className="text-xs text-[var(--text-subtle)]">
-          참여자 리스트에는 현재 참여한 사용자만 표시됩니다.
-        </p>
         {/* 1/30[유리] - 참여자 표시 기준 안내 */}
-
-        <Card className="bg-[var(--bg-soft)] shadow-none">
-          {/* 1/30[유리] - 교통편/주소 비노출 및 닉네임 중심 안내 */}
-          <CardContent className="text-sm text-[var(--text-subtle)]">
-            이 단계에서는 닉네임을 기준으로 참여자가 표시됩니다.
-          </CardContent>
-        </Card>
 
         <MemberList
           meetingUuid={meetingUuid}
