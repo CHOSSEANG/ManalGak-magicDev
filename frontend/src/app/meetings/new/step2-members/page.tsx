@@ -299,13 +299,19 @@ function Step3MembersContent(): JSX.Element {
   // =====================
   return (
     <>
-      <main className="mx-auto max-w-xl space-y-6 border-t border-[var(--border)] pt-3">
-        <section>
+      <main className="
+    bg-[var(--bg)]
+    border-t border-[var(--border)]
+    pb-[var(--bottom-cta-space2)]
+  ">    
+
+        <section className="my-3">
           <h2 className="text-lg font-semibold">참여자</h2>
           <p className="text-sm text-[var(--text-subtle)]">
             멤버를 초대하세요.
           </p>
-        </section>
+          </section>
+
 
         <div className="fixed bottom-[var(--bottom-nav-height2)] left-0 right-0 z-30 px-4 pb-safe bg-[var(--bg)]">
         <Button
@@ -335,11 +341,12 @@ function Step3MembersContent(): JSX.Element {
           }}
           readonly={isReadonly}
         />
+        <div  className="bottom-[var[--bottom-cta-space2)]"/>
       </main>
 
 
               {/* ===== Step Navigation Fixed (하단 고정) ===== */}
-      <div className="fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
+      <div className="app-container fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
         <StepNavigation
           prevHref={prevHref}
           nextHref={`/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`}

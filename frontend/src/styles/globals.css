@@ -40,9 +40,13 @@
 
   /* ===== Layout ===== */
   --bottom-cta-height: calc(0px + env(safe-area-inset-bottom));
+
   --bottom-nav-height: calc(80px + env(safe-area-inset-bottom));
-  --bottom-nav-height2: calc(140px + env(safe-area-inset-bottom));
   --bottom-cta-space: 150px; /* CTA 높이 + 여유 */
+
+  --bottom-nav-height2: calc(140px + env(safe-area-inset-bottom));
+  --bottom-cta-space2: 210px; /* CTA 높이 + 여유 */
+
 
   /* ===== Font ===== */
   --font-sans: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;

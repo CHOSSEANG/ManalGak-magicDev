@@ -4,10 +4,10 @@
 import React, { useEffect, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { Member } from "./Step2MemberList";
-import { TransportMode } from "./Step2MemberList";
+// import { TransportMode } from "./Step2MemberList";
+import { Input } from "@/components/ui/input";
 
 // shadcn/ui
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -16,15 +16,15 @@ interface Props {
   onPersonalChange: (participantId: number, nickname?: string) => void;
 }
 
-const transportLabelMap: Record<TransportMode, string> = {
-  CAR: "자동차",
-  PUBLIC: "대중교통",
-};
+// const transportLabelMap: Record<TransportMode, string> = {
+//   CAR: "자동차",
+//   PUBLIC: "대중교통",
+// };
 
-const transportIconMap: Record<TransportMode, string> = {
-  CAR: "🚗",
-  PUBLIC: "🚌",
-};
+// const transportIconMap: Record<TransportMode, string> = {
+//   CAR: "🚗",
+//   PUBLIC: "🚌",
+// };
 
 export default function MemberStatusList({ members, onPersonalChange }: Props) {
   const myMember = members[0];
@@ -41,7 +41,7 @@ export default function MemberStatusList({ members, onPersonalChange }: Props) {
   let mySection: ReactNode = null;
   if (myMember) {
     let myAvatar: ReactNode = (
-      <div className="h-10 w-10 rounded-full bg-[var(--neutral-soft)]" />
+      <div className="h-10 w-10 rounded-xl bg-[var(--neutral-soft)]" />
     );
     if (myMember.profileImageUrl) {
       myAvatar = (
@@ -50,57 +50,52 @@ export default function MemberStatusList({ members, onPersonalChange }: Props) {
           alt={myMember.name}
           width={48}
           height={48}
-          className="h-10 w-10 rounded-full object-cover"
+          className="h-10 w-10 rounded-xl object-cover"
         />
       );
     }
 
-    let myTransport: ReactNode = null;
-    if (myMember.originAddress && myMember.transport) {
-      myTransport = (
-        <div className="mt-1 flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-full bg-[var(--neutral-soft)] px-3 py-1 text-xs font-semibold text-[var(--text)]">
-            {transportIconMap[myMember.transport as TransportMode]}{" "}
-            {transportLabelMap[myMember.transport as TransportMode]}
-          </div>
-          <div className="text-xs text-[var(--text-subtle)]">
-            {myMember.originAddress}
-          </div>
-        </div>
-      );
-    }
+    //
+    // let myTransport: ReactNode = null;
+    // if (myMember.originAddress && myMember.transport) {
+    //   myTransport = (
+    //     <div className="mt-1 flex items-center gap-2">
+    //       <div className="flex items-center gap-1 rounded-full bg-[var(--neutral-soft)] px-3 py-1 text-xs font-semibold text-[var(--text)]">
+    //         {transportIconMap[myMember.transport as TransportMode]}{" "}
+    //         {transportLabelMap[myMember.transport as TransportMode]}
+    //       </div>
+    //       <div className="text-xs text-[var(--text-subtle)]">
+    //         {myMember.originAddress}
+    //       </div>
+    //     </div>
+    //   );
+    // }
 
     mySection = (
-      <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base text-[var(--text)]">
-            내 정보
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <div className="border-y border-[var(--border)] bg-[var(--bg-soft)] py-3">
           <div className="flex items-center gap-3">
             {myAvatar}
             <div className="flex-1">
               <p className="text-sm font-semibold text-[var(--text)]">
                 {myMember.name}
               </p>
-              {myTransport}
+              {/* {myTransport} */}
             </div>
           </div>
 
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-[var(--text-subtle)]">닉네임 설정 :</span>
-            <input
-              type="text"
-              placeholder="미입력 시 이름으로 표시"
-              value={myNickname}
-              onChange={(e) => setMyNickname(e.target.value)}
-              className="flex-1 rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 py-1 text-[var(--text)] outline-none"
-            />
+            <span className="text-[var(--text-subtle)]">닉네임</span>
+            <Input
+            type="text"
+            placeholder="필요시 닉네임을 입력하세요"
+            value={myNickname}
+            onChange={(e) => setMyNickname(e.target.value)}
+            className="h-10 flex-1 rounded-xl"
+          />
             <Button
               type="button"
               variant="outline"
-              className="border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
+              className="border-[var(--border)] rounded-xl py-5 bg-[var(--primary)] text-[var(--primary-soft)]"
               onClick={() =>
                 onPersonalChange(myMember.participantId, myNickname)
               }
@@ -108,21 +103,15 @@ export default function MemberStatusList({ members, onPersonalChange }: Props) {
               저장
             </Button>
           </div>
-        </CardContent>
-      </Card>
+      </div>
     );
   }
 
   let othersSection: ReactNode = null;
   if (otherMembers.length > 0) {
     othersSection = (
-      <Card className="border border-[var(--border)] bg-[var(--bg-soft)]">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base text-[var(--text)]">
-            다른 참여자
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
+      <div className="">
+        <div className="grid gap-0 grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
           {otherMembers.map((member) => {
             let memberAvatar: ReactNode = (
               <div className="h-10 w-10 rounded-full bg-[var(--neutral-soft)]" />
@@ -139,20 +128,20 @@ export default function MemberStatusList({ members, onPersonalChange }: Props) {
               );
             }
 
-            let memberTransport: ReactNode = null;
-            if (member.originAddress && member.transport) {
-              memberTransport = (
-                <div className="mt-1 flex items-center gap-2">
-                  <div className="flex items-center gap-1 rounded-full bg-[var(--neutral-soft)] px-3 py-1 text-xs font-semibold text-[var(--text)]">
-                    {transportIconMap[member.transport as TransportMode]}{" "}
-                    {transportLabelMap[member.transport as TransportMode]}
-                  </div>
-                  <div className="text-xs text-[var(--text-subtle)]">
-                    {member.originAddress}
-                  </div>
-                </div>
-              );
-            }
+            // let memberTransport: ReactNode = null;
+            // if (member.originAddress && member.transport) {
+            //   memberTransport = (
+            //     <div className="mt-1 flex items-center gap-2">
+            //       <div className="flex items-center gap-1 rounded-full bg-[var(--neutral-soft)] px-3 py-1 text-xs font-semibold text-[var(--text)]">
+            //         {/* {transportIconMap[member.transport as TransportMode]}{" "}
+            //         {transportLabelMap[member.transport as TransportMode]} */}
+            //       </div>
+            //       <div className="text-xs text-[var(--text-subtle)]">
+            //         {member.originAddress}
+            //       </div>
+            //     </div>
+            //   );
+            // }
 
             let nicknameLine: ReactNode = null;
             if (member.nickname) {
@@ -174,15 +163,15 @@ export default function MemberStatusList({ members, onPersonalChange }: Props) {
                     <p className="text-sm font-semibold text-[var(--text)]">
                       {member.name}
                     </p>
-                    {memberTransport}
+                    {/* {memberTransport} */}
                   </div>
                 </div>
                 {nicknameLine}
               </div>
             );
           })}
-        </CardContent>
-      </Card>
+       </div>
+      </div>
     );
   }
 
