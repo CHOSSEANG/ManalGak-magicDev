@@ -15,6 +15,10 @@ export const getCandidatePlaces = (
     params ? { params } : undefined
   )
 
+// 선택된(확정된) 장소 조회
+export const getSelectedPlace = (meetingUuid: string) =>
+  apiClient.get(`/v1/meetings/${meetingUuid}/place`)
+
 export const getCandidateSummary = (
   meetingUuid: string,
   candidateId: number,

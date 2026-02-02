@@ -16,6 +16,7 @@ import {
   SquareMousePointer,
   Users,
   MapPin,
+  Navigation,
   CheckCircle,
   LogOut,
   ChevronRight,
@@ -47,20 +48,24 @@ const MENUS = [
   {
     label: "출발지 설정",
     href: "/meetings/new/step3-meeting",
-    icon: Users,
+    icon: MapPin,
   },
-  { label: "추천 장소 선택", href: "/meetings/new/step4-result", icon: MapPin },
-  { label: "최근 확정모임 조희", href: "/meetings/complete", icon: CheckCircle },
+  {
+    label: "추천 장소 선택",
+    href: "/meetings/new/step4-result",
+    icon: Navigation,
+  },
+  {
+    label: "최근 확정모임 조회",
+    href: "/meetings/complete",
+    icon: CheckCircle,
+  },
 ];
 const OPT_MENUS = [
   { label: "회비 계산기", href: "/meetings/fee", icon: Calculator },
 ];
 
-const NO_UUID_PATHS = [
-  "/my",
-  "/meetings/new",
-  "/meetings/fee",
-];
+const NO_UUID_PATHS = ["/my", "/meetings/new", "/meetings/fee"];
 
 const isValidUuid = (value: string | null): value is string => {
   if (!value) return false;
@@ -174,16 +179,13 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/30"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 bg-black/30" onClick={onClose}>
       <motion.aside
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "tween", duration: 0.25 }}
-        className="fixed right-0 top-0 h-full w-[78%] max-w-sm bg-[var(--bg)]"
+        className="fixed right-0 top-0 h-full w-[78%] max-w-sm bg-[var(--bg)] rounded-l-2xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -192,9 +194,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
         <div className="flex h-full flex-col p-3">
           {/* Top bar: close + title */}
           <div className="flex items-center justify-between">
-            <div className="min-w-0">
-
-            </div>
+            <div className="min-w-0"></div>
 
             <Button
               type="button"
@@ -202,6 +202,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
               size="icon"
               onClick={onClose}
               aria-label="메뉴 닫기"
+              className="rounded-xl h-9 w-9"
             >
               <X className="h-5 w-5 text-[var(--text)]" />
             </Button>
@@ -210,104 +211,103 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
           {/* Content */}
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             {/* Profile Card */}
-              <div className="">
-                <div className="flex items-center gap-3">
-                  <ProfileIdentity
-                    src={user?.profileImage}
-                    name={user?.name ?? "로그인 필요"}
-                    isLoading={isLoading}
-                    size={48}
-                    layout="row"
-                    shape="square"
-                  />
-                </div>
+            <div className="">
+              <div className="flex items-center gap-3">
+                <ProfileIdentity
+                  src={user?.profileImage}
+                  name={user?.name ?? "로그인 필요"}
+                  isLoading={isLoading}
+                  size={48}
+                  layout="row"
+                  shape="square"
+                />
               </div>
-
+            </div>
 
             {/* My menus (login only) */}
 
-              <div className="">
-                {!isLoggedIn ? (
-                  <div className="px-2 py-3  text-[var(--text-subtle)]">
-                    로그인하면 내 메뉴가 표시됩니다.
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {MY_MENUS.map(({ label, href, icon: Icon }) => (
-                      <Button
-                        key={href}
-                        type="button"
-                        variant="outline"
-                        onClick={() => handleNavigate(href)}
-                        className="w-full justify-between border-[var(--border)] bg-[var(--bg)] px-3 py-6"
-                      >
-                        <span className="flex items-center gap-3">
-                          <Icon className="h-5 w-5 text-[var(--text-subtle)]" />
-                          <span className=" text-[var(--text)]">
-                            {label}
-                          </span>
+            <div className="">
+              {!isLoggedIn ? (
+                <div className="px-2 py-3  text-[var(--text-subtle)]">
+                  로그인하면 내 메뉴가 표시됩니다.
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {MY_MENUS.map(({ label, href, icon: Icon }) => (
+                    <Button
+                      key={href}
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleNavigate(href)}
+                      className="w-full justify-between rounded-xl border-[var(--border)] bg-[var(--bg)] px-3 py-6 hover:bg-[var(--wf-highlight-soft)] transition-colors"
+                    >
+                      <span className="flex items-center gap-3">
+                        <Icon className="h-5 w-5 text-[var(--wf-accent)]" />
+                        <span className="text-[var(--text)] font-medium text-sm sm:text-base">
+                          {label}
                         </span>
-                        <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
-                      </Button>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      </span>
+                      <ChevronRight className="h-5 w-5 text-[var(--text-subtle)]" />{" "}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Meeting flow */}
-            <div className="space-y-3 w-full justify-between border border-[var(--border)] bg-[var(--bg)] px-3 py-3">
+            <div className="space-y-3 w-full justify-between rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-4">
               {/* 상위 메뉴 */}
               <button
                 type="button"
                 className="flex w-full items-center justify-between text-left text-[var(--text)]"
               >
                 <span className="font-semibold">모임 사용하기 </span>
-                <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                <ChevronRight className="h-5 w-5 text-[var(--text-subtle)]" />{" "}
               </button>
 
               {/* 하위 스텝 */}
-              <div className="ml-2 border-l border-[var(--border)] pl-3 space-y-5">
+              <div className="ml-2 border-l border-[var(--border)] pl-3 space-y-3">
+                {" "}
                 {MENUS.map(({ label, href, icon: Icon }) => (
                   <button
                     key={href}
                     type="button"
                     onClick={() => handleNavigate(href)}
-                    className="block w-full text-left text-[var(--text-subtle)] hover:text-[var(--text)] hover:bg-[var(--bg-subtle)]"
+                    className="block w-full rounded-lg px-3 py-2 text-left text-[var(--text)] hover:bg-[var(--wf-highlight-soft)] transition-colors"
                   >
                     <span className="flex items-center gap-3">
-                          <Icon className="h-5 w-5 text-[var(--text-subtle)]" />
-                          <span className=" text-[var(--text)]">
-                            {label}
-                          </span>
-                        </span>
+                      <Icon className="h-5 w-5 text-[var(--wf-accent)]" />
+                      <span className="text-[var(--text)] font-medium text-sm sm:text-base">
+                        {label}
+                      </span>
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="">
-                  <div className="space-y-1">
-                    {OPT_MENUS.map(({ label, href, icon: Icon }) => (
-                      <Button
-                        key={href}
-                        type="button"
-                        variant="outline"
-                        onClick={() => handleNavigate(href)}
-                        className="w-full justify-between border-[var(--border)] bg-[var(--bg)] px-3 py-6"
-                      >
-                        <span className="flex items-center gap-3">
-                          <Icon className="h-5 w-5 text-[var(--text-subtle)]" />
-                          <span className=" text-[var(--text)]">
-                            {label}
-                          </span>
-                        </span>
-                        <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
-                      </Button>
-                    ))}
-                  </div>
+              <div className="space-y-1">
+                {OPT_MENUS.map(({ label, href, icon: Icon }) => (
+                  <Button
+                    key={href}
+                    type="button"
+                    variant="outline"
+                    onClick={() => handleNavigate(href)}
+                    className="w-full justify-between rounded-xl border-[var(--border)] bg-[var(--bg)] px-3 py-6 hover:bg-[var(--wf-highlight-soft)] transition-colors"
+                  >
+                    <span className="flex items-center gap-3">
+                      <Icon className="h-5 w-5 text-[var(--wf-accent)]" />
+                      <span className="text-[var(--text)] font-medium text-sm sm:text-base">
+                        {label}
+                      </span>
+                    </span>
+                    <ChevronRight className="h-5 w-5 text-[var(--text-subtle)]" />{" "}
+                  </Button>
+                ))}
               </div>
-
-</div>
+            </div>
+          </div>
           {/* Global Footer */}
           <Footer />
 
@@ -317,7 +317,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
               <Button
                 type="button"
                 onClick={handleLogout}
-                className="w-full gap-2 bg-[var(--kakao-yellow)] text-[var(--text)] p-6 rounded-xl"
+                className="w-full gap-2 bg-[var(--kakao-yellow)] text-[var(--text)] p-6 rounded-2xl"
               >
                 <LogOut className="h-5 w-5" />
                 로그아웃
@@ -326,12 +326,11 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
               <Button
                 type="button"
                 onClick={handleLoginClick}
-                className="w-full bg-[var(--kakao-yellow)] text-[var(--text] p-6 rounded-xl"
+                className="w-full bg-[var(--kakao-yellow)] text-[var(--text)] p-6 rounded-2xl"
               >
                 카카오 로그인
               </Button>
             )}
-
           </div>
         </div>
       </motion.aside>

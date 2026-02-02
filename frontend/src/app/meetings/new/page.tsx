@@ -354,167 +354,167 @@ const handleEntryClick = (meeting: Meeting) => {
                       </div>
 
                       {/* ===== Actions ===== */}
-<div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
 
-  {/* =========================
-      Desktop Buttons
-      ========================= */}
-  <div className="hidden sm:flex gap-2">
+                      {/* =========================
+                          Desktop Buttons
+                          ========================= */}
+                      <div className="hidden sm:flex gap-2">
 
-    {/* ===== 수정 버튼 ===== */}
+                        {/* ===== 수정 버튼 ===== */}
 
-    {/* 모임장 + 미확정 → step1 */}
-    {isOrganizer && !isCompleted && (
-      <Button
-        size="sm"
-        className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
-        onClick={() => goToEditPage(meeting.meetingUuid!)} // step1
-      >
-        수정
-      </Button>
-    )}
+                        {/* 모임장 + 미확정 → step1 */}
+                        {isOrganizer && !isCompleted && (
+                          <Button
+                            size="sm"
+                            className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
+                            onClick={() => goToEditPage(meeting.meetingUuid!)} // step1
+                          >
+                            수정
+                          </Button>
+                        )}
 
-    {/* 참여자 + 미확정 → step3 */}
-    {!isOrganizer && !isCompleted && (
-      <Button
-        size="sm"
-        className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
-        onClick={() =>
-          router.push(
-            `/meetings/new/step3-meeting?meetingUuid=${meeting.meetingUuid}`
-          )
-        }
-      >
-        수정
-      </Button>
-    )}
+                        {/* 참여자 + 미확정 → step3 */}
+                        {!isOrganizer && !isCompleted && (
+                          <Button
+                            size="sm"
+                            className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
+                            onClick={() =>
+                              router.push(
+                                `/meetings/new/step3-meeting?meetingUuid=${meeting.meetingUuid}`
+                              )
+                            }
+                          >
+                            수정
+                          </Button>
+                        )}
 
-    {/* ===== 조회 버튼 (확정일 때만) ===== */}
-    {isCompleted && (
-      <Button
-        size="sm"
-        className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
-        onClick={() => goToConfirmPage(meeting.meetingUuid!)}
-      >
-        조회
-      </Button>
-    )}
+                        {/* ===== 조회 버튼 (확정일 때만) ===== */}
+                        {isCompleted && (
+                          <Button
+                            size="sm"
+                            className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
+                            onClick={() => goToConfirmPage(meeting.meetingUuid!)}
+                          >
+                            조회
+                          </Button>
+                        )}
 
-    {/* ===== 복사 버튼 (항상 노출) ===== */}
-    <Button
-      size="sm"
-      className="bg-[var(--primary-base)] text-[var(--primary)] rounded"
-      onClick={() => handleCopy(meeting.meetingUuid!)}
-    >
-      복사
-    </Button>
+                        {/* ===== 복사 버튼 (항상 노출) ===== */}
+                        <Button
+                          size="sm"
+                          className="bg-[var(--primary-base)] text-[var(--primary)] rounded"
+                          onClick={() => handleCopy(meeting.meetingUuid!)}
+                        >
+                          복사
+                        </Button>
 
-    {/* ===== 삭제 버튼 (모임장만, 확정/미확정 모두) ===== */}
-    {isOrganizer && (
-      <Button
-        size="sm"
-        className="bg-[var(--danger-soft)] text-[var(--danger)] rounded"
-        onClick={() =>
-          handleDelete(meeting.meetingUuid!, meeting.organizerId)
-        }
-      >
-        삭제
-      </Button>
-    )}
-  </div>
+                        {/* ===== 삭제 버튼 (모임장만, 확정/미확정 모두) ===== */}
+                        {isOrganizer && (
+                          <Button
+                            size="sm"
+                            className="bg-[var(--danger-soft)] text-[var(--danger)] rounded"
+                            onClick={() =>
+                              handleDelete(meeting.meetingUuid!, meeting.organizerId)
+                            }
+                          >
+                            삭제
+                          </Button>
+                        )}
+                      </div>
 
-  {/* =========================
-      Mobile Dropdown
-      ========================= */}
-  <div className="sm:hidden shrink-0">
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <button
-          className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
-          aria-label="더보기"
-        >
-          <MoreHorizontal className="h-5 w-5 text-[var(--text)]" />
-        </button>
-      </DropdownMenuTrigger>
+                      {/* =========================
+                          Mobile Dropdown
+                          ========================= */}
+                      <div className="sm:hidden shrink-0">
+                        <DropdownMenu modal={false}>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
+                              aria-label="더보기"
+                            >
+                              <MoreHorizontal className="h-5 w-5 text-[var(--text)]" />
+                            </button>
+                          </DropdownMenuTrigger>
 
-      <DropdownMenuPortal>
-        <DropdownMenuContent
-          align="end"
-          className="bg-[var(--bg)] border border-[var(--border)] shadow-md overflow-hidden"
-        >
+                          <DropdownMenuPortal>
+                            <DropdownMenuContent
+                              align="end"
+                              className="bg-[var(--bg)] border border-[var(--border)] shadow-md overflow-hidden"
+                            >
 
-          {/* ===== 수정 버튼 ===== */}
+                              {/* ===== 수정 버튼 ===== */}
 
-          {/* 모임장 + 미확정 → step1 */}
-          {isOrganizer && !isCompleted && (
-            <DropdownMenuItem
-              className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
-              onClick={(e) => {
-                e.stopPropagation();
-                goToEditPage(meeting.meetingUuid!);
-              }}
-            >
-              수정
-            </DropdownMenuItem>
-          )}
+                              {/* 모임장 + 미확정 → step1 */}
+                              {isOrganizer && !isCompleted && (
+                                <DropdownMenuItem
+                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    goToEditPage(meeting.meetingUuid!);
+                                  }}
+                                >
+                                  수정
+                                </DropdownMenuItem>
+                              )}
 
-          {/* 참여자 + 미확정 → step3 */}
-          {!isOrganizer && !isCompleted && (
-            <DropdownMenuItem
-              className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(
-                  `/meetings/new/step3-meeting?meetingUuid=${meeting.meetingUuid}`
-                );
-              }}
-            >
-              수정
-            </DropdownMenuItem>
-          )}
+                              {/* 참여자 + 미확정 → step3 */}
+                              {!isOrganizer && !isCompleted && (
+                                <DropdownMenuItem
+                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push(
+                                      `/meetings/new/step3-meeting?meetingUuid=${meeting.meetingUuid}`
+                                    );
+                                  }}
+                                >
+                                  수정
+                                </DropdownMenuItem>
+                              )}
 
-          {/* ===== 조회 버튼 (확정일 때만) ===== */}
-          {isCompleted && (
-            <DropdownMenuItem
-              className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
-              onClick={(e) => {
-                e.stopPropagation();
-                goToConfirmPage(meeting.meetingUuid!);
-              }}
-            >
-              조회
-            </DropdownMenuItem>
-          )}
+                              {/* ===== 조회 버튼 (확정일 때만) ===== */}
+                              {isCompleted && (
+                                <DropdownMenuItem
+                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    goToConfirmPage(meeting.meetingUuid!);
+                                  }}
+                                >
+                                  조회
+                                </DropdownMenuItem>
+                              )}
 
-          {/* ===== 복사 버튼 (항상 노출) ===== */}
-          <DropdownMenuItem
-            className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCopy(meeting.meetingUuid!);
-            }}
-          >
-            복사
-          </DropdownMenuItem>
+                              {/* ===== 복사 버튼 (항상 노출) ===== */}
+                              <DropdownMenuItem
+                                className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopy(meeting.meetingUuid!);
+                                }}
+                              >
+                                복사
+                              </DropdownMenuItem>
 
-          {/* ===== 삭제 버튼 (모임장만) ===== */}
-          {isOrganizer && (
-            <DropdownMenuItem
-              className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(meeting.meetingUuid!, meeting.organizerId);
-              }}
-            >
-              삭제
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </DropdownMenu>
-  </div>
-</div>
-{/*/오른쪽 버튼 끝 /*/}
+                              {/* ===== 삭제 버튼 (모임장만) ===== */}
+                              {isOrganizer && (
+                                <DropdownMenuItem
+                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(meeting.meetingUuid!, meeting.organizerId);
+                                  }}
+                                >
+                                  삭제
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                    {/*/오른쪽 버튼 끝 /*/}
 
                       </div>
                     </div>

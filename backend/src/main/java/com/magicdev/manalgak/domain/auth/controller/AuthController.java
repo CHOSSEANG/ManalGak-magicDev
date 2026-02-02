@@ -21,7 +21,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Optional;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 
 @Tag(name = "Auth", description = "로그인 API")
 @Slf4j
@@ -33,20 +34,15 @@ public class AuthController {
     private String loginSuccessUrl;
 
     private final KakaoLoginService kakaoLoginService;
-
     private final UserService userService;
+    private final Environment environment;
 
     @Operation(summary = "카카오 로그인 콜백", description = "카카오 로그인 후 redirect되는 콜백 URL입니다.")
     @GetMapping("/auth/kakao/callback")
-    public ResponseEntity<?> kakaoCallback( @RequestParam("code") String code) {
+    public ResponseEntity<?> kakaoCallback(@RequestParam("code") String code) {
         String jwtToken = kakaoLoginService.login(code);
 
-        ResponseCookie cookie = ResponseCookie.from("token",jwtToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .sameSite("None")
-                .build();
+        ResponseCookie cookie = buildTokenCookie(jwtToken);
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -72,19 +68,35 @@ public class AuthController {
     @Operation(summary = "로그아웃", description = "해당 웹을 로그아웃합니다.")
     @GetMapping("/auth/logout")
     public ResponseEntity<CommonResponse<Void>> logout(HttpServletResponse response) {
-
-        ResponseCookie cookie = ResponseCookie.from("token",null)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
-                .build();
+        ResponseCookie cookie = buildExpiredCookie();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok(CommonResponse.success(null));
     }
 
+    private boolean isLocalProfile() {
+        return environment.acceptsProfiles(Profiles.of("local"));
+    }
 
+    private ResponseCookie buildTokenCookie(String token) {
+        boolean isLocal = isLocalProfile();
+        return ResponseCookie.from("token", token)
+                .httpOnly(true)
+                .secure(!isLocal)
+                .path("/")
+                .sameSite(isLocal ? "Lax" : "None")
+                .build();
+    }
+
+    private ResponseCookie buildExpiredCookie() {
+        boolean isLocal = isLocalProfile();
+        return ResponseCookie.from("token", null)
+                .httpOnly(true)
+                .secure(!isLocal)
+                .path("/")
+                .maxAge(0)
+                .sameSite(isLocal ? "Lax" : "None")
+                .build();
+    }
 }

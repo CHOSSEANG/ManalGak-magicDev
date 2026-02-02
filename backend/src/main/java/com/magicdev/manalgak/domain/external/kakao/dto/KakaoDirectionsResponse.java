@@ -1,5 +1,6 @@
 package com.magicdev.manalgak.domain.external.kakao.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,12 +13,16 @@ import java.util.List;
 @NoArgsConstructor
 public class KakaoDirectionsResponse {
 
+    @JsonProperty("trans_id")
+    private String transId;
     private List<Route> routes;
 
     @Data
     @NoArgsConstructor
     public static class Route {
+        @JsonProperty("result_code")
         private int result_code;
+        @JsonProperty("result_msg")
         private String result_msg;
         private Summary summary;
         private List<Section> sections;
@@ -54,5 +59,31 @@ public class KakaoDirectionsResponse {
         private int distance;
         private int duration;
         private double[] vertexes;  // [lng, lat, lng, lat, ...]
+    }
+
+    public int getDurationInMinutes() {
+        if (routes == null || routes.isEmpty()) {
+            return 0;
+        }
+        Route route = routes.get(0);
+        if (route.getSummary() == null) {
+            return 0;
+        }
+        return route.getSummary().getDuration() / 60;
+    }
+
+    public int getDistanceInMeters() {
+        if (routes == null || routes.isEmpty()) {
+            return 0;
+        }
+        Route route = routes.get(0);
+        if (route.getSummary() == null) {
+            return 0;
+        }
+        return route.getSummary().getDistance();
+    }
+
+    public boolean isSuccess() {
+        return routes != null && !routes.isEmpty() && routes.get(0).getResult_code() == 0;
     }
 }

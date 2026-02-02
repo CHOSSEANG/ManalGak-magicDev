@@ -2,7 +2,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Home, PlusCircle, CheckCircle, UserPen, SquareMousePointer } from "lucide-react";
+import { Home, PlusCircle, UserPen, SquareMousePointer } from "lucide-react";
 import clsx from "clsx";
 
 export default function BottomTabNav() {
@@ -10,9 +10,9 @@ export default function BottomTabNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const readonlyParam = searchParams.get('readonly') === 'true'
+  const readonlyParam = searchParams.get("readonly") === "true";
 
-  let meetingUuid = searchParams.get('meetingUuid')
+  let meetingUuid = searchParams.get("meetingUuid");
 
   if (!meetingUuid) {
     const match = pathname.match(/\/meetings\/([^/]+)\/complete/);
@@ -20,21 +20,21 @@ export default function BottomTabNav() {
   }
 
   const buildHref = (basePath: string) => {
-    if (!meetingUuid) return basePath
+    if (!meetingUuid) return basePath;
 
-    const params = new URLSearchParams()
-    params.set('meetingUuid', meetingUuid)
-    if (readonlyParam) params.set('readonly', 'true')
+    const params = new URLSearchParams();
+    params.set("meetingUuid", meetingUuid);
+    if (readonlyParam) params.set("readonly", "true");
 
-    return `${basePath}?${params.toString()}`
-  }
+    return `${basePath}?${params.toString()}`;
+  };
 
   const TABS = [
     { label: "홈", href: "/", icon: Home },
     { label: "모임리스트", href: "/meetings/new", icon: SquareMousePointer },
     {
-      label: '모임생성',
-      href: buildHref('/meetings/new/step1-basic'),
+      label: "모임생성",
+      href: buildHref("/meetings/new/step1-basic"),
       icon: PlusCircle,
     },
     // {
@@ -49,13 +49,7 @@ export default function BottomTabNav() {
     //   href: buildHref('/meetings/new/step3-result'),
     //   icon: MapPin,
     // },
-    {
-      label: '확정내용',
-      href: meetingUuid
-        ? `/meetings/${meetingUuid}/complete${readonlyParam ? '?readonly=true' : ''}`
-        : `/meetings/none`,
-      icon: CheckCircle,
-    },
+
     { label: "마이페이지", href: "/my", icon: UserPen },
   ];
 
@@ -89,7 +83,7 @@ export default function BottomTabNav() {
                 "h-5 w-5",
                 isActive
                   ? "text-[var(--primary)]"
-                  : "text-[var(--text-subtle)]"
+                  : "text-[var(--text-subtle)]",
               )}
             />
 
@@ -97,8 +91,8 @@ export default function BottomTabNav() {
               className={clsx(
                 "mt-0.5 text-xs leading-none",
                 isActive
-                 ? "font-bold text-[var(--primary)]"
-                 : "text-[var(--text-subtle)]"
+                  ? "font-bold text-[var(--primary)]"
+                  : "text-[var(--text-subtle)]",
               )}
             >
               {label}

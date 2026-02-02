@@ -3,6 +3,7 @@ package com.magicdev.manalgak.domain.route.service;
 import com.magicdev.manalgak.common.exception.BusinessException;
 import com.magicdev.manalgak.domain.algorithm.entity.MeetingCandidate;
 import com.magicdev.manalgak.domain.algorithm.repository.MeetingCandidateRepository;
+import com.magicdev.manalgak.domain.external.kakao.service.KakaoMapsApiService;
 import com.magicdev.manalgak.domain.external.odsay.service.OdsayApiService;
 import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
@@ -21,7 +22,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +40,9 @@ class RouteServiceTest {
 
     @Mock
     private OdsayApiService odsayApiService;
+
+    @Mock
+    private KakaoMapsApiService kakaoMapsApiService;
 
     @Mock
     private ObjectProvider<MeetingCandidateRepository> meetingCandidateRepositoryProvider;
@@ -74,6 +77,7 @@ class RouteServiceTest {
         routeService = new RouteService(
                 redisTemplate,
                 odsayApiService,
+                kakaoMapsApiService,
                 meetingCandidateRepositoryProvider,
                 participantRepositoryProvider,
                 meetingRepositoryProvider
@@ -223,14 +227,14 @@ class RouteServiceTest {
 
     private List<Participant> createMockParticipants() {
         Location origin1 = new Location(
-                new BigDecimal("37.4"),
-                new BigDecimal("126.9"),
+                37.4,
+                126.9,
                 "서울시 강남구"
         );
 
         Location origin2 = new Location(
-                new BigDecimal("37.6"),
-                new BigDecimal("127.1"),
+                37.6,
+                127.1,
                 "서울시 강북구"
         );
 

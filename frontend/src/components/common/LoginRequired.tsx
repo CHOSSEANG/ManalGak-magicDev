@@ -2,15 +2,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-
-// shadcn/ui
+import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "../ui/card";
+import { CalendarPlus } from "lucide-react";
 
 export default function LoginRequired(): JSX.Element {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function LoginRequired(): JSX.Element {
     router.push("/");
   };
 
-    const handleKakaoLogin = () => {
+  const handleKakaoLogin = () => {
     const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
     const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
 
@@ -44,38 +44,33 @@ export default function LoginRequired(): JSX.Element {
 
   return (
     <main className="flex min-h-[60vh] items-center justify-center px-6">
-      <Card className="w-full max-w-md border-[var(--border)] ">
-        {/* Header */}
-        <CardHeader className="text-center">
-          <CardTitle className="text-[var(--text)]">
+      <Card className="w-full max-w-md text-center border-[var(--border)] bg-[var(--bg-soft)] shadow-md">
+        <CardHeader className="space-y-3">
+          {/* 아이콘 */}
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--primary-soft)]">
+            <CalendarPlus className="h-6 w-6 text-[var(--primary)]" />
+          </div>
+
+          <CardTitle className="text-lg font-semibold text-[var(--text)]">
             로그인이 필요해요
           </CardTitle>
-          <CardDescription className="text-[var(--text-subtle)]">
-            서비스를 이용하려면 <br />
+
+          <CardDescription className="text-sm leading-relaxed text-[var(--text-subtle)]">
+            서비스를 이용하려면
+            <br />
             먼저 로그인해야 합니다.
           </CardDescription>
         </CardHeader>
 
-        {/* CTA */}
-        <section className="px-6">
-          <div className="mx-auto max-w-3xl">
-            <Card className="p-12 text-center space-y-6">
-              <h2 className="text-3xl font-bold">
-                지금 바로 시작해보세요
-              </h2>
-              <p className="text-[var(--text-subtle)]">
-                더 이상 약속 장소로 고민하지 마세요
-              </p>
-              <Button
-                size="lg"
-                className="rounded-full bg-[var(--kakao-yellow)] py-6"
-                onClick={handleKakaoLogin}
-              >
-                카카오로 3초만에 시작하기
-              </Button>
-            </Card>
-          </div>
-        </section>
+        <CardContent className="pt-2">
+          <Button
+            type="button"
+            onClick={handleKakaoLogin}
+            className="w-full gap-2 rounded-xl bg-[var(--primary)] py-5 text-[var(--primary-foreground)]"
+          >
+            카카오로 로그인하기
+          </Button>
+        </CardContent>
       </Card>
     </main>
   );

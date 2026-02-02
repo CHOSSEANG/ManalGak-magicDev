@@ -50,10 +50,6 @@ export default function RequireMeeting(): JSX.Element {
             <CalendarPlus className="h-4 w-4" />
             모임 만들기 시작하기
           </Button>
-
-          <p className="mt-3 text-xs text-[var(--text-subtle)]">
-             모임 준비, 지금 시작해요 🙂
-          </p>
         </CardContent>
       </Card>
     </main>

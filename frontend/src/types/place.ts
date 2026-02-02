@@ -13,6 +13,25 @@ export interface PlaceCandidate {
   rating?: number;
 }
 
+// 선택된(확정된) 장소 응답 타입
+export interface SelectedPlace {
+  placeId?: string;
+  placeName?: string;
+  category?: string;
+  categoryGroupCode?: string;
+  categoryGroupName?: string;
+  categoryName?: string;
+  address?: string;
+  roadAddress?: string;
+  latitude?: number;
+  longitude?: number;
+  distance?: number;
+  walkingMinutes?: number;
+  stationName?: string;
+  phone?: string;
+  placeUrl?: string;
+}
+
 export interface PlaceResponse {
   places?: PlaceCandidate[];
   totalCount?: number;

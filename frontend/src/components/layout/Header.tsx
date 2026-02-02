@@ -35,12 +35,14 @@ export default function Header() {
     <QueryClientProvider client={queryClient}>
       <>
         {/* Header Container */}
-        <Card className="sticky top-0 z-30
+        <Card
+          className="sticky top-0 z-30
               rounded-none
               shadow-none
               border-0
               border-b border-[var(--border)]
-              bg-[var(--bg)]">
+              bg-[var(--bg)]"
+        >
           <header className="flex h-14 items-center justify-between px-4">
             {/* LEFT : Logo */}
             <Tooltip>
@@ -73,7 +75,7 @@ export default function Header() {
                   aria-expanded={menuOpen}
                   aria-label="전체 메뉴 열기"
                   onClick={toggleMenu}
-                  className="border-[var(--border)] bg-[var(--bg-soft)]"
+                  className="rounded-xl border-[var(--border)] bg-[var(--bg-soft)]"
                 >
                   {menuOpen ? (
                     <X className="h-5 w-5 text-[var(--text)]" />
@@ -82,7 +84,6 @@ export default function Header() {
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>전체 메뉴</TooltipContent>
             </Tooltip>
           </header>
         </Card>
