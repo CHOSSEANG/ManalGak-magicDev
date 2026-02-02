@@ -226,6 +226,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
+  const [isVoteLoading, setIsVoteLoading] = useState(true)  // 투표 데이터 로딩 상태
   const [isCreatingVote, setIsCreatingVote] = useState(false)
   const [isVoting, setIsVoting] = useState(false)
   const [organizerId, setOrganizerId] = useState<number | null>(null)
@@ -507,7 +508,10 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     let cancelled = false
     const initFetchVote = async () => {
       const fetchedVote = await fetchVote()
-      if (!cancelled && fetchedVote) setVoteData(fetchedVote)
+      if (!cancelled) {
+        if (fetchedVote) setVoteData(fetchedVote)
+        setIsVoteLoading(false)  // 로딩 완료
+      }
     }
     initFetchVote()
     return () => {
@@ -687,7 +691,8 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
 
           {/* 투표 중앙 CTA */}
           {/* 1/30[유리] - 투표 가능 시 지도 중앙 CTA(danger) */}
-          {hasVote && (
+          {/* 투표 데이터 로딩 완료 후에만 버튼 표시 (깜빡임 방지) */}
+          {!isVoteLoading && hasVote && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <Button
                 type="button"
