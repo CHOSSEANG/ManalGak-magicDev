@@ -117,7 +117,7 @@ const getTransportCardClass = (key: TransportMode) => {
         </div>
 
         {/* 교통수단 */}
-        <div className="border-v border-[var(--border)] bg-[var(--bg-soft)]">
+        <div className="border-y border-[var(--border)] bg-[var(--bg-soft)]">
           <CardHeader className="pb-3">
             <CardTitle className="text-base text-[var(--text)]">
               나의 교통수단 선택

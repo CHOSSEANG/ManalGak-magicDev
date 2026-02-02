@@ -259,7 +259,7 @@ const applyAddress = (address: string) => {
           </h2>
         </section>
 
-        <div className="" />
+       
 
         {/* 나의 출발지 입력 / 가져오기 */}
         <div className="flex items-center justify-between">

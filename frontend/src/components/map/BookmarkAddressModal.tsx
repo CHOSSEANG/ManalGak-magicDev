@@ -66,7 +66,7 @@ export default function BookmarkAddressModal({
                       onSelect(addr.address)
                       onClose()
                     }}
-                    className="w-full items-center rounded-xl border border-[var(--wf-border)] bg-[var(--primary)] text-[var(--primary-soft)
+                    className="w-full flex items-center rounded-xl border border-[var(--wf-border)] bg-[var(--primary)] text-[var(--primary-soft)]
                     px-4 py-3 text-sm hover:bg-[--primary-base)]"
                   >
                     {/* 카테고리 영역 */}
