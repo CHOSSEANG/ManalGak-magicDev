@@ -34,14 +34,12 @@ import {
   Mountain,
   TreePalm,
   Building2,
-  Users,
-  TrendingUp,
   AlertTriangle,
   type LucideIcon,
 } from 'lucide-react'
 
 // shadcn/ui
-import { Card, CardContent } from '@/components/ui/card'
+
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
