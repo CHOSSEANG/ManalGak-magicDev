@@ -131,5 +131,20 @@ public class VoteServiceImpl implements VoteService{
         return response;
     }
 
+    @Transactional
+    @Override
+    public boolean deleteVoteByMeetingUuid(String meetingUuid) {
+        Optional<Vote> voteOpt = voteRepository.findFirstByMeeting_MeetingUuid(meetingUuid);
+
+        if (voteOpt.isEmpty()) {
+            log.info("삭제할 투표 없음: meetingUuid={}", meetingUuid);
+            return false;
+        }
+
+        voteRepository.delete(voteOpt.get());
+        log.info("투표 삭제 완료 (장소 변경으로 인한 자동 삭제): meetingUuid={}", meetingUuid);
+        return true;
+    }
+
 }
 

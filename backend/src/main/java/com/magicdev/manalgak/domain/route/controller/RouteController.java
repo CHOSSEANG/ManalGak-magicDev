@@ -1,8 +1,13 @@
 package com.magicdev.manalgak.domain.route.controller;
 
 import com.magicdev.manalgak.common.dto.CommonResponse;
+import com.magicdev.manalgak.domain.route.dto.CoordinateRouteRequest;
+import com.magicdev.manalgak.domain.route.dto.MapRouteResponse;
 import com.magicdev.manalgak.domain.route.dto.RouteSummaryRequest;
 import com.magicdev.manalgak.domain.route.dto.RouteSummaryResponse;
+import com.magicdev.manalgak.domain.route.service.MapRouteService;
+import com.magicdev.manalgak.domain.route.service.RouteService;
+import com.magicdev.manalgak.domain.route.dto.RouteResponse;
 import com.magicdev.manalgak.domain.route.service.RouteSummaryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 public class RouteController {
 
     private final RouteSummaryService routeSummaryService;
+    private final MapRouteService mapRouteService;
+    private final RouteService routeService;
 
     @PostMapping("/summarize")
     @Operation(
@@ -29,6 +36,52 @@ public class RouteController {
             @RequestBody @Valid RouteSummaryRequest request
     ) {
         RouteSummaryResponse response = routeSummaryService.summarizeRoutes(meetingUuid, request);
+        return ResponseEntity.ok(CommonResponse.success(response));
+    }
+
+    @GetMapping("/map/{meetingUuid}")
+    @Operation(
+            summary = "지도 경로 조회",
+            description = "Step4 지도에 표시할 참여자 출발지 → 중간지점 도로 경로를 조회합니다."
+    )
+    public ResponseEntity<CommonResponse<MapRouteResponse>> getMapRoutes(
+            @PathVariable String meetingUuid
+    ) {
+        MapRouteResponse response = mapRouteService.getMapRoutes(meetingUuid);
+        return ResponseEntity.ok(CommonResponse.success(response));
+    }
+
+    @GetMapping("/map/{meetingUuid}/place")
+    @Operation(
+            summary = "지도 경로 조회 (확정 장소)",
+            description = "Step6 지도에 표시할 참여자 출발지 → 확정 장소 도로 경로를 조회합니다."
+    )
+    public ResponseEntity<CommonResponse<MapRouteResponse>> getMapRoutesToPlace(
+            @PathVariable String meetingUuid,
+            @RequestParam double destLat,
+            @RequestParam double destLng,
+            @RequestParam String placeName
+    ) {
+        MapRouteResponse response = mapRouteService.getMapRoutesToPlace(
+                meetingUuid, destLat, destLng, placeName
+        );
+        return ResponseEntity.ok(CommonResponse.success(response));
+    }
+
+    @PostMapping("/{meetingUuid}/calculate")
+    @Operation(
+            summary = "좌표 기반 경로 조회",
+            description = "대중교통(ODsay) + 자동차(카카오모빌리티) 이동시간 조회"
+    )
+    public ResponseEntity<CommonResponse<RouteResponse>> calculateRoutes(
+            @PathVariable String meetingUuid,
+            @RequestBody @Valid CoordinateRouteRequest request
+    ) {
+        RouteResponse response = routeService.calculateRoutesByCoordinate(
+                meetingUuid,
+                request.getLatitude(),
+                request.getLongitude()
+        );
         return ResponseEntity.ok(CommonResponse.success(response));
     }
 }

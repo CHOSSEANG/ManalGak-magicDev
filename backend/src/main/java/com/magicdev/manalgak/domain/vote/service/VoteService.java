@@ -18,4 +18,11 @@ public interface VoteService {
 
     VoteResponse getVoteByMeetingUuid(String meetingUuid);
 
+    /**
+     * 모임의 투표 삭제 (장소 변경 시 호출)
+     * @param meetingUuid 모임 UUID
+     * @return 삭제 여부 (투표가 있었으면 true)
+     */
+    boolean deleteVoteByMeetingUuid(String meetingUuid);
+
 }

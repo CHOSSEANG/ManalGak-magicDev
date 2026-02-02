@@ -1,4 +1,4 @@
-// src/app/meetings/new/step2-meetingmembers/page.tsx
+// src/app/meetings/new/step3-meeting/page.tsx
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
@@ -126,11 +126,14 @@ function Step3MembersContent(): JSX.Element {
   const [myParticipantId, setMyParticipantId] = useState<number | null>(null);
   const [meetingData, setMeetingData] = useState<MeetingData | null>(null);
 
+  const [openFetchModal, setOpenFetchModal] = useState(false);
+  // 1/30[유리] - [가져오기] 버튼 모달 트리거 상태 추가
+
   const joinedRef = useRef(false);
 
   const isReadonly = meetingData?.status === "COMPLETED";
- // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const isOrganizer = meetingData?.organizerId === user?.id;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const isOrganizer = meetingData?.organizerId === user?.id;
 
   const prevHref = `/meetings/new/step2-members?meetingUuid=${meetingUuid}${
     readonlyParam ? "&readonly=true" : ""
@@ -202,9 +205,9 @@ const isOrganizer = meetingData?.organizerId === user?.id;
   // =====================
   // 예외 케이스 UI
   // =====================
-   if (!meetingUuid) {
-     return <RequireMeeting />;
-   }
+  if (!meetingUuid) {
+    return <RequireMeeting />;
+  }
 
   if (loading) {
     return (
@@ -221,7 +224,7 @@ const isOrganizer = meetingData?.organizerId === user?.id;
     return <LoginRequired />;
   }
 
-  if (meetingData?.status === 'COMPLETED') {
+  if (meetingData?.status === "COMPLETED") {
     return <CompletedMeetingNotice meetingUuid={meetingUuid} />;
   }
 
@@ -234,60 +237,118 @@ const isOrganizer = meetingData?.organizerId === user?.id;
         {/* ===== Header ===== */}
         <section className="space-y-1">
           <h2 className="text-lg font-semibold text-[var(--text)]">
-             출발지와 교통편을 선택하세요
+            출발지와 교통편을 선택하세요
           </h2>
           <p className="text-sm text-[var(--text-subtle)]">
             출발지·교통수단을 설정하세요.
           </p>
         </section>
 
+        <div className="border-b border-[var(--border)]" />
+        {/* 1/30[유리] - 카드 UI 제거 후 구분선만 유지 */}
+
+        {/* 나의 출발지 입력 / 가져오기 */}
+        <div className="flex items-center justify-between">
+          {/* 1/30[유리] - 한 줄(Row) 정렬 */}
+          <span className="text-sm font-medium text-[var(--text)]">
+            나의 출발지 입력
+          </span>
+          <button
+            type="button"
+            onClick={() => setOpenFetchModal(true)}
+            className="rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-2 text-sm text-[var(--text)]"
+          >
+            가져오기
+          </button>
+          {/* 1/30[유리] - 모달 트리거 버튼 + rounded-full */}
+        </div>
 
         {/* 주소 입력 */}
-            {isLoading ? (
-              <Skeleton className="h-32 w-full rounded-xl bg-[var(--neutral-soft)]" />
-            ) : (
-              <Address
-                originAddress={originAddress}
-                setOriginAddress={setOriginAddress}
-                transport={transport}
-                setTransport={setTransport}
-                readonly={isReadonly}
-              />
-            )}
-       
+        {isLoading ? (
+          <Skeleton className="h-32 w-full rounded-xl bg-[var(--neutral-soft)]" />
+        ) : (
+          <Address
+            originAddress={originAddress}
+            setOriginAddress={setOriginAddress}
+            transport={transport}
+            setTransport={setTransport}
+            readonly={isReadonly}
+          />
+        )}
 
+        <div className="border-b border-[var(--border)]" />
+        {/* 1/30[유리] - 콘텐츠 하단 구분선 추가 */}
       </main>
 
-      <StepNavigation
-        prevHref={prevHref}
-        nextHref={`/meetings/new/step3-result?meetingUuid=${meetingUuid}`}
-        onNext={async () => {
-          if (meetingData?.status === "COMPLETED") {
-            return `/meetings/new/step3-result?meetingUuid=${meetingUuid}`;
-          }
+      {/* 콘텐츠와 이전/다음 버튼 간 여백 */}
+      <div className="mt-10">
+        {/* 1/30[유리] - StepNavigation과 콘텐츠 사이 여백 추가 */}
+        <StepNavigation
+          prevHref={prevHref}
+          nextHref={`/meetings/new/step3-result?meetingUuid=${meetingUuid}`}
+          onNext={async () => {
+            if (meetingData?.status === "COMPLETED") {
+              return `/meetings/new/step3-result?meetingUuid=${meetingUuid}`;
+            }
 
-          if (!myParticipantId) {
-            alert("참여자 정보가 아직 준비되지 않았어요.");
-            throw new Error("participantId 없음");
-          }
+            if (!myParticipantId) {
+              alert("참여자 정보가 아직 준비되지 않았어요.");
+              throw new Error("participantId 없음");
+            }
 
-          if (!transport || !originAddress) {
-            alert("출발지와 이동수단을 입력해주세요.");
-            throw new Error("입력값 부족");
-          }
+            if (!transport || !originAddress) {
+              alert("출발지와 이동수단을 입력해주세요.");
+              throw new Error("입력값 부족");
+            }
 
-          await axios.patch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants/${myParticipantId}`,
-            {
-              type: transport,
-              originAddress,
-            },
-            { withCredentials: true }
-          );
+            await axios.patch(
+              `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants/${myParticipantId}`,
+              {
+                type: transport,
+                originAddress,
+              },
+              { withCredentials: true }
+            );
 
-          return `/meetings/new/step4-result?meetingUuid=${meetingUuid}`;
-        }}
-      />
+            return `/meetings/new/step4-result?meetingUuid=${meetingUuid}`;
+          }}
+        />
+      </div>
+
+      {/* 모달 + 오버레이 */}
+      {openFetchModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* 1/30[유리] - 전체 배경 오버레이 (검정 70%) */}
+          <button
+            type="button"
+            aria-label="모달 닫기"
+            className="absolute inset-0 bg-black/70"
+            onClick={() => setOpenFetchModal(false)}
+          />
+          <div className="relative z-10 w-[min(92vw,420px)] rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
+            {/* 1/30[유리] - 오버레이 위 모달 카드 */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-[var(--text)]">
+                출발지 가져오기
+              </p>
+              <button
+                type="button"
+                onClick={() => setOpenFetchModal(false)}
+                className="rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-3 py-1 text-sm"
+              >
+                닫기
+              </button>
+            </div>
+
+            <div className="mt-3 border-b border-[var(--border)]" />
+
+            <div className="mt-3 text-sm text-[var(--text-subtle)]">
+              가져오기 UI 전용 모달입니다. 실제 데이터 연동은 별도 구현이
+              필요합니다.
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

@@ -140,6 +140,26 @@ jobs:
     environment:
       name: development
     steps:
+      - name: Get GitHub Actions IP
+        id: ip
+        uses: haythem/public-ip@v1.2
+
+      # AWS cli 접근을 위한 AWS 설정 추가
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} # IAM user access_key_id
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # IAM user secret_access_key
+          aws-region: ap-northeast-3
+
+      # AWS EC2에 접근하기 위해 보안그룹에 github ip 추가
+      - name: Add Github Actions IP to Security group
+        run: |
+          aws ec2 authorize-security-group-ingress \
+          --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
+          --protocol tcp --port 22 \
+          --cidr ${{ steps.ip.outputs.ipv4 }}/32  
+
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -226,3 +246,15 @@ jobs:
           echo "✅ Deployment completed successfully!"
           echo "🔗 Application is running at: http://${{ secrets.DEV_SERVER_HOST }}"
           EOF
+          
+      # 보안 그룹에 추가한 github IP 제거
+      - name: Remove Github Actions IP from Security group
+        if: always()
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
+        continue-on-error: true  # 👈 이것도 추가 권장 (이미 제거됐어도 에러 무시)
+          

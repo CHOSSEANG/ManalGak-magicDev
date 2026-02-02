@@ -1,4 +1,4 @@
-// src/app/meetings/new/step2-meetingmembers/page.tsx
+// src/app/meetings/new/step2-members/page.tsx
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
@@ -13,7 +13,6 @@ import LoginRequired from "@/components/common/LoginRequired";
 import CompletedMeetingNotice from "@/components/common/CompletedMeetingNotice";
 import RequireMeeting from "@/components/common/RequireMeeting";
 import { useUser } from "@/context/UserContext";
-
 
 // shadcn/ui
 import {
@@ -131,8 +130,6 @@ function Step3MembersContent(): JSX.Element {
 
   const { user, loading } = useUser();
 
-  // const [originAddress, setOriginAddress] = useState("");
-  // const [transport, setTransport] = useState<TransportMode | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [myParticipantId, setMyParticipantId] = useState<number | null>(null);
   const [meetingData, setMeetingData] = useState<MeetingData | null>(null);
@@ -172,12 +169,6 @@ function Step3MembersContent(): JSX.Element {
 
         if (myParticipant) {
           setMyParticipantId(myParticipant.participantId);
-          // if (myParticipant.origin?.address) {
-          //   setOriginAddress(myParticipant.origin.address);
-          // }
-          // if (myParticipant.transportType) {
-          //   setTransport(myParticipant.transportType);
-          // }
         } else {
           try {
             await axios.post(
@@ -212,8 +203,6 @@ function Step3MembersContent(): JSX.Element {
             }
           }
         }
-      } catch (e) {
-        console.error("모임 조회 실패", e);
       } finally {
         setIsLoading(false);
       }
@@ -225,11 +214,9 @@ function Step3MembersContent(): JSX.Element {
   // =====================
   // 예외 케이스 UI
   // =====================
-  if (!meetingUuid) {
-    return <RequireMeeting />;
-  }
+  if (!meetingUuid) return <RequireMeeting />;
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <div className="mx-auto max-w-xl space-y-4 py-20">
         <Skeleton className="h-24 w-full rounded-xl bg-[var(--neutral-soft)]" />
@@ -244,49 +231,30 @@ function Step3MembersContent(): JSX.Element {
     return <LoginRequired />;
   }
 
-  if (isLoading) {
-    return (
-      <div className="mx-auto max-w-xl space-y-4 py-20">
-        <Skeleton className="h-24 w-full rounded-xl bg-[var(--neutral-soft)]" />
-        <Skeleton className="h-40 w-full rounded-xl bg-[var(--neutral-soft)]" />
-      </div>
-    );
-  }
-
-  // ⭐ COMPLETED 상태 체크 - 확정된 모임 안내 카드 표시
-  if (meetingData?.status === 'COMPLETED') {
+  if (meetingData?.status === "COMPLETED") {
     return <CompletedMeetingNotice meetingUuid={meetingUuid} />;
   }
 
-  // ⭐ 만료된 모임 카드 UI
- if (isExpired) {
-   return (
-     <main className="flex min-h-[60vh] items-center justify-center p-6">
-       <Card className="w-full max-w-md text-center border-red-200 dark:border-red-700 bg-[var(--bg-soft)] shadow-md">
-         <CardHeader className="space-y-3">
-           <div className="text-4xl">⏰</div>
-           <CardTitle className="text-red-600 dark:text-red-400 text-xl font-semibold">
-             이미 만료된 모임입니다
-           </CardTitle>
-           <CardDescription className="text-[var(--text-subtle)] leading-relaxed">
-             이 모임은 참여 기한이 지나
-             <br />
-             새로운 참여자를 받을 수 없습니다.
-           </CardDescription>
-         </CardHeader>
-
-         <CardContent>
-           <Button
-             className="w-full bg-[var(--primary)] text-[var(--primary-foreground)]"
-             onClick={() => router.push("/meetings/new")}
-           >
-             모임 리스트로 이동
-           </Button>
-         </CardContent>
-       </Card>
-     </main>
-   );
- }
+  if (isExpired) {
+    return (
+      <main className="flex min-h-[60vh] items-center justify-center p-6">
+        <Card className="w-full max-w-md text-center bg-[var(--bg-soft)] shadow-none">
+          {/* 1/30[유리] - 카드 그림자 제거 */}
+          <CardHeader>
+            <CardTitle>이미 만료된 모임입니다</CardTitle>
+            <CardDescription>
+              이 모임은 참여 기한이 지났습니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push("/meetings/new")}>
+              모임 리스트로 이동
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
 
   // =====================
   // 정상 화면
@@ -294,69 +262,66 @@ function Step3MembersContent(): JSX.Element {
   return (
     <>
       <main className="mx-auto max-w-xl space-y-6">
-        {/* ===== Header ===== */}
-        <section className="space-y-1">
-          <h2 className="text-lg font-semibold text-[var(--text)]">
-             참여자
-          </h2>
+        <section>
+          <h2 className="text-lg font-semibold">참여자</h2>
           <p className="text-sm text-[var(--text-subtle)]">
             멤버를 초대하세요.
           </p>
         </section>
 
-        {/* 초대 CTA */}
         <Button
-              className="w-full gap-2 py-6 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)]"
-              disabled={isReadonly || !isOrganizer}
-              onClick={() => {
-                if (!meetingData) return;
-                sendKakaoInvite(
-                  meetingUuid,
-                  meetingData.meetingName,
-                  meetingData.meetingTime
-                );
-              }}
-            >
-              <Send size={18} />
-              {isOrganizer
-                ? "참여 멤버 초대"
-                : "모임장만 멤버를 초대할 수 있어요"}
-            </Button>
+          className="w-full gap-2 py-6 rounded-xl bg-[var(--kakao-yellow)] text-black"
+          disabled={isReadonly || !isOrganizer}
+          onClick={() => {
+            if (!meetingData) return;
+            sendKakaoInvite(
+              meetingUuid,
+              meetingData.meetingName,
+              meetingData.meetingTime
+            );
+          }}
+        >
+          {/* 1/30[유리] - 카카오 컬러 토큰 적용 */}
+          <Send size={18} />
+          참여 멤버 초대
+        </Button>
 
+        <p className="text-xs text-[var(--text-subtle)]">
+          참여자 리스트에는 현재 로그인한 사용자만 표시됩니다.
+        </p>
+        {/* 1/30[유리] - 참여자 표시 기준 안내 */}
 
+        <Card className="bg-[var(--bg-soft)] shadow-none">
+          {/* 1/30[유리] - 교통편/주소 비노출 및 닉네임 중심 안내 */}
+          <CardContent className="text-sm text-[var(--text-subtle)]">
+            이 단계에서는 닉네임을 기준으로 참여자가 표시됩니다.
+          </CardContent>
+        </Card>
 
-        {/* 멤버 리스트 */}
-            <MemberList
-              meetingUuid={meetingUuid}
-              userId={user.id}
-              onMyParticipantResolved={(id) => {
-                if (!myParticipantId) {
-                  setMyParticipantId(id);
-                }
-              }}
-              readonly={isReadonly}
-            />
-
+        <MemberList
+          meetingUuid={meetingUuid}
+          userId={user.id}
+          onMyParticipantResolved={(id) => {
+            if (!myParticipantId) setMyParticipantId(id);
+          }}
+          readonly={isReadonly}
+        />
       </main>
 
-      <StepNavigation
-        prevHref={prevHref}
-        nextHref={`/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`}
-        onNext={async () => {
-          if (meetingData?.status === "COMPLETED") {
+      <div className="mt-10">
+        {/* 1/30[유리] - 하단 버튼 영역 상단 여백 추가 */}
+        <StepNavigation
+          prevHref={prevHref}
+          nextHref={`/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`}
+          onNext={async () => {
+            if (!myParticipantId) {
+              alert("참여자 정보가 아직 준비되지 않았어요.");
+              throw new Error("participantId 없음");
+            }
             return `/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`;
-          }
-
-          if (!myParticipantId) {
-            alert("참여자 정보가 아직 준비되지 않았어요.");
-            throw new Error("participantId 없음");
-          }
-
-          // ✅ Step2에서는 여기서 끝
-          return `/meetings/new/step3-meeting?meetingUuid=${meetingUuid}`;
-        }}
-      />
-
+          }}
+        />
+      </div>
     </>
   );
 }
