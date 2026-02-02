@@ -369,10 +369,11 @@ const handleKakaoLogin = () => {
                       
                       {/* ===== Mobile Dropdown ===== */}
                       <div className="sm:hidden">
-                        <DropdownMenu>
+                        <DropdownMenu  modal={false}>
                           <DropdownMenuTrigger asChild>
                             <button
-                              className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
+                                className="p-2 rounded-md hover:bg-[var(--bg-soft)]
+                              "
                               aria-label="더보기"
                             >
                               <MoreHorizontal className="h-5 w-5 text-[var(--text)]" />
@@ -382,24 +383,32 @@ const handleKakaoLogin = () => {
                           <DropdownMenuPortal>
                             <DropdownMenuContent
                               align="end"
-                              className="bg-[var(--bg)] border border-[var(--border)] shadow-md"
+                              className="bg-[var(--bg)] border border-[var(--border)] shadow-md overflow-hidden"
                             >
                               {isOrganizer && (
-                                <DropdownMenuItem onClick={() => goToEditPage(meeting.meetingUuid!)}>
+                                  <DropdownMenuItem
+                                    className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                    onClick={() => goToEditPage(meeting.meetingUuid!)}
+                                  >
                                   수정
                                 </DropdownMenuItem>
                               )}
 
-                              <DropdownMenuItem onClick={() => goToConfirmPage(meeting.meetingUuid!)}>
+                                <DropdownMenuItem
+                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  onClick={() => goToConfirmPage(meeting.meetingUuid!)}>
                                 조회
                               </DropdownMenuItem>
 
-                              <DropdownMenuItem onClick={() => handleCopy(meeting.meetingUuid!)}>
+                                <DropdownMenuItem
+                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  onClick={() => handleCopy(meeting.meetingUuid!)}>
                                 복사
                               </DropdownMenuItem>
 
                               {isOrganizer && (
-                                <DropdownMenuItem
+                                  <DropdownMenuItem
+                                    className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
                                   onClick={() => handleDelete(meeting.meetingUuid!, meeting.organizerId)}
                                 >
                                   삭제
