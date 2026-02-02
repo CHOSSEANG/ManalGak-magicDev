@@ -1,3 +1,4 @@
+// src/components/meeting/Step3/PlaceInfoSection.tsx
 'use client'
 
 // shadcn/ui
