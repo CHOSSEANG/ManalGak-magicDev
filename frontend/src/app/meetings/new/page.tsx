@@ -2,7 +2,8 @@
 // 모임 리스트 페이지
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, useCallback, type ReactNode } from "react";
+
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
@@ -12,9 +13,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarPlus, ChevronDown, Users } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
+
 
 /* ======================
  * Types (변경 없음)
@@ -88,13 +92,11 @@ export default function CreateEntryPage() {
   /* ======================
    * Data Fetch (변경 없음)
    * ====================== */
-  const fetchMeetings = async (page: number, append = false) => {
+  const fetchMeetings = useCallback(
+  async (page: number, append = false) => {
     try {
-      if (append) {
-        setIsLoadingMore(true);
-      } else {
-        setIsLoading(true);
-      }
+      if (append) setIsLoadingMore(true);
+      else setIsLoading(true);
 
       const res = await axios.get(
         `${API_BASE_URL}/v1/meetings/user?page=${page}`,
@@ -107,23 +109,31 @@ export default function CreateEntryPage() {
         } else {
           setExistingMeetings(res.data.data.content);
         }
-
         setPageInfo(res.data.data);
       } else {
         setExistingMeetings([]);
       }
-    } catch (err) {
-      console.error("모임 불러오기 실패", err);
-      setError("모임을 불러오는데 실패했습니다.");
+
+      setError(null);
+    } catch {
+      // 1/30[유리] - 로그인 여부에 따른 에러 문구 분기
+      if (!user) {
+        setError("로그인이 필요합니다");
+      } else {
+        setError("모임을 불러오는 데 실패했습니다");
+      }
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  };
+  },
+  [user]
+);
 
+  
   useEffect(() => {
     fetchMeetings(0);
-  }, []);
+  }, [fetchMeetings]);
 
   const handleLoadMore = () => {
     const next = currentPage + 1;
@@ -132,11 +142,15 @@ export default function CreateEntryPage() {
   };
 
   /* ======================
-   * Navigation (FE only)
+   * Navigation
    * ====================== */
   const goToConfirmPage = (uuid: string) => {
-    // 1/30[유리] - 리스트/조회 클릭 시 확정 페이지로 이동
     router.push(`/meetings/${uuid}/complete`);
+  };
+
+  const goToEditPage = (uuid: string) => {
+    // 1/30[유리] - 수정 버튼: Step1부터 기존 데이터 로드
+    router.push(`/meetings/new/step1-basic?meetingUuid=${uuid}`);
   };
 
   const handleCopy = async (uuid: string) => {
@@ -150,41 +164,24 @@ export default function CreateEntryPage() {
     );
   };
 
-const handleDelete = async (uuid: string, organizerId: number) => {
-  if (user?.id !== organizerId) {
-    alert("모임장이 아닙니다.");
-    return;
-  }
+  const handleDelete = async (uuid: string, organizerId: number) => {
+    if (user?.id !== organizerId) return;
 
-  if (!confirm("정말 이 모임을 삭제하시겠어요?")) return;
+    if (!confirm("정말 이 모임을 삭제하시겠습니까?")) return;
 
-  try {
-    await axios.delete(`${API_BASE_URL}/v1/meetings/${uuid}`, {
-      withCredentials: true,
-    });
+    try {
+      await axios.delete(`${API_BASE_URL}/v1/meetings/${uuid}`, {
+        withCredentials: true,
+      });
 
-    // ✅ 리스트에서 제거
-    setExistingMeetings((prev) =>
-      prev.filter((item) => item.meeting.meetingUuid !== uuid)
-    );
-
-    // ✅ 페이지네이션 정보 갱신
-    setPageInfo((prev) => {
-      if (!prev) return prev;
-
-      const nextTotal = Math.max(0, prev.totalElements - 1);
-
-      return {
-        ...prev,
-        totalElements: nextTotal,
-        empty: nextTotal === 0,
-      };
-    });
-  } catch (err) {
-    console.error("모임 삭제 실패:", err);
-    alert("모임 삭제에 실패했습니다.");
-  }
-};
+      // 1/30[유리] - 삭제 후 페이지 이동 없이 리스트 갱신
+      setExistingMeetings((prev) =>
+        prev.filter((item) => item.meeting.meetingUuid !== uuid)
+      );
+    } catch {
+      alert("모임 삭제에 실패했습니다.");
+    }
+  };
 
   const formatDateTime = (dateString: string) => {
     const d = new Date(dateString);
@@ -197,24 +194,32 @@ const handleDelete = async (uuid: string, organizerId: number) => {
       .padStart(2, "0")}`;
   };
 
+  
   let listState: ReactNode = null;
-  if (isLoading) {
-    listState = <LoadingState />;
-  } else if (error) {
-    listState = (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--danger-soft)] px-4 py-6 text-center">
-        <p className="text-sm text-[var(--danger)]">{error}</p>
-      </div>
-    );
-  } else if (existingMeetings.length === 0) {
-    listState = <EmptyState />;
+  if (isLoading) listState = <LoadingState />;
+    else if (error) {
+      listState = (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--danger-soft)] px-4 py-6 text-center space-y-4">
+          <p className="text-sm text-[var(--danger)]">{error}</p>
+
+          {error === "로그인이 필요합니다" && (
+          <Button
+            onClick={() => {
+              document.getElementById("kakao-login-button")?.click();
+            }}
+          >
+            카카오 로그인
+          </Button>
+        )}
+        </div>
+      );
+    } else if (existingMeetings.length === 0) {
+      listState = <EmptyState />;
   }
+  
 
   return (
-    <main
-      className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6 pb-28 scroll-pt-20"
-      // 1/30[유리] - 바텀네비 및 헤더 가림 방지
-    >
+    <main className="min-h-[calc(100dvh-1px)] bg-[var(--bg)] px-4 py-6 pb-28">
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {/* ===== Header ===== */}
         <section className="space-y-1">
@@ -222,11 +227,11 @@ const handleDelete = async (uuid: string, organizerId: number) => {
             모임 리스트
           </h2>
           <p className="text-sm text-[var(--text-subtle)]">
-            내 모임을 조회, 수정, 복사할 수 있습니다.
+            최근 생성순이 아닌, 최근 조회/활동 기준으로 정렬됩니다
           </p>
         </section>
 
-        {/* ===== Primary CTA ===== */}
+        {/* ===== Primary CTA (변경 금지) ===== */}
         <Button
           onClick={() => router.push("/meetings/new/step1-basic")}
           className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] py-6"
@@ -235,134 +240,139 @@ const handleDelete = async (uuid: string, organizerId: number) => {
           모임 생성하기
         </Button>
 
-        {/* ===== List Section ===== */}
+        {/* ===== List ===== */}
         <section className="space-y-3">
           {listState}
 
           {!listState && (
-            <div className="divide-y divide-[var(--border)] bg-[var(--bg)]">
+            <div className="divide-y divide-[var(--border)]">
               {existingMeetings.map(({ meeting }) => {
                 const isOrganizer = user?.id === meeting.organizerId;
-
+                const isCompleted = meeting.status === "COMPLETED";
+                
                 return (
-                  <div
-                    key={meeting.meetingUuid}
-                    className="px-0 py-3 cursor-pointer"
-                    onClick={() => goToConfirmPage(meeting.meetingUuid!)}
-                    // 1/30[유리] - 리스트 카드 클릭 시 확정 페이지 이동
-                  >
-                    <div className="flex items-start gap-4">
-                      {/* ===== 인원수 영역 ===== */}
-                      <div className="relative flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-[var(--primary-soft)]">
+                  <div key={meeting.meetingUuid} className="py-3">
+                    <div className="flex gap-4">
+                      <div className="relative w-9 h-9 rounded-full bg-[var(--primary-soft)] flex items-center justify-center">
                         <Users className="h-5 w-5 text-[var(--primary)]" />
-                        {meeting.totalParticipants > 0 && (
-                          <span className="absolute -right-1 -bottom-1 min-w-4 h-3 px-1 rounded-full bg-[var(--primary-soft)] text-sm leading-4 text-center font-medium text-[var(--text)]">
-                            {meeting.totalParticipants}
-                          </span>
-                        )}
                       </div>
 
-                      {/* ===== 텍스트 정보 ===== */}
                       <div className="flex-1 space-y-1">
-                        <p className="text-base font-semibold text-[var(--text)] truncate">
-                          {meeting.meetingName}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold truncate">
+                            {meeting.meetingName}
+                          </p>
+
+                          {isOrganizer && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-200 text-yellow-800">
+                              모임장
+                            </span>
+                          )}
+
+                          {meeting.status === "COMPLETED" && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-green-200 text-green-800">
+                              확정
+                            </span>
+                          )}
+                        </div>
+
                         <p className="text-sm text-[var(--text-subtle)]">
-                          {meeting.selectedPlace?.placeName || "장소 미정"}
-                          <span className="mx-2">·</span>
+                          {meeting.selectedPlace?.placeName || "장소 미정"} ·{" "}
                           {formatDateTime(meeting.meetingTime)}
                         </p>
                       </div>
 
-                      {/* ===== 액션 영역 ===== */}
-                      <div className="shrink-0">
-                        {/* 데스크톱 버튼 */}
-                        <div className="hidden sm:flex gap-2">
+                      {/* ===== Actions ===== */}
+                      <div className="hidden sm:flex gap-2">
+                        {isOrganizer && !isCompleted && (
                           <Button
                             size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              goToConfirmPage(meeting.meetingUuid!);
-                            }}
-                            // 1/30[유리] - 조회 버튼도 확정 페이지 이동
+                            className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
+                            onClick={() =>
+                              goToEditPage(meeting.meetingUuid!)
+                            }
                           >
-                            조회
+                            수정
                           </Button>
+                        )}
 
+                        <Button
+                          size="sm"
+                          className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded"
+                          onClick={() =>
+                            goToConfirmPage(meeting.meetingUuid!)
+                          }
+                        >
+                          조회
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          className="bg-[var(--primary-base)] text-[var(--primary)] rounded"
+                          onClick={() => handleCopy(meeting.meetingUuid!)}
+                        >
+                          복사
+                        </Button>
+
+                        {isOrganizer && (
                           <Button
                             size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopy(meeting.meetingUuid!);
-                            }}
-                          >
-                            복사
-                          </Button>
-
-                          <Button
-                            size="sm"
-                            disabled={!isOrganizer}
-                            onClick={(e) => {
-                              e.stopPropagation();
+                            className="bg-[var(--danger-soft)] text-[var(--danger)] rounded"
+                            onClick={() =>
                               handleDelete(
                                 meeting.meetingUuid!,
                                 meeting.organizerId
-                              );
-                            }}
-                            className="bg-[var(--danger-soft)] text-[var(--danger)]"
+                              )
+                            }
                           >
                             삭제
                           </Button>
-                        </div>
-
-                        {/* 모바일 … 메뉴 */}
-                        <div className="sm:hidden">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
-                                aria-label="더보기"
-                              >
-                                …
-                              </button>
-                            </DropdownMenuTrigger>
-
-                            <DropdownMenuContent
-                              align="end"
-                              className="bg-[var(--bg)] border border-[var(--border)]"
-                              // 1/30[유리] - 모바일 메뉴 배경 투명 문제 해결
-                            >
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  goToConfirmPage(meeting.meetingUuid!)
-                                }
-                              >
-                                조회
-                              </DropdownMenuItem>
-
-                              <DropdownMenuItem
-                                onClick={() => handleCopy(meeting.meetingUuid!)}
-                              >
-                                복사
-                              </DropdownMenuItem>
-
-                              <DropdownMenuItem
-                                disabled={!isOrganizer}
-                                onClick={() =>
-                                  handleDelete(
-                                    meeting.meetingUuid!,
-                                    meeting.organizerId
-                                  )
-                                }
-                                className="text-destructive"
-                              >
-                                삭제
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                        )}
                       </div>
+
+                      {/* ===== Mobile Dropdown ===== */}
+                      {/* ===== Mobile Dropdown ===== */}
+<div className="sm:hidden">
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <button
+        className="p-2 rounded-md hover:bg-[var(--bg-soft)]"
+        aria-label="더보기"
+      >
+        <MoreHorizontal className="h-5 w-5 text-[var(--text)]" />
+      </button>
+    </DropdownMenuTrigger>
+
+    <DropdownMenuPortal>
+      <DropdownMenuContent
+        align="end"
+        className="bg-[var(--bg)] border border-[var(--border)] shadow-md"
+      >
+        {isOrganizer && (
+          <DropdownMenuItem onClick={() => goToEditPage(meeting.meetingUuid!)}>
+            수정
+          </DropdownMenuItem>
+        )}
+
+        <DropdownMenuItem onClick={() => goToConfirmPage(meeting.meetingUuid!)}>
+          조회
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => handleCopy(meeting.meetingUuid!)}>
+          복사
+        </DropdownMenuItem>
+
+        {isOrganizer && (
+          <DropdownMenuItem
+            onClick={() => handleDelete(meeting.meetingUuid!, meeting.organizerId)}
+          >
+            삭제
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenuPortal>
+  </DropdownMenu>
+</div>
                     </div>
                   </div>
                 );
@@ -387,8 +397,8 @@ const handleDelete = async (uuid: string, organizerId: number) => {
             <p className="text-xs text-[var(--text-subtle)]">
               {existingMeetings.length} 개 / 총 {pageInfo.totalElements} 개
             </p>
-          </div>
-        )}
+            </div>
+          )}
       </div>
     </main>
   );
