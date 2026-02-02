@@ -35,8 +35,14 @@ import {
   TreePalm,
   Building2,
   AlertTriangle,
+  Clock,
+  Car,
+  Train,
   type LucideIcon,
 } from 'lucide-react'
+import { calculateRoutes } from '@/lib/api/route'
+import type { RouteResponse, RouteInfo, CarRouteInfo } from '@/types/route'
+import type { CommonResponse } from '@/types/api'
 
 // shadcn/ui
 
@@ -227,6 +233,12 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     organizerId != null && user?.id != null && organizerId === user.id
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false)
 
+  // 이동시간 관련 상태
+  const [routeCache, setRouteCache] = useState<Record<string, RouteResponse>>({})
+  const [loadingRoutes, setLoadingRoutes] = useState<Record<string, boolean>>({})
+  const [showTravelTimeModal, setShowTravelTimeModal] = useState(false)
+  const [selectedPlaceForDetail, setSelectedPlaceForDetail] = useState<string | null>(null)
+
   /* ================= 추천장소 + 중간지점 ================= */
 
   const fetchPlacesAndMidpoint = useCallback(async () => {
@@ -281,6 +293,53 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   useEffect(() => {
     fetchPlacesAndMidpoint()
   }, [fetchPlacesAndMidpoint])
+
+  /* ================= 이동시간 조회 ================= */
+
+  const fetchTravelTimes = useCallback(
+    async (placeId: string, latitude: number, longitude: number) => {
+      if (!meetingUuid || routeCache[placeId] || loadingRoutes[placeId]) return
+
+      setLoadingRoutes((prev) => ({ ...prev, [placeId]: true }))
+      try {
+        const response = (await calculateRoutes(meetingUuid, {
+          latitude,
+          longitude,
+        })) as CommonResponse<RouteResponse>
+
+        if (response?.data) {
+          const data = response.data
+          setRouteCache((prev) => ({ ...prev, [placeId]: data }))
+        }
+      } catch (error) {
+        console.error('이동시간 조회 실패:', error)
+      } finally {
+        setLoadingRoutes((prev) => ({ ...prev, [placeId]: false }))
+      }
+    },
+    [meetingUuid, routeCache, loadingRoutes]
+  )
+
+  const handlePlaceClick = useCallback(
+    (place: RecommendedPlace) => {
+      setSelectedPlace(place.id)
+
+      // 좌표가 있으면 이동시간 조회
+      if (place.latitude && place.longitude) {
+        fetchTravelTimes(place.id, place.latitude, place.longitude)
+      }
+    },
+    [fetchTravelTimes]
+  )
+
+  const handleShowTravelTimeDetail = useCallback(
+    (placeId: string, e: React.MouseEvent) => {
+      e.stopPropagation()
+      setSelectedPlaceForDetail(placeId)
+      setShowTravelTimeModal(true)
+    },
+    []
+  )
 
   /* ================= WebSocket ================= */
 
@@ -668,6 +727,13 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
                   ? (voteOption.voteCount / totalVotes) * 100
                   : 0
 
+              // 이동시간 정보
+              const routeData = routeCache[place.id]
+              const isLoadingRoute = loadingRoutes[place.id]
+              const avgTravelTime = routeData?.statistics?.averageTravelTime
+              const hasCarRoutes = routeData?.carRoutes && routeData.carRoutes.length > 0
+              const hasPublicRoutes = routeData?.routes && routeData.routes.length > 0
+
               let cls =
                 'relative flex items-center gap-3 rounded-lg border p-3'
               if (selected) cls += ' border-[var(--danger)]'
@@ -676,7 +742,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
               return (
                 <button
                   key={place.id}
-                  onClick={() => setSelectedPlace(place.id)}
+                  onClick={() => handlePlaceClick(place)}
                   className={cls}
                 >
                   {hasVotes && (
@@ -697,8 +763,25 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
                       {place.name}
                     </p>
                     <p className="text-xs text-[var(--text-subtle)]">
-                      {place.stationName} · {place.walkingMinutes}분
+                      {place.stationName} · 도보 {place.walkingMinutes}분
                     </p>
+                    {/* 이동시간 표시 */}
+                    {isLoadingRoute ? (
+                      <p className="mt-1 text-xs text-[var(--text-subtle)]">
+                        이동시간 조회 중...
+                      </p>
+                    ) : avgTravelTime ? (
+                      <button
+                        type="button"
+                        onClick={(e) => handleShowTravelTimeDetail(place.id, e)}
+                        className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)] hover:underline"
+                      >
+                        <Clock className="h-3 w-3" />
+                        평균 {avgTravelTime}분
+                        {hasCarRoutes && <Car className="h-3 w-3 ml-1" />}
+                        {hasPublicRoutes && <Train className="h-3 w-3 ml-1" />}
+                      </button>
+                    ) : null}
                     {hasVotes && voteOption && (
                       <div className="mt-1 flex items-center gap-2">
                         <span className="text-xs font-semibold text-[var(--danger)]">
@@ -802,6 +885,113 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
             </>
           ) : null}
         </div>
+      </WireframeModal>
+
+      {/* ================= 이동시간 상세 모달 ================= */}
+      <WireframeModal
+        open={showTravelTimeModal}
+        title="참여자별 이동시간"
+        onClose={() => setShowTravelTimeModal(false)}
+      >
+        {selectedPlaceForDetail && routeCache[selectedPlaceForDetail] && (
+          <div className="space-y-4">
+            {/* 통계 요약 */}
+            {routeCache[selectedPlaceForDetail].statistics && (
+              <div className="rounded-lg bg-[var(--neutral-soft)] p-3">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-lg font-bold text-[var(--danger)]">
+                      {routeCache[selectedPlaceForDetail].statistics?.averageTravelTime}분
+                    </p>
+                    <p className="text-xs text-[var(--text-subtle)]">평균</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-[var(--text)]">
+                      {routeCache[selectedPlaceForDetail].statistics?.minTravelTime}분
+                    </p>
+                    <p className="text-xs text-[var(--text-subtle)]">최소</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-[var(--text)]">
+                      {routeCache[selectedPlaceForDetail].statistics?.maxTravelTime}분
+                    </p>
+                    <p className="text-xs text-[var(--text-subtle)]">최대</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 대중교통 경로 */}
+            {routeCache[selectedPlaceForDetail].routes &&
+              routeCache[selectedPlaceForDetail].routes!.length > 0 && (
+                <div>
+                  <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                    <Train className="h-4 w-4" />
+                    대중교통
+                  </h4>
+                  <ScrollArea className="max-h-40">
+                    <div className="space-y-2">
+                      {routeCache[selectedPlaceForDetail].routes!.map(
+                        (route: RouteInfo, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between rounded-lg border border-[var(--border)] p-2"
+                          >
+                            <span className="text-sm text-[var(--text)]">
+                              {route.participantName}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-[var(--text-subtle)]">
+                                환승 {route.transferCount}회
+                              </span>
+                              <span className="font-semibold text-[var(--danger)]">
+                                {route.travelTime}분
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+
+            {/* 자동차 경로 */}
+            {routeCache[selectedPlaceForDetail].carRoutes &&
+              routeCache[selectedPlaceForDetail].carRoutes!.length > 0 && (
+                <div>
+                  <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                    <Car className="h-4 w-4" />
+                    자동차
+                  </h4>
+                  <ScrollArea className="max-h-40">
+                    <div className="space-y-2">
+                      {routeCache[selectedPlaceForDetail].carRoutes!.map(
+                        (route: CarRouteInfo, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between rounded-lg border border-[var(--border)] p-2"
+                          >
+                            <span className="text-sm text-[var(--text)]">
+                              {route.participantName}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-[var(--text-subtle)]">
+                                {(route.distance / 1000).toFixed(1)}km
+                              </span>
+                              <span className="font-semibold text-[var(--danger)]">
+                                {route.travelTime}분
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+          </div>
+        )}
       </WireframeModal>
 
       {/* ================= 확정 CTA ================= */}
