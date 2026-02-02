@@ -272,7 +272,7 @@ export default function HomeClient() {
                   animate="rest"
                 >
                   <motion.div variants={cardHover}>
-                    <Card className="h-full p-8 space-y-4 bg-white border border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors">
+                    <Card className="h-full min-h-[290px] p-8 flex flex-col justify-start gap-4 bg-white border border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors leading-tight">
                       <motion.div
                         whileHover={{ rotate: [0, -10, 10, 0] }}
                         transition={{ duration: 0.5 }}
@@ -289,7 +289,7 @@ export default function HomeClient() {
                         )}
                       </motion.div>
                       <h3 className="text-xl font-bold">{item.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">
+                      <p className="text-muted-foreground leading-relaxed flex-1">
                         {item.desc}
                       </p>
                     </Card>
@@ -353,7 +353,7 @@ export default function HomeClient() {
                   animate="rest"
                 >
                   <motion.div variants={cardHover}>
-                    <Card className="p-8 space-y-5 bg-white border border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors">
+                    <Card className="h-full min-h-[240px] p-8 flex flex-col justify-start gap-5 bg-white border border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors leading-tight">
                       <motion.div
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ type: "spring", stiffness: 400 }}
@@ -370,7 +370,7 @@ export default function HomeClient() {
                         )}
                       </motion.div>
                       <h3 className="text-xl font-bold">{item.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">
+                      <p className="text-muted-foreground leading-relaxed flex-1">
                         {item.desc}
                       </p>
                     </Card>
@@ -428,7 +428,7 @@ export default function HomeClient() {
                     whileHover={{ scale: 1.03, y: -4 }}
                     transition={{ type: "spring", stiffness: 400 }}
                   >
-                    <Card className="p-8 bg-white border border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors cursor-pointer group">
+                    <Card className="h-full min-h-[180px] p-8 flex flex-col items-center justify-start bg-white border border-[var(--wf-border)] hover:border-[var(--wf-accent)] transition-colors cursor-pointer group leading-tight">
                       <motion.span
                         className="text-5xl block mb-4"
                         whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
@@ -437,7 +437,7 @@ export default function HomeClient() {
                         {item.emoji}
                       </motion.span>
                       <h3 className="text-xl font-bold mb-2">{item.label}</h3>
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-muted-foreground text-sm flex-1">
                         {item.desc}
                       </p>
                     </Card>
@@ -509,7 +509,7 @@ export default function HomeClient() {
         </section>
 
         {/* ================= Final CTA ================= */}
-        <section className="px-6 py-24 bg-white/80">
+        <section className="hidden md:block px-6 py-24 bg-white/80">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -553,6 +553,36 @@ export default function HomeClient() {
           </motion.div>
         </section>
       </main>
+      {/* ================= Mobile Fixed CTA ================= */}
+      <motion.div
+        initial={{ y: 80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+      >
+        <div className="bg-white/90 backdrop-blur border-t border-[var(--wf-border)] px-4 py-3 safe-bottom">
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+            <Button
+              type="button"
+              onClick={handleKakaoLogin}
+              className="
+          w-full
+          h-14
+          rounded-xl
+          bg-[#371D1E]
+          text-white
+          text-base
+          font-semibold
+          hover:bg-[#371D1E]
+          active:bg-[#371D1E]
+          shadow-lg
+        "
+            >
+              카카오로 3초만에 시작하기
+            </Button>
+          </motion.div>
+        </div>
+      </motion.div>
     </div>
   );
 }
