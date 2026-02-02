@@ -202,7 +202,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
               size="icon"
               onClick={onClose}
               aria-label="메뉴 닫기"
-              className="rounded-full h-9 w-9"
+              className="rounded-xl h-9 w-9"
             >
               <X className="h-5 w-5 text-[var(--text)]" />
             </Button>
@@ -239,7 +239,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                       type="button"
                       variant="outline"
                       onClick={() => handleNavigate(href)}
-                      className="w-full justify-between rounded-xl border-[var(--border)] bg-[var(--bg)] px-3 py-6"
+                      className="w-full justify-between rounded-xl border-[var(--border)] bg-[var(--bg)] px-3 py-6 hover:bg-[var(--wf-highlight-soft)] transition-colors"
                     >
                       <span className="flex items-center gap-3">
                         <Icon className="h-5 w-5 text-[var(--wf-accent)]" />
@@ -247,7 +247,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                           {label}
                         </span>
                       </span>
-                      <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                      <ChevronRight className="h-5 w-5 text-[var(--text-subtle)]" />{" "}
                     </Button>
                   ))}
                 </div>
@@ -262,17 +262,18 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                 className="flex w-full items-center justify-between text-left text-[var(--text)]"
               >
                 <span className="font-semibold">모임 사용하기 </span>
-                <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                <ChevronRight className="h-5 w-5 text-[var(--text-subtle)]" />{" "}
               </button>
 
               {/* 하위 스텝 */}
-              <div className="ml-2 border-l border-[var(--border)] pl-3 space-y-5">
+              <div className="ml-2 border-l border-[var(--border)] pl-3 space-y-3">
+                {" "}
                 {MENUS.map(({ label, href, icon: Icon }) => (
                   <button
                     key={href}
                     type="button"
                     onClick={() => handleNavigate(href)}
-                    className="block w-full rounded-lg px-2 py-1 text-left text-[var(--text-subtle)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text)]"
+                    className="block w-full rounded-lg px-3 py-2 text-left text-[var(--text)] hover:bg-[var(--wf-highlight-soft)] transition-colors"
                   >
                     <span className="flex items-center gap-3">
                       <Icon className="h-5 w-5 text-[var(--wf-accent)]" />
@@ -293,7 +294,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                     type="button"
                     variant="outline"
                     onClick={() => handleNavigate(href)}
-                    className="w-full justify-between rounded-xl border-[var(--border)] bg-[var(--bg)] px-3 py-6"
+                    className="w-full justify-between rounded-xl border-[var(--border)] bg-[var(--bg)] px-3 py-6 hover:bg-[var(--wf-highlight-soft)] transition-colors"
                   >
                     <span className="flex items-center gap-3">
                       <Icon className="h-5 w-5 text-[var(--wf-accent)]" />
@@ -301,7 +302,7 @@ function HamburgerMenuContent({ isOpen, onClose }: HamburgerMenuProps) {
                         {label}
                       </span>
                     </span>
-                    <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                    <ChevronRight className="h-5 w-5 text-[var(--text-subtle)]" />{" "}
                   </Button>
                 ))}
               </div>
