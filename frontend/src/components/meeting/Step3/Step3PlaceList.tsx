@@ -38,6 +38,9 @@ import {
   Clock,
   Car,
   Train,
+  ExternalLink,
+  Phone,
+  MapPinned,
   type LucideIcon,
 } from 'lucide-react'
 import { calculateRoutes } from '@/lib/api/route'
@@ -973,23 +976,62 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
       >
         {selectedPlaceForDetail && (
           <div className="space-y-4">
-            {/* 매장 정보 요약 */}
+            {/* 매장 정보 */}
             {selectedPlaceDetail && (
-              <div className="flex items-center gap-3 mb-2">
-                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
-                  {(() => {
-                    const Icon = selectedPlaceDetail.icon || Coffee
-                    return <Icon className="h-7 w-7 text-[var(--danger)]" />
-                  })()}
+              <div className="rounded-xl border border-[var(--border)] p-4 bg-[var(--bg)]">
+                {/* 매장명과 아이콘 */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                    {(() => {
+                      const Icon = selectedPlaceDetail.icon || Coffee
+                      return <Icon className="h-7 w-7 text-[var(--danger)]" />
+                    })()}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[var(--text)]">
+                      {selectedPlaceDetail.name}
+                    </h3>
+                    <p className="text-xs text-[var(--text-subtle)]">
+                      {selectedPlaceDetail.categoryGroupName || selectedPlaceDetail.category}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-[var(--text)]">
-                    {selectedPlaceDetail.name}
-                  </h3>
-                  <p className="text-xs text-[var(--text-subtle)]">
-                    {selectedPlaceDetail.address || selectedPlaceDetail.stationName}
-                  </p>
-                </div>
+
+                {/* 주소 */}
+                {(selectedPlaceDetail.roadAddress || selectedPlaceDetail.address) && (
+                  <div className="flex items-start gap-2 mb-2">
+                    <MapPinned className="h-4 w-4 text-[var(--text-subtle)] mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-[var(--text)]">
+                      {selectedPlaceDetail.roadAddress || selectedPlaceDetail.address}
+                    </p>
+                  </div>
+                )}
+
+                {/* 전화번호 */}
+                {selectedPlaceDetail.phone && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <Phone className="h-4 w-4 text-[var(--text-subtle)] flex-shrink-0" />
+                    <a
+                      href={`tel:${selectedPlaceDetail.phone}`}
+                      className="text-sm text-[var(--primary)] hover:underline"
+                    >
+                      {selectedPlaceDetail.phone}
+                    </a>
+                  </div>
+                )}
+
+                {/* 카카오맵 길찾기 버튼 */}
+                {selectedPlaceDetail.placeUrl && (
+                  <a
+                    href={selectedPlaceDetail.placeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#FEE500] text-[#191919] text-sm font-medium hover:bg-[#FAE100] transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    카카오맵에서 보기
+                  </a>
+                )}
               </div>
             )}
 
