@@ -66,7 +66,7 @@ export default function StepNavigation({
       className="flex flex-1 items-center justify-center gap-2 rounded-xl
         border border-[var(--border)]
         bg-[var(--bg-soft)]
-        px-4 py-4 text-sm
+        px-4 py-3 text-sm
         hover:bg-[var(--neutral-soft)]
         disabled:opacity-50"
     >
