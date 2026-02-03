@@ -209,6 +209,7 @@ jobs:
           FRONTEND_BASE_URL=${{ secrets.DEV_FRONTEND_BASE_URL }}
 
           ODSAY_API_KEY=${{secrets.DEV_ODSAY_API_KEY}}
+          ODSAY_API_KEY_2=${{secrets.DEV_ODSAY_API_KEY_2}}
           OPEN_API_KEY=${{secrets.DEV_OPEN_API_KEY}}
           OPENWEATHER_API_KEY=${{secrets.DEV_OPENWEATHER_API_KEY}}
 

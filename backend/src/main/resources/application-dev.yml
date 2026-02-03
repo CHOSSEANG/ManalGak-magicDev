@@ -36,6 +36,7 @@ api:
 
   odsay:
     key: ${ODSAY_API_KEY}
+    key2: ${ODSAY_API_KEY_2}
     url: https://api.odsay.com/v1/api
 
   openai:

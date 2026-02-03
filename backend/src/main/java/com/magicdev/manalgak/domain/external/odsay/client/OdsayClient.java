@@ -34,7 +34,7 @@ public class OdsayClient {
 
     @Autowired
     public OdsayClient(RestTemplateBuilder restTemplateBuilder,
-                       @Value("${api.odsay.key}") String apiKey,
+                       @Value("${api.odsay.key2}") String apiKey,
                        @Value("${api.odsay.url:https://api.odsay.com}") String apiUrl) {
         this(restTemplateBuilder
                 .setConnectTimeout(DEFAULT_TIMEOUT)
