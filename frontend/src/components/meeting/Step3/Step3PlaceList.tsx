@@ -881,49 +881,6 @@ useEffect(() => {
 
   return (
     <div className="relative">
-      {/* ================= 지도: 배경 ================= */}
-      {/* 1/30[유리] - 지도 배경화 및 콘텐츠 오버레이 */}
-      {/* {meetingUuid && (
-        <div className="relative h-[60vh] min-h-[360px]">
-          <Step4Map
-            meetingUuid={meetingUuid}
-            refreshKey={mapRefreshKey}
-            minHeight={360}
-          />
-
-          {/* 투표 중앙 CTA */}
-          {/* 1/30[유리] - 투표 가능 시 지도 중앙 CTA(danger) */}
-          {/* 투표 데이터 로딩 완료 후에만 버튼 표시 (깜빡임 방지) */}
-          {/* {!isVoteLoading && hasVote && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <Button
-                type="button"
-                onClick={handleVoteButtonClick}
-                disabled={isVoteDisabled}
-                className="pointer-events-auto bg-[var(--danger)] text-white py-6 px-6 text-base font-semibold"
-              >
-                투표 참여하기
-              </Button>
-            </div>
-          )}  
-        </div>
-      )}*/}
-
-      {/* 2/3[유리] 별도의 shadcn toast로 변경, 대소문자 해결 필요 */}
-      {/* 1/30[유리] - 지도 위 고정 배너 제거 → Toast 전환(danger) */}
-      {/* {isNewPlaceAvailable && (
-        <div className="fixed left-1/2 top-4 z-50 -translate-x-1/2">
-          <button
-            type="button"
-            onClick={() => setShowVoteModal(true)}
-            className="flex items-center gap-2 rounded-full bg-[var(--danger-soft)] px-4 py-2 text-sm font-medium text-[var(--danger)]"
-          >
-            <AlertTriangle className="h-4 w-4" />
-            새로운 추천 장소가 있어요 · 투표하기
-          </button>
-        </div>
-      )} */}
-
       
       {/* ================= 투표 / 선택 Drawer ================= */}
       <VoteOrSelectDrawer
@@ -934,7 +891,12 @@ useEffect(() => {
         myVotedOptionId={myVotedOptionId}
         onVote={submitVote}
         onConfirm={handleConfirmPlace}
-        onSelectPlace={setSelectedPlace}
+        onSelectPlace={(placeId) => {
+          const place = recommendedPlaces.find((p) => p.id === placeId)
+          if (place) {
+            handlePlaceClick(place)   // 🔥 기존 모달 로직 재사용
+          }
+        }}
       />
 
 
@@ -1020,186 +982,188 @@ useEffect(() => {
         </div>
       </WireframeModal> */}
 
-      {/* ================= 이동시간 상세 모달 ================= */}
-      <WireframeModal
-        open={showTravelTimeModal}
-        title="참여자별 이동시간"
-        onClose={() => setShowTravelTimeModal(false)}
-      >
-        {selectedPlaceForDetail && (
-          <div className="space-y-4">
-            {/* 매장 정보 */}
-            {selectedPlaceDetail && (
-              <div className="rounded-xl border border-[var(--border)] p-4 bg-[var(--bg)]">
-                {/* 매장명과 아이콘 */}
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
-                    {(() => {
-                      const Icon = selectedPlaceDetail.icon || Coffee
-                      return <Icon className="h-7 w-7 text-[var(--danger)]" />
-                    })()}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-[var(--text)]">
-                      {selectedPlaceDetail.name}
-                    </h3>
-                    <p className="text-xs text-[var(--text-subtle)]">
-                      {selectedPlaceDetail.categoryGroupName || selectedPlaceDetail.category}
-                    </p>
-                  </div>
-                </div>
-
-                {/* 주소 */}
-                {(selectedPlaceDetail.roadAddress || selectedPlaceDetail.address) && (
-                  <div className="flex items-start gap-2 mb-2">
-                    <MapPinned className="h-4 w-4 text-[var(--text-subtle)] mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-[var(--text)]">
-                      {selectedPlaceDetail.roadAddress || selectedPlaceDetail.address}
-                    </p>
-                  </div>
-                )}
-
-                {/* 전화번호 */}
-                {selectedPlaceDetail.phone && (
-                  <div className="flex items-center gap-2 mb-3">
-                    <Phone className="h-4 w-4 text-[var(--text-subtle)] flex-shrink-0" />
-                    <a
-                      href={`tel:${selectedPlaceDetail.phone}`}
-                      className="text-sm text-[var(--primary)] hover:underline"
-                    >
-                      {selectedPlaceDetail.phone}
-                    </a>
-                  </div>
-                )}
-
-                {/* 카카오맵 길찾기 버튼 */}
-                {selectedPlaceDetail.placeUrl && (
-                  <a
-                    href={selectedPlaceDetail.placeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#FEE500] text-[#191919] text-sm font-medium hover:bg-[#FAE100] transition-colors"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    카카오맵에서 보기
-                  </a>
-                )}
-              </div>
-            )}
-
-            {routeCache[selectedPlaceForDetail] ? (
-              <>
-                {/* 통계 요약 */}
-                {routeCache[selectedPlaceForDetail].statistics && (
-                  <div className="rounded-xl bg-[var(--neutral-soft)] p-4 border border-[var(--border)]">
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div>
-                        <p className="text-xl font-bold text-[var(--danger)]">
-                          {routeCache[selectedPlaceForDetail].statistics?.averageTravelTime}분
-                        </p>
-                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">평균</p>
-                      </div>
-                      <div className="border-x border-[var(--border)]">
-                        <p className="text-xl font-bold text-[var(--text)]">
-                          {routeCache[selectedPlaceForDetail].statistics?.minTravelTime}분
-                        </p>
-                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">최소</p>
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-[var(--text)]">
-                          {routeCache[selectedPlaceForDetail].statistics?.maxTravelTime}분
-                        </p>
-                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">최대</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 대중교통 경로 */}
-                {routeCache[selectedPlaceForDetail].routes &&
-                  routeCache[selectedPlaceForDetail].routes!.length > 0 && (
-                    <div>
-                      <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-                        <Train className="h-4 w-4 text-[var(--text-subtle)]" />
-                        대중교통 참여자
-                      </h4>
-                      <div className="space-y-2">
-                        {routeCache[selectedPlaceForDetail].routes!.map(
-                          (route: RouteInfo, idx: number) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between rounded-lg border border-[var(--border)] p-3 bg-[var(--bg)]"
-                            >
-                              <span className="text-sm font-medium text-[var(--text)]">
-                                {route.participantName}
-                              </span>
-                              <div className="flex items-center gap-3">
-                                <span className="text-[11px] text-[var(--text-subtle)]">
-                                  환승 {route.transferCount}회
-                                </span>
-                                <span className="text-sm font-bold text-[var(--danger)]">
-                                  {route.travelTime}분
-                                </span>
-                              </div>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                {/* 자동차 경로 */}
-                {routeCache[selectedPlaceForDetail].carRoutes &&
-                  routeCache[selectedPlaceForDetail].carRoutes!.length > 0 && (
-                    <div className="pt-2">
-                      <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-                        <Car className="h-4 w-4 text-[var(--text-subtle)]" />
-                        자동차 참여자
-                      </h4>
-                      <div className="space-y-2">
-                        {routeCache[selectedPlaceForDetail].carRoutes!.map(
-                          (route: CarRouteInfo, idx: number) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between rounded-lg border border-[var(--border)] p-3 bg-[var(--bg)]"
-                            >
-                              <span className="text-sm font-medium text-[var(--text)]">
-                                {route.participantName}
-                              </span>
-                              <div className="flex items-center gap-3">
-                                <span className="text-[11px] text-[var(--text-subtle)]">
-                                  {(route.distance / 1000).toFixed(1)}km
-                                </span>
-                                <span className="text-sm font-bold text-[var(--danger)]">
-                                  {route.travelTime}분
-                                </span>
-                              </div>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-              </>
-            ) : (
-              <div className="py-10 text-center">
-                <p className="text-sm text-[var(--text-subtle)]">이동시간 정보를 불러오는 중입니다...</p>
-              </div>
-            )}
-
-            {/* 선택 버튼 (푸터 스타일) */}
-            <div className="pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowTravelTimeModal(false)}
-                className="w-full border-2 border-[var(--danger)] text-[var(--danger)] font-bold py-6 rounded-xl hover:bg-[var(--danger-soft)]"
-              >
-                닫기
-              </Button>
+{/* ================= 이동시간 상세 모달 ================= */}
+<WireframeModal
+  open={showTravelTimeModal}
+  title="참여자별 이동시간"
+  onClose={() => setShowTravelTimeModal(false)}
+>
+  {selectedPlaceForDetail && (
+    <div className="space-y-4">
+      {/* ================= 가게 정보 ================= */}
+      {selectedPlaceDetail && (
+        <div className="rounded-xl border border-[var(--border)] p-4 bg-[var(--bg)]">
+          {/* 아이콘 + 가게명 */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+              {(() => {
+                const Icon = selectedPlaceDetail.icon || Coffee
+                return <Icon className="h-7 w-7 text-[var(--danger)]" />
+              })()}
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-[var(--text)]">
+                {selectedPlaceDetail.name}
+              </h3>
+              <p className="text-xs text-[var(--text-subtle)]">
+                {selectedPlaceDetail.categoryGroupName ||
+                  selectedPlaceDetail.category}
+              </p>
             </div>
           </div>
-        )}
-      </WireframeModal>
+
+          {/* 주소 */}
+          {(selectedPlaceDetail.roadAddress ||
+            selectedPlaceDetail.address) && (
+            <div className="flex items-start gap-2 mb-2">
+              <MapPinned className="h-4 w-4 text-[var(--text-subtle)] mt-0.5" />
+              <p className="text-sm text-[var(--text)]">
+                {selectedPlaceDetail.roadAddress ||
+                  selectedPlaceDetail.address}
+              </p>
+            </div>
+          )}
+
+          {/* 전화번호 */}
+          {selectedPlaceDetail.phone && (
+            <div className="flex items-center gap-2 mb-3">
+              <Phone className="h-4 w-4 text-[var(--text-subtle)]" />
+              <a
+                href={`tel:${selectedPlaceDetail.phone}`}
+                className="text-sm text-[var(--primary)] hover:underline"
+              >
+                {selectedPlaceDetail.phone}
+              </a>
+            </div>
+          )}
+
+          {/* 카카오맵 링크 */}
+          {selectedPlaceDetail.placeUrl && (
+            <a
+              href={selectedPlaceDetail.placeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#FEE500] text-[#191919] text-sm font-medium"
+            >
+              <ExternalLink className="h-4 w-4" />
+              카카오맵에서 보기
+            </a>
+          )}
+        </div>
+      )}
+
+      {/* ================= 이동시간 ================= */}
+      {routeCache[selectedPlaceForDetail] ? (
+        <>
+          {/* 요약 통계 */}
+          {routeCache[selectedPlaceForDetail].statistics && (
+            <div className="rounded-xl bg-[var(--neutral-soft)] p-4 border border-[var(--border)]">
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <p className="text-xl font-bold text-[var(--danger)]">
+                    {routeCache[selectedPlaceForDetail].statistics
+                      ?.averageTravelTime}
+                    분
+                  </p>
+                  <p className="text-[10px] text-[var(--text-subtle)]">
+                    평균
+                  </p>
+                </div>
+                <div className="border-x border-[var(--border)]">
+                  <p className="text-xl font-bold">
+                    {routeCache[selectedPlaceForDetail].statistics
+                      ?.minTravelTime}
+                    분
+                  </p>
+                  <p className="text-[10px] text-[var(--text-subtle)]">
+                    최소
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold">
+                    {routeCache[selectedPlaceForDetail].statistics
+                      ?.maxTravelTime}
+                    분
+                  </p>
+                  <p className="text-[10px] text-[var(--text-subtle)]">
+                    최대
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 대중교통 */}
+          {routeCache[selectedPlaceForDetail].routes?.length > 0 && (
+            <div>
+              <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                <Train className="h-4 w-4" />
+                대중교통
+              </h4>
+              <div className="space-y-2">
+                {routeCache[selectedPlaceForDetail].routes!.map(
+                  (route, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between rounded-lg border p-3"
+                    >
+                      <span>{route.participantName}</span>
+                      <span className="font-bold text-[var(--danger)]">
+                        {route.travelTime}분
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 자동차 */}
+          {routeCache[selectedPlaceForDetail].carRoutes?.length > 0 && (
+            <div>
+              <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                <Car className="h-4 w-4" />
+                자동차
+              </h4>
+              <div className="space-y-2">
+                {routeCache[selectedPlaceForDetail].carRoutes!.map(
+                  (route, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between rounded-lg border p-3"
+                    >
+                      <span>{route.participantName}</span>
+                      <span className="font-bold text-[var(--danger)]">
+                        {route.travelTime}분
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="py-10 text-center">
+          <p className="text-sm text-[var(--text-subtle)]">
+            이동시간 정보를 불러오는 중입니다...
+          </p>
+        </div>
+      )}
+
+      {/* 닫기 버튼 */}
+      <Button
+        variant="outline"
+        onClick={() => setShowTravelTimeModal(false)}
+        className="w-full py-6 border-2 border-[var(--danger)] text-[var(--danger)] font-bold rounded-xl"
+      >
+        닫기
+      </Button>
+    </div>
+  )}
+</WireframeModal>
+
+      
 
       {/* ================= 확정 CTA ================= */}
       {/* <div className="sticky bottom-0 z-20 bg-[var(--bg)] p-4">

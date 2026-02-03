@@ -1,7 +1,7 @@
 // src/components/meeting/Step3/VoteOrSelectDrawer.tsx
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import {
   Drawer,
   DrawerContent,
@@ -11,8 +11,20 @@ import {
 } from '@/components/ui/drawer'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
-import { CheckCircle, Coffee } from 'lucide-react'
+import {
+  CheckCircle,
+  Coffee,
+  ChevronUp,
+  ChevronDown,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+// } from '@/components/ui/dialog'
 
 /* ================= 타입 ================= */
 
@@ -54,13 +66,12 @@ interface VoteOrSelectDrawerProps {
   isConfirming?: boolean
 }
 
-const MIN_BOTTOM = 0 // 완전히 펼쳐진 상태
-const MAX_BOTTOM = -300 // 접힌 상태 (원하면 조절)
+
+
 
 /* ================= 컴포넌트 ================= */
 
 export default function VoteOrSelectDrawer({
-
   places,
   voteData,
   selectedPlaceId,
@@ -72,33 +83,24 @@ export default function VoteOrSelectDrawer({
   isVoting = false,
   isConfirming = false,
 }: VoteOrSelectDrawerProps) {
+  /* ---------- Drawer 열림/닫힘 ---------- */
 
-// ✅ [여기] 드래그 상태 / ref
-  const [bottom, setBottom] = useState<number>(MIN_BOTTOM)
-  const startYRef = useRef(0)
-  const startBottomRef = useRef(0)
+  // ✅ ②번: 여기 (상태 선언)
+  const OPEN_BOTTOM = 0
+  const COLLAPSED_BOTTOM = 'var(--bottom-nav-height)'
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    startYRef.current = e.clientY
-    startBottomRef.current = bottom
+  const [bottom, setBottom] = useState<string | number>(OPEN_BOTTOM)
+  const isOpen = bottom === OPEN_BOTTOM
 
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', onPointerUp)
+
+  const toggleDrawer = () => {
+    setBottom(isOpen ? COLLAPSED_BOTTOM : OPEN_BOTTOM)
   }
 
-  const onPointerMove = (e: PointerEvent) => {
-    const deltaY = startYRef.current - e.clientY
-    const nextBottom = startBottomRef.current + deltaY
 
-    const maxBottom = window.innerHeight - 100
-    setBottom(Math.min(Math.max(nextBottom, MIN_BOTTOM), maxBottom))
-  }
-
-  const onPointerUp = () => {
-    window.removeEventListener('pointermove', onPointerMove)
-    window.removeEventListener('pointerup', onPointerUp)
-  }
-
+  // /* ---------- 장소 정보 모달 ---------- */
+  // const [infoPlaceId, setInfoPlaceId] = useState<string | null>(null)
+  // const infoPlace = places.find((p) => p.id === infoPlaceId)
 
 
   const totalVotes =
@@ -117,8 +119,6 @@ export default function VoteOrSelectDrawer({
       return
     }
 
-    
-
     const selectedPlace = places.find((p) => p.id === selectedPlaceId)
     if (!selectedPlace) return
 
@@ -126,153 +126,209 @@ export default function VoteOrSelectDrawer({
       (o) => o.content === selectedPlace.name
     )
 
-    if (option) {
-      onVote(option.optionId)
-    }
+    if (option) onVote(option.optionId)
   }
 
- 
-
-
-  
   return (
-    <Drawer open modal={false}>
-       <DrawerContent
-    style={{ bottom }}
-        className="
-      app-container z-20
-      left-0 right-0 translate-x-0
-      border border-[var(--border)] bg-[var(--bg)]
-      shadow-none
-      p-0
-      pointer-events-none
-    "
-  >
-        {/* 드래그 핸들 */}
-      <div
-        onPointerDown={onPointerDown}
-        className="
-          mx-auto
-          mb-0
-          h-1.5
-          w-40
-          rounded-full
-          bg-[var(--border)]
-          cursor-grab
-          active:cursor-grabbing
-          touch-pan-y
-        "
-      />
-        {/* ================= Header ================= */}
-        <DrawerHeader className="pb-3">
-          <DrawerTitle className="text-left text-base font-semibold text-[var(--text)]">
-            {isHost ? '추천장소 선택' : '추천장소 투표'}
-          </DrawerTitle>
-        </DrawerHeader>
-
-        {/* ================= Summary ================= */}
-        {voteData && (
-          <div className="px-4 pb-2 text-center">
-            <p className="text-sm text-[var(--text-subtle)]">
-              총 {totalVotes}표 ·{' '}
-              {myVotedOptionId ? '투표 완료' : '투표해주세요'}
-            </p>
+    <>
+      {/* ================= Drawer ================= */}
+      <Drawer open modal={false}>
+        <DrawerContent
+          style={{ bottom }}
+          className="
+            app-container z-20
+            left-0 right-0 translate-x-0
+            h-[85]
+            max-h-[85vh]
+            transition-[bottom]
+            duration-300
+            ease-out
+            border border-[var(--border)] bg-[var(--bg)]
+            p-0
+            shadow-none
+            pointer-events-none
+            ">
+          {/* ===== 열기 / 닫기 버튼 ===== */}
+          <div className="flex justify-center py-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleDrawer}
+              className="
+                flex items-center gap-1
+                text-base
+                rounded-xl
+                border border-[var(--danger-soft)]
+                bg-[var(--danger-soft)]
+                text-[var(--text)]
+              "
+            >
+              {isOpen ? (
+                <>
+                  창 닫기 <ChevronDown className="h-6 w-5" />
+                </>
+              ) : (
+                <>
+                  추천장소 선택하기 <ChevronUp className="h-6 w-5" />
+                </>
+              )}
+            </Button>
           </div>
-        )}
 
-        {/* ================= List ================= */}
-        <ScrollArea className="flex-1 px-4">
-          <div className="space-y-2 pb-4">
-            {voteData?.options.map((option) => {
-              const place = places.find(
-                (p) => p.name === option.content
-              )
+          {isOpen && (
+            <>
+              {/* ================= Header ================= */}
+              <DrawerHeader className="pb-2">
+                <DrawerTitle className="text-center text-base font-semibold">
+                  {isHost ? '선택하고 [확정] 버튼을 눌러주세요.' : '추천장소를 투표하면 모임장에게 전달됩니다.'}
+                </DrawerTitle>
+              </DrawerHeader>
 
-              const Icon = place?.icon || Coffee
-              const isSelected = selectedPlaceId === place?.id
-              const isMyVote = option.optionId === myVotedOptionId
-              const isTopChoice =
-                option.voteCount === maxVotes && maxVotes > 0
+              {/* ================= Summary ================= */}
+              {voteData && (
+                <div className="px-4 pb-2 text-center">
+                  <p className="text-sm text-[var(--text-subtle)]">
+                    총 {totalVotes}표 ·{' '}
+                    {myVotedOptionId ? '추천장소 투표 완료' : '추천장소를 선택해주세요'}
+                  </p>
+                </div>
+              )}
 
-              return (
-                <button
-                  key={option.optionId}
-                  type="button"
-                  onClick={() => place && onSelectPlace(place.id)}
-                  className={[
-                    'relative w-full overflow-hidden rounded-lg border p-3 text-left',
-                    isSelected
-                      ? 'border-[var(--danger)]'
-                      : 'border-[var(--border)]',
-                  ].join(' ')}
-                >
-                  {/* 투표 비율 배경 */}
-                  {totalVotes > 0 && (
-                    <div
-                      className="absolute left-0 top-0 h-full bg-[var(--neutral-soft)] opacity-50"
-                      style={{
-                        width: `${(option.voteCount / totalVotes) * 100}%`,
-                      }}
-                    />
-                  )}
+              {/* ================= List ================= */}
+              <ScrollArea
+                className="
+                  px-4
+                  overflow-y-auto
+                  max-h-[calc(85vh-var(--bottom-nav-height)-120px)]
+                "
+              >
+                <div className="grid grid-cols-2 gap-2">
+                  {voteData?.options.map((option) => {
+                    const place = places.find(
+                      (p) => p.name === option.content
+                    )
+                    const Icon = place?.icon || Coffee
 
-                  <div className="relative flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
-                      <Icon className="h-6 w-6 text-[var(--danger)]" />
-                    </div>
+                    const isSelected = selectedPlaceId === place?.id
+                    const isMyVote = option.optionId === myVotedOptionId
+                    const isTopChoice =
+                      option.voteCount === maxVotes && maxVotes > 0
 
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-[var(--text)]">
-                          {option.content}
-                        </p>
-                        {isTopChoice && (
-                          <span className="rounded-full bg-[var(--danger)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
-                            1위
-                          </span>
+                    return (
+                      <button
+                        key={option.optionId}
+                        type="button"
+                        onClick={() => {
+                          if (!place) return
+                          onSelectPlace(place.id) // ✅ 여기까지만
+                        }}
+                        className={[
+                          'relative rounded-lg border p-3 text-left',
+                          isSelected
+                            ? 'border-[var(--danger)]'
+                            : 'border-[var(--border)]',
+                        ].join(' ')}
+                      >
+                        {/* 투표 비율 배경 */}
+                        {totalVotes > 0 && (
+                          <div
+                            className="absolute left-0 top-0 h-full bg-[var(--neutral-soft)] opacity-40"
+                            style={{
+                              width: `${
+                                (option.voteCount / totalVotes) * 100
+                              }%`,
+                            }}
+                          />
                         )}
-                      </div>
 
-                      {option.voteCount > 0 && (
-                        <p className="mt-0.5 text-xs text-[var(--text-subtle)]">
-                          {option.voteCount}표 ·{' '}
-                          {option.voters
-                            .map((v) => v.nickname)
-                            .join(', ')}
-                        </p>
-                      )}
-                    </div>
+                        <div className="relative flex items-start gap-2">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                            <Icon className="h-6 w-6 text-[var(--danger)]" />
+                          </div>
 
-                    {isMyVote && (
-                      <CheckCircle className="h-5 w-5 text-[var(--danger)]" />
-                    )}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </ScrollArea>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-1">
+                              <p className="text-sm font-semibold">
+                                {option.content}
+                              </p>
+                              {isTopChoice && (
+                                <span className="rounded-full bg-[var(--danger)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                                  1위
+                                </span>
+                              )}
+                            </div>
 
-        {/* ================= Footer ================= */}
-        <DrawerFooter className="border-t border-[var(--border)] bg-[var(--bg)]">
-          <Button
-            disabled={
-              !selectedPlaceId ||
-              (isHost ? isConfirming : isVoting)
-            }
-            onClick={handlePrimaryAction}
-            className="h-12 w-full bg-[var(--danger)] text-white disabled:opacity-40"
-          >
-            {isHost
-              ? isConfirming
-                ? '확정 중...'
-                : '확정하기'
-              : isVoting
-                ? '투표 중...'
-                : '투표하기'}
-          </Button>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+                            {/* 투표 수 */}
+                            <p className="mt-0.5 text-xs text-[var(--text-subtle)]">
+                              {option.voteCount}표
+                            </p>
+
+                            {/* 투표자 딱지 */}
+                            {option.voters.length > 0 && (
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {option.voters.map((v) => (
+                                  <span
+                                    key={v.participantId}
+                                    className="rounded-full bg-[var(--neutral-soft)] px-1.5 py-0.5 text-[10px]"
+                                  >
+                                    {v.nickname}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 선택 아이콘 */}
+                          {isMyVote && (
+                            <CheckCircle className="h-5 w-5 text-[var(--danger)]" />
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </ScrollArea>
+
+              {/* ================= Footer ================= */}
+              <DrawerFooter
+                className="
+                  bg-[var(--bg)]
+                  pb-[var(--bottom-nav-height)]
+                "
+              >
+                <Button
+                  disabled={
+                    !selectedPlaceId ||
+                    (isHost ? isConfirming : isVoting)
+                  }
+                  onClick={handlePrimaryAction}
+                  className="h-12 w-full rounded-xl bg-[var(--danger)] text-white"
+                >
+                  {isHost
+                    ? isConfirming
+                      ? '확정 중...'
+                      : '추천장소 확정'
+                    : isVoting
+                      ? '투표 중...'
+                      : '추천장소 투표 완료'}
+                </Button>
+              </DrawerFooter>
+            </>
+          )}
+        </DrawerContent>
+      </Drawer>
+
+      {/* ================= 장소 정보 모달 ================= */}
+      {/* <Dialog open={Boolean(infoPlaceId)} onOpenChange={() => setInfoPlaceId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{infoPlace?.name}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-[var(--text-subtle)]">
+            선택한 추천 장소에 대한 상세 정보를 여기에 표시하면 됩니다.
+          </p>
+        </DialogContent>
+      </Dialog> */}
+    </>
   )
 }

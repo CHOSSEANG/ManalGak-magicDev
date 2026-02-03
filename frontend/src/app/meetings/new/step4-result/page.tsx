@@ -48,8 +48,7 @@ function Step4Content(): JSX.Element {
           추천 장소 확정
         </h1>
         <p className="mt-1 text-sm text-[var(--text-subtle)] drop-shadow-sm">
-          참여 멤버들의 중간지점과 추천 장소를 확인하고,
-          최종 장소를 확정할 수 있어요.
+          최종 장소를 확정하세요.
         </p>
       </header>
 
