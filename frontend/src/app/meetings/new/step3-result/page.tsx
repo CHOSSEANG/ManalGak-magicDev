@@ -4,7 +4,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import StepNavigation from "@/components/layout/StepNavigation";
-import Step3PlaceList from "@/components/meeting/Step4/Step3PlaceList";
+import Step3PlaceList from "@/components/meeting/Step3/Step3PlaceList";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import CompletedMeetingNotice from "@/components/common/CompletedMeetingNotice";
