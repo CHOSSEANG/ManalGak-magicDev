@@ -132,21 +132,23 @@ export default function VoteOrSelectDrawer({
   return (
     <>
       {/* ================= Drawer ================= */}
-      <Drawer open modal={false}>
+      <Drawer open modal={false} >
         <DrawerContent
           style={{ bottom }}
           className="
-            app-container z-20
-            left-0 right-0 translate-x-0
-            h-[85]
-            max-h-[85vh]
-            transition-[bottom]
-            duration-300
-            ease-out
+            z-20
             border border-[var(--border)] bg-[var(--bg)]
-            p-0
-            shadow-none
-            pointer-events-none
+            px-0 shadow-none transition-[bottom] duration-300 ease-out
+
+            /* ✅ 모바일: 전체폭 (좌우 로딩 이슈 방지) */
+            left-0 right-0 translate-x-0
+
+            /* ✅ 태블릿 이상: 400px 가운데 고정 */
+            md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[900px]
+
+            max-h-[85vh]
+            pointer-events-auto
+            
             ">
           {/* ===== 열기 / 닫기 버튼 ===== */}
           <div className="flex justify-center py-2">

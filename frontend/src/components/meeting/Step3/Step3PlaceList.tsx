@@ -12,7 +12,6 @@ import { useUser } from '@/context/UserContext'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
 import {
-  CheckCircle,
   Coffee,
   CupSoda,
   IceCream,
@@ -37,7 +36,6 @@ import {
   TreePalm,
   Building2,
   // 투표모달 미사용으로 숨기기 AlertTriangle,
-  Clock,
   Car,
   Train,
   ExternalLink,
@@ -46,7 +44,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { calculateRoutes } from '@/lib/api/route'
-import type { RouteResponse, RouteInfo, CarRouteInfo } from '@/types/route'
+import type { RouteResponse } from '@/types/route'
 import type { CommonResponse } from '@/types/api'
 
 // shadcn/ui
@@ -226,7 +224,7 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const meetingUuid = searchParams.get('meetingUuid')
   const [participants, setParticipants] = useState<Participant[]>([])
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null)
-  const [showVoteModal, setShowVoteModal] = useState(false)
+  const [, setShowVoteModal] = useState(false)
 
   const [, setMiddlePoint] = useState<MiddlePoint | null>(null)
   const [placeSource, setPlaceSource] = useState<
@@ -236,7 +234,7 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   // const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
   // const [isVoteLoading, setIsVoteLoading] = useState(true)  // 투표 데이터 로딩 상태
-  const [isCreatingVote, setIsCreatingVote] = useState(false)
+  const [, setIsCreatingVote] = useState(false)
   //const [isVoting, setIsVoting] = useState(false)
   const [organizerId, setOrganizerId] = useState<number | null>(null)
   const [meetingPurpose, setMeetingPurpose] = useState<string | null>(null)
@@ -595,7 +593,7 @@ const fetchTravelTimes = useCallback(
     action: (
       <ToastAction
         altText="투표하기"
-        onClick={() => setShowVoteModal(true)}
+        onClick={handleVoteButtonClick}
       >
         투표하기
       </ToastAction>
@@ -649,6 +647,10 @@ useEffect(() => {
         : null,
     [recommendedPlaces, selectedPlaceForDetail]
   )
+
+  const selectedPlaceRouteData = selectedPlaceForDetail
+    ? routeCache[selectedPlaceForDetail]
+    : undefined
 
 
 
@@ -832,16 +834,6 @@ useEffect(() => {
 
   /* ================= 계산 ================= */
 
-  const placeVoteMap = useMemo(() => {
-    if (!voteData) return new Map()
-    const map = new Map<string, VoteOption>()
-    voteData.options.forEach((option) => {
-      const place = recommendedPlaces.find((p) => p.name === option.content)
-      if (place) map.set(place.id, option)
-    })
-    return map
-  }, [voteData, recommendedPlaces])
-
   const myVotedOptionId = useMemo(() => {
     if (!voteData || !user?.id) return null
     const myParticipantId = participants.find(
@@ -853,27 +845,6 @@ useEffect(() => {
     )
     return voted?.optionId || null
   }, [voteData, user?.id, participants])
-
-  const totalVotes =
-    voteData?.options.reduce((sum, opt) => sum + opt.voteCount, 0) || 0
-  const maxVotes = voteData
-    ? Math.max(...voteData.options.map((opt) => opt.voteCount))
-    : 0
-
-  const hasVote = Boolean(voteData?.options?.length)
-  let voteButtonLabel = '투표 보기'
-
-  if (isCreatingVote) voteButtonLabel = '투표 생성 중...'
-  else if (isHost && !voteData?.options?.length)
-    voteButtonLabel = '투표 시작하기'
-  else if (isHost && isNewPlaceAvailable)
-    voteButtonLabel = '새 추천 · 투표 갱신'
-  else if (voteData?.options?.length)
-    voteButtonLabel = '투표 보기'
-
-
-  const isVoteDisabled =
-    isCreatingVote || recommendedPlaces.length === 0 || (!isHost && !hasVote)
 
   // let confirmLabel = '추천 장소 확정'
   // if (isConfirming) confirmLabel = '확정 중...'
@@ -1053,15 +1024,15 @@ useEffect(() => {
       )}
 
       {/* ================= 이동시간 ================= */}
-      {routeCache[selectedPlaceForDetail] ? (
+      {selectedPlaceRouteData ? (
         <>
           {/* 요약 통계 */}
-          {routeCache[selectedPlaceForDetail].statistics && (
+          {selectedPlaceRouteData.statistics && (
             <div className="rounded-xl bg-[var(--neutral-soft)] p-4 border border-[var(--border)]">
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
                   <p className="text-xl font-bold text-[var(--danger)]">
-                    {routeCache[selectedPlaceForDetail].statistics
+                    {selectedPlaceRouteData.statistics
                       ?.averageTravelTime}
                     분
                   </p>
@@ -1071,7 +1042,7 @@ useEffect(() => {
                 </div>
                 <div className="border-x border-[var(--border)]">
                   <p className="text-xl font-bold">
-                    {routeCache[selectedPlaceForDetail].statistics
+                    {selectedPlaceRouteData.statistics
                       ?.minTravelTime}
                     분
                   </p>
@@ -1081,7 +1052,7 @@ useEffect(() => {
                 </div>
                 <div>
                   <p className="text-xl font-bold">
-                    {routeCache[selectedPlaceForDetail].statistics
+                    {selectedPlaceRouteData.statistics
                       ?.maxTravelTime}
                     분
                   </p>
@@ -1094,14 +1065,15 @@ useEffect(() => {
           )}
 
           {/* 대중교통 */}
-          {routeCache[selectedPlaceForDetail].routes?.length > 0 && (
+          {selectedPlaceRouteData.routes &&
+            selectedPlaceRouteData.routes.length > 0 && (
             <div>
               <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold">
                 <Train className="h-4 w-4" />
                 대중교통
               </h4>
               <div className="space-y-2">
-                {routeCache[selectedPlaceForDetail].routes!.map(
+                {selectedPlaceRouteData.routes.map(
                   (route, idx) => (
                     <div
                       key={idx}
@@ -1119,14 +1091,15 @@ useEffect(() => {
           )}
 
           {/* 자동차 */}
-          {routeCache[selectedPlaceForDetail].carRoutes?.length > 0 && (
+          {selectedPlaceRouteData.carRoutes &&
+            selectedPlaceRouteData.carRoutes.length > 0 && (
             <div>
               <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold">
                 <Car className="h-4 w-4" />
                 자동차
               </h4>
               <div className="space-y-2">
-                {routeCache[selectedPlaceForDetail].carRoutes!.map(
+                {selectedPlaceRouteData.carRoutes.map(
                   (route, idx) => (
                     <div
                       key={idx}

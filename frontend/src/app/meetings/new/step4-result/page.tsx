@@ -31,14 +31,14 @@ function Step4Content(): JSX.Element {
   return (
     <>
       {/* ================= 지도 배경 ================= */}
-      <div className="fixed inset-0 z-0">
+      <div className="app-container fixed inset-0 z-10">
         <Step4Map meetingUuid={meetingUuid} />
       </div>
 
       {/* ================= 상단 레이어 ================= */}
       <header
         className="
-          fixed top-20 left-1/2 z-10
+          app-container  fixed top-40 left-1/2 z-10
           w-[calc(100%-2rem)]
           -translate-x-1/2
           pointer-events-none
