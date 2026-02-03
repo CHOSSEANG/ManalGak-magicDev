@@ -217,6 +217,7 @@ function logClientError(message: string, error: unknown) {
 
 export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
   const hasShownToastRef = useRef(false)
+  const handleVoteButtonClickRef = useRef<(() => void) | null>(null)
   const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   // const [mapRefreshKey, setMapRefreshKey] = useState(0)
   const router = useRouter()
@@ -428,6 +429,26 @@ const fetchTravelTimes = useCallback(
     [fetchTravelTimes]
   )
 
+  const fireNewPlaceToast = useCallback(() => {
+    if (hasShownToastRef.current) return
+
+    hasShownToastRef.current = true
+
+    toast({
+      title: '새로운 추천 장소가 있어요',
+      description: '투표를 진행해 주세요',
+      variant: 'destructive',
+      action: (
+        <ToastAction
+          altText="투표하기"
+          onClick={() => handleVoteButtonClickRef.current?.()}
+        >
+          투표하기
+        </ToastAction>
+      ),
+    })
+  }, [])
+
   /* ================= WebSocket ================= */
 
   const voteDataRef = useRef(voteData)
@@ -526,7 +547,7 @@ const fetchTravelTimes = useCallback(
       client.deactivate()
       stompClientRef.current = null
     }
-  }, [voteData?.voteId, meetingUuid])
+  }, [voteData?.voteId, meetingUuid, fireNewPlaceToast])
 
   /* ================= 참여자 ================= */
 
@@ -581,26 +602,6 @@ const fetchTravelTimes = useCallback(
 // }, [])
 
   
-  const fireNewPlaceToast = () => {
-  if (hasShownToastRef.current) return
-
-  hasShownToastRef.current = true
-
-  toast({
-    title: '새로운 추천 장소가 있어요',
-    description: '투표를 진행해 주세요',
-    variant: 'destructive',
-    action: (
-      <ToastAction
-        altText="투표하기"
-        onClick={handleVoteButtonClick}
-      >
-        투표하기
-      </ToastAction>
-    ),
-  })
-}
-
   // ================= 이동시간 프리페칭 =================
 // ✅ 여기서 "계산 가능한 경우만" 이동시간 계산하도록 조건 보강
 useEffect(() => {
@@ -794,6 +795,7 @@ useEffect(() => {
     }
     if (hasVote) setShowVoteModal(true)
   }
+  handleVoteButtonClickRef.current = handleVoteButtonClick
 
   /* ================= 확정 ================= */
 

@@ -118,73 +118,56 @@ const otherMembers = useMemo(
     );
   }
 
-  let othersSection: ReactNode = null;
-  if (otherMembers.length > 0) {
-    othersSection = (
-      <div className="">
-        <div className="grid gap-0 grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-          {otherMembers.map((member) => {
-            let memberAvatar: ReactNode = (
-              <div className="h-10 w-10 rounded-full bg-[var(--neutral-soft)]" />
-            );
-            if (member.profileImageUrl) {
-              memberAvatar = (
-                <Image
-                  src={member.profileImageUrl}
-                  alt={member.name}
-                  width={48}
-                  height={48}
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              );
-            }
+let othersSection: ReactNode = null;
+if (otherMembers.length > 0) {
+  othersSection = (
+    <div>
+      <div
+        className="
+          grid
+          grid-cols-3
+          md:grid-cols-4
+          lg:grid-cols-5
+          gap-2
+        "
+      >
+        {otherMembers.map((member) => {
+          const avatar = member.profileImageUrl ? (
+            <Image
+              src={member.profileImageUrl}
+              alt={member.name}
+              width={96}
+              height={96}
+              className="aspect-square w-full rounded-xl object-cover"
+            />
+          ) : (
+            <div className="aspect-square w-full rounded-xl bg-[var(--neutral-soft)]" />
+          );
 
-            // let memberTransport: ReactNode = null;
-            // if (member.originAddress && member.transport) {
-            //   memberTransport = (
-            //     <div className="mt-1 flex items-center gap-2">
-            //       <div className="flex items-center gap-1 rounded-full bg-[var(--neutral-soft)] px-3 py-1 text-xs font-semibold text-[var(--text)]">
-            //         {/* {transportIconMap[member.transport as TransportMode]}{" "}
-            //         {transportLabelMap[member.transport as TransportMode]} */}
-            //       </div>
-            //       <div className="text-xs text-[var(--text-subtle)]">
-            //         {member.originAddress}
-            //       </div>
-            //     </div>
-            //   );
-            // }
+          return (
+            <div
+              key={member.id}
+              className="flex flex-col items-center gap-1"
+            >
+              {avatar}
 
-            let nicknameLine: ReactNode = null;
-            if (member.nickname) {
-              nicknameLine = (
-                <div className="text-xs text-[var(--text-subtle)]">
-                  · {member.nickname}
-                </div>
-              );
-            }
+              <p className="text-sm font-medium text-[var(--text)] text-center">
+                {member.name}
+              </p>
 
-            return (
-              <div
-                key={member.id}
-                className="space-y-1 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-3"
-              >
-                <div className="flex items-center gap-3">
-                  {memberAvatar}
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-[var(--text)]">
-                      {member.name}
-                    </p>
-                    {/* {memberTransport} */}
-                  </div>
-                </div>
-                {nicknameLine}
-              </div>
-            );
-          })}
-       </div>
+              {member.nickname && (
+                <p className="text-xs text-[var(--text-subtle)] text-center">
+                  {member.nickname}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   return (
     <div className="space-y-4">
