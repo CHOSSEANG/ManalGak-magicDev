@@ -9,6 +9,13 @@ const config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    screens: {
+      sm: "640px",
+      md: "820px",   // 👈 태블릿 기준
+      lg: "1200px",  // 👈 데스크탑 기준
+      xl: "1536px",
+    },
+    
     extend: {
       colors: {
         primary: {
