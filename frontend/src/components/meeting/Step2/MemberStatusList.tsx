@@ -59,9 +59,9 @@ const otherMembers = useMemo(
         <Image
           src={myMember.profileImageUrl}
           alt={myMember.name}
-          width={48}
-          height={48}
-          className="h-10 w-10 rounded-xl object-cover"
+          width={96}
+          height={96}
+          className="h-20 w-20 rounded-xl object-cover"
         />
       );
     }
@@ -83,108 +83,112 @@ const otherMembers = useMemo(
     // }
 
     mySection = (
-      <div className="border-y border-[var(--border)] bg-[var(--bg-soft)] py-3">
-          <div className="flex items-center gap-3">
-            {myAvatar}
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-[var(--text)]">
-                {myMember.name}
-              </p>
-              {/* {myTransport} */}
-            </div>
-          </div>
+      <div className="border-y border-[var(--border)] bg-[var(--bg-soft)] p-4 rounded-xl space-y-4">
+  {/* ===== 상단: 내 프로필 ===== */}
+  <div className="flex items-center gap-4">
+    {/* ✅ 프로필 이미지 크게 */}
+    
+      {myAvatar}
+    
 
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-[var(--text-subtle)]">닉네임</span>
-            <Input
-            type="text"
-            placeholder="필요시 닉네임을 입력하세요"
-            value={myNickname}
-            onChange={(e) => setMyNickname(e.target.value)}
-            className="h-10 flex-1 rounded-xl"
-          />
-            <Button
-              type="button"
-              variant="outline"
-              className="border-[var(--border)] rounded-xl py-5 bg-[var(--primary)] text-[var(--primary-soft)]"
-              onClick={() =>
-                onPersonalChange(myMember.participantId, myNickname)
-              }
+    {/* 기존 이름 (고정 표시) */}
+    <div className="flex-1">
+      <p className="text-base font-semibold text-[var(--text)]">
+        {myMember.name}
+      </p>
+      <p className="text-xs text-[var(--text-subtle)]">
+        현재 내 이름
+      </p>
+    </div>
+  </div>
+
+  {/* ===== 하단: 닉네임 수정 ===== */}
+  <div className="flex items-center gap-2">
+    <span className="inline-block w-20 text-center text-base text-[var(--text-subtle)] whitespace-nowrap">
+      닉네임
+    </span>
+
+    <Input
+      type="text"
+      placeholder="필요시 닉네임을 입력하세요"
+      value={myNickname}
+      onChange={(e) => setMyNickname(e.target.value)}
+      className="h-11 flex-1 rounded-xl"
+    />
+
+    <Button
+      type="button"
+      variant="outline"
+      className="
+        h-11
+        px-8
+        rounded-xl
+        border-[var(--border)]
+        bg-[var(--primary)]
+        text-[var(--primary-soft)]
+        shrink-0
+      "
+      onClick={() =>
+        onPersonalChange(myMember.participantId, myNickname)
+      }
+    >
+      저장
+    </Button>
+  </div>
+</div>
+    );
+  }
+
+let othersSection: ReactNode = null;
+if (otherMembers.length > 0) {
+  othersSection = (
+    <div>
+      <div
+        className="
+          grid
+          grid-cols-4
+          md:grid-cols-4
+          lg:grid-cols-5
+          gap-2
+        "
+      >
+        {otherMembers.map((member) => {
+          const avatar = member.profileImageUrl ? (
+            <Image
+              src={member.profileImageUrl}
+              alt={member.name}
+              width={96}
+              height={96}
+              className="aspect-square w-full rounded-xl object-cover"
+            />
+          ) : (
+            <div className="aspect-square w-full rounded-xl bg-[var(--neutral-soft)]" />
+          );
+
+          return (
+            <div
+              key={member.id}
+              className="flex flex-col items-center gap-1"
             >
-              저장
-            </Button>
-          </div>
+              {avatar}
+
+              <p className="text-sm font-medium text-[var(--text)] text-center">
+                {member.name}
+              </p>
+
+              {member.nickname && (
+                <p className="text-xs text-[var(--text-subtle)] text-center">
+                  {member.nickname}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  let othersSection: ReactNode = null;
-  if (otherMembers.length > 0) {
-    othersSection = (
-      <div className="">
-        <div className="grid gap-0 grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-          {otherMembers.map((member) => {
-            let memberAvatar: ReactNode = (
-              <div className="h-10 w-10 rounded-full bg-[var(--neutral-soft)]" />
-            );
-            if (member.profileImageUrl) {
-              memberAvatar = (
-                <Image
-                  src={member.profileImageUrl}
-                  alt={member.name}
-                  width={48}
-                  height={48}
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              );
-            }
-
-            // let memberTransport: ReactNode = null;
-            // if (member.originAddress && member.transport) {
-            //   memberTransport = (
-            //     <div className="mt-1 flex items-center gap-2">
-            //       <div className="flex items-center gap-1 rounded-full bg-[var(--neutral-soft)] px-3 py-1 text-xs font-semibold text-[var(--text)]">
-            //         {/* {transportIconMap[member.transport as TransportMode]}{" "}
-            //         {transportLabelMap[member.transport as TransportMode]} */}
-            //       </div>
-            //       <div className="text-xs text-[var(--text-subtle)]">
-            //         {member.originAddress}
-            //       </div>
-            //     </div>
-            //   );
-            // }
-
-            let nicknameLine: ReactNode = null;
-            if (member.nickname) {
-              nicknameLine = (
-                <div className="text-xs text-[var(--text-subtle)]">
-                  · {member.nickname}
-                </div>
-              );
-            }
-
-            return (
-              <div
-                key={member.id}
-                className="space-y-1 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-3"
-              >
-                <div className="flex items-center gap-3">
-                  {memberAvatar}
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-[var(--text)]">
-                      {member.name}
-                    </p>
-                    {/* {memberTransport} */}
-                  </div>
-                </div>
-                {nicknameLine}
-              </div>
-            );
-          })}
-       </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">

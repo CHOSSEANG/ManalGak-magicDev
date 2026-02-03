@@ -70,21 +70,17 @@ export default function MeetingsNewLayout({
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* ✅ 상단 고정 영역 */}
-      {!hideProgressBar && (
-        <div className="sticky z-0 bg-[var(--bg)]">
-          <div className="overflow-x-hidden">
-            <div className="flex flex-wrap justify-center">
-              <Breadcrumb steps={breadcrumbSteps(pathname)} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ✅ 본문 스크롤 영역 */}
-      <div className="flex-1">
-        {children}
+  {!hideProgressBar && (
+    <div className="sticky top-0 z-20 bg-[var(--bg)] rounded-none">
+      <div className="app-container px-0">
+        <Breadcrumb steps={breadcrumbSteps(pathname)} />
       </div>
     </div>
+  )}
+
+  <div className="flex-1 px-4">
+    {children}
+  </div>
+</div>
   );
 }

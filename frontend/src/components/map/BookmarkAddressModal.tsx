@@ -67,10 +67,21 @@ export default function BookmarkAddressModal({
                       onClose()
                     }}
                     className="w-full flex items-center rounded-xl border border-[var(--wf-border)] bg-[var(--primary)] text-[var(--primary-soft)]
-                    px-4 py-3 text-sm hover:bg-[--primary-base)]"
+                    px-4 py-3 text-sm hover:bg-[--primary-base)] "
                   >
                     {/* 카테고리 영역 */}
-                    <p className="text-base font-bold text-[var(--primary-soft)]">{addr.category || '-'}</p>
+                    <p className="
+                        mr-3
+                        w-[12ch]
+                        overflow-hidden
+                        text-left
+                        text-ellipsis
+                        whitespace-nowrap
+                        text-base
+                        font-bold
+                        text-[var(--primary-soft)]
+                      "
+                    >{addr.category || '-'}</p>
                     {/* 주소 영역 */}
                     <p className="truncate text-[var(--primary-base)]">{addr.address}</p>
                   </button>

@@ -49,6 +49,8 @@ interface MeetingItem {
   meeting: Meeting;
 }
 
+
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 
@@ -253,6 +255,8 @@ const handleEntryClick = (meeting: Meeting) => {
     );
   }
 };
+  
+  
 
   
   let listState: ReactNode = null;
@@ -281,7 +285,7 @@ const handleEntryClick = (meeting: Meeting) => {
     <main className="bg-[var(--bg)] pt-4 pb-[var(--bottom-cta-space)]">
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {/* ===== Header ===== */}
-        <section className="space-y-1">
+        <section className="space-y-1 text-center">
           <h2 className="text-lg font-semibold text-[var(--text)]">
             모임 리스트
           </h2>
@@ -448,7 +452,14 @@ const handleEntryClick = (meeting: Meeting) => {
                               {/* 모임장 + 미확정 → step1 */}
                               {isOrganizer && !isCompleted && (
                                 <DropdownMenuItem
-                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  className="
+                                      min-h-[48px]
+                                      px-4
+                                      flex items-center
+                                      text-sm
+                                      hover:bg-[var(--primary-soft)]
+                                      focus:bg-[var(--primary-soft)]
+                                    "
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     goToEditPage(meeting.meetingUuid!);
@@ -461,7 +472,14 @@ const handleEntryClick = (meeting: Meeting) => {
                               {/* 참여자 + 미확정 → step3 */}
                               {!isOrganizer && !isCompleted && (
                                 <DropdownMenuItem
-                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  className="
+                                    min-h-[48px]
+                                    px-4
+                                    flex items-center
+                                    text-sm
+                                    hover:bg-[var(--primary-soft)]
+                                    focus:bg-[var(--primary-soft)]
+                                  "
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     router.push(
@@ -476,7 +494,14 @@ const handleEntryClick = (meeting: Meeting) => {
                               {/* ===== 조회 버튼 (확정일 때만) ===== */}
                               {isCompleted && (
                                 <DropdownMenuItem
-                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  className="
+                                    min-h-[48px]
+                                    px-4
+                                    flex items-center
+                                    text-sm
+                                    hover:bg-[var(--primary-soft)]
+                                    focus:bg-[var(--primary-soft)]
+                                  "
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     goToConfirmPage(meeting.meetingUuid!);
@@ -488,7 +513,14 @@ const handleEntryClick = (meeting: Meeting) => {
 
                               {/* ===== 복사 버튼 (항상 노출) ===== */}
                               <DropdownMenuItem
-                                className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                className="
+                                  min-h-[48px]
+                                  px-4
+                                  flex items-center
+                                  text-sm
+                                  hover:bg-[var(--primary-soft)]
+                                  focus:bg-[var(--primary-soft)]
+                                "
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleCopy(meeting.meetingUuid!);
@@ -500,7 +532,14 @@ const handleEntryClick = (meeting: Meeting) => {
                               {/* ===== 삭제 버튼 (모임장만) ===== */}
                               {isOrganizer && (
                                 <DropdownMenuItem
-                                  className="hover:bg-[var(--primary-soft)] focus:bg-[var(--primary-soft)]"
+                                  className="
+                                    min-h-[48px]
+                                    px-4
+                                    flex items-center
+                                    text-sm
+                                    hover:bg-[var(--primary-soft)]
+                                    focus:bg-[var(--primary-soft)]
+                                  "
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleDelete(meeting.meetingUuid!, meeting.organizerId);

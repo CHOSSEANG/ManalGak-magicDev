@@ -6,14 +6,12 @@ import WireframeModal from '@/components/ui/WireframeModal'
 import { toast } from '@/components/ui/use-toast'
 import { ToastAction } from '@/components/ui/toast'
 import VoteOrSelectDrawer from '@/components/meeting/Step3/VoteOrSelectDrawer'
-import Step4Map from '@/components/map/Step4Map'
 import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { useUser } from '@/context/UserContext'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
 import {
-  CheckCircle,
   Coffee,
   CupSoda,
   IceCream,
@@ -38,7 +36,6 @@ import {
   TreePalm,
   Building2,
   // 투표모달 미사용으로 숨기기 AlertTriangle,
-  Clock,
   Car,
   Train,
   ExternalLink,
@@ -47,7 +44,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { calculateRoutes } from '@/lib/api/route'
-import type { RouteResponse, RouteInfo, CarRouteInfo } from '@/types/route'
+import type { RouteResponse } from '@/types/route'
 import type { CommonResponse } from '@/types/api'
 
 // shadcn/ui
@@ -220,14 +217,15 @@ function logClientError(message: string, error: unknown) {
 
 export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
   const hasShownToastRef = useRef(false)
+  const handleVoteButtonClickRef = useRef<(() => void) | null>(null)
   const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
-  const [mapRefreshKey, setMapRefreshKey] = useState(0)
+  // const [mapRefreshKey, setMapRefreshKey] = useState(0)
   const router = useRouter()
   const searchParams = useSearchParams()
   const meetingUuid = searchParams.get('meetingUuid')
   const [participants, setParticipants] = useState<Participant[]>([])
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null)
-  const [showVoteModal, setShowVoteModal] = useState(false)
+  const [, setShowVoteModal] = useState(false)
 
   const [, setMiddlePoint] = useState<MiddlePoint | null>(null)
   const [placeSource, setPlaceSource] = useState<
@@ -236,8 +234,8 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
   // const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
-  const [isVoteLoading, setIsVoteLoading] = useState(true)  // 투표 데이터 로딩 상태
-  const [isCreatingVote, setIsCreatingVote] = useState(false)
+  // const [isVoteLoading, setIsVoteLoading] = useState(true)  // 투표 데이터 로딩 상태
+  const [, setIsCreatingVote] = useState(false)
   //const [isVoting, setIsVoting] = useState(false)
   const [organizerId, setOrganizerId] = useState<number | null>(null)
   const [meetingPurpose, setMeetingPurpose] = useState<string | null>(null)
@@ -431,6 +429,26 @@ const fetchTravelTimes = useCallback(
     [fetchTravelTimes]
   )
 
+  const fireNewPlaceToast = useCallback(() => {
+    if (hasShownToastRef.current) return
+
+    hasShownToastRef.current = true
+
+    toast({
+      title: '새로운 추천 장소가 있어요',
+      description: '투표를 진행해 주세요',
+      variant: 'destructive',
+      action: (
+        <ToastAction
+          altText="투표하기"
+          onClick={() => handleVoteButtonClickRef.current?.()}
+        >
+          투표하기
+        </ToastAction>
+      ),
+    })
+  }, [])
+
   /* ================= WebSocket ================= */
 
   const voteDataRef = useRef(voteData)
@@ -443,6 +461,17 @@ const fetchTravelTimes = useCallback(
     const client = new Client({
       webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws`),
       onConnect: () => {
+
+        client.subscribe(`/topic/meeting/${meetingUuid}/places`, () => {
+        fetchPlacesAndMidpointRef.current()
+        setRouteCache({})
+
+        if (voteDataRef.current) {
+          fireNewPlaceToast()
+        }
+      })
+
+        
         if (voteData?.voteId) {
           client.subscribe(`/topic/votes/${voteData.voteId}`, (message) => {
             try {
@@ -475,7 +504,7 @@ const fetchTravelTimes = useCallback(
 
         client.subscribe(`/topic/meeting/${meetingUuid}/places`, () => {
           fetchPlacesAndMidpointRef.current()
-          setMapRefreshKey((p) => p + 1)
+          // setMapRefreshKey((p) => p + 1)
           // 추천 장소 변경 시 이동시간 캐시 초기화
           setRouteCache({})
 
@@ -518,7 +547,7 @@ const fetchTravelTimes = useCallback(
       client.deactivate()
       stompClientRef.current = null
     }
-  }, [voteData?.voteId, meetingUuid])
+  }, [voteData?.voteId, meetingUuid, fireNewPlaceToast])
 
   /* ================= 참여자 ================= */
 
@@ -564,6 +593,15 @@ const fetchTravelTimes = useCallback(
     recommendedPlacesRef.current = recommendedPlaces
   }, [recommendedPlaces])
 
+  // 2/3 토스트 강제 띄우기 
+//   useEffect(() => {
+//   toast({
+//     title: '토스트 테스트',
+//     description: '이게 뜨면 구조는 완벽',
+//   })
+// }, [])
+
+  
   // ================= 이동시간 프리페칭 =================
 // ✅ 여기서 "계산 가능한 경우만" 이동시간 계산하도록 조건 보강
 useEffect(() => {
@@ -611,42 +649,36 @@ useEffect(() => {
     [recommendedPlaces, selectedPlaceForDetail]
   )
 
+  const selectedPlaceRouteData = selectedPlaceForDetail
+    ? routeCache[selectedPlaceForDetail]
+    : undefined
 
 
-  useEffect(() => {
-  if (!placeSignature || !meetingUuid || isLoadingPlaces || !hasInitiallyLoaded)
-    return
 
-  const storageKey = `place-signature-${meetingUuid}`
-  const prevSignature = localStorage.getItem(storageKey)
+  // src/components/meeting/Step3PlaceList.tsx
 
-  if (
-    prevSignature &&
-    prevSignature !== placeSignature &&
-    !hasShownToastRef.current
-  ) {
-    setIsNewPlaceAvailable(true)
-    hasShownToastRef.current = true
+useEffect(() => {
+  if (!meetingUuid || !hasInitiallyLoaded || isLoadingPlaces) return
 
-    toast({
-      title: '새로운 추천 장소가 있어요',
-      description: '투표를 진행해 주세요',
-      variant: 'destructive',
+  if (!isNewPlaceAvailable || hasShownToastRef.current) return
 
-      action: (
-        <ToastAction
-          altText="투표하기"
-          onClick={() => {
-            setShowVoteModal(true)   // ← 숨어있던 Drawer 열기
-          }}
-        >
-          투표하기
-        </ToastAction>
-      ),
-    })
-  }
-  localStorage.setItem(storageKey, placeSignature)
-  }, [placeSignature, meetingUuid, isLoadingPlaces, hasInitiallyLoaded])
+  hasShownToastRef.current = true
+
+  toast({
+    title: '새로운 추천 장소가 있어요',
+    description: '투표를 진행해 주세요',
+    variant: 'destructive',
+    action: (
+      <ToastAction
+        altText="투표하기"
+        onClick={() => setShowVoteModal(true)}
+      >
+        투표하기
+      </ToastAction>
+    ),
+  })
+}, [isNewPlaceAvailable, meetingUuid, hasInitiallyLoaded, isLoadingPlaces])
+
 
   // 2/3)[율] 새추천천 있을시, 새 토스트로 추천장소 투표 요청  
   useEffect(() => {
@@ -680,7 +712,7 @@ useEffect(() => {
       const fetchedVote = await fetchVote()
       if (!cancelled) {
         if (fetchedVote) setVoteData(fetchedVote)
-        setIsVoteLoading(false)  // 로딩 완료
+        // setIsVoteLoading(false)  // 로딩 완료
       }
     }
     initFetchVote()
@@ -763,6 +795,7 @@ useEffect(() => {
     }
     if (hasVote) setShowVoteModal(true)
   }
+  handleVoteButtonClickRef.current = handleVoteButtonClick
 
   /* ================= 확정 ================= */
 
@@ -803,16 +836,6 @@ useEffect(() => {
 
   /* ================= 계산 ================= */
 
-  const placeVoteMap = useMemo(() => {
-    if (!voteData) return new Map()
-    const map = new Map<string, VoteOption>()
-    voteData.options.forEach((option) => {
-      const place = recommendedPlaces.find((p) => p.name === option.content)
-      if (place) map.set(place.id, option)
-    })
-    return map
-  }, [voteData, recommendedPlaces])
-
   const myVotedOptionId = useMemo(() => {
     if (!voteData || !user?.id) return null
     const myParticipantId = participants.find(
@@ -825,249 +848,30 @@ useEffect(() => {
     return voted?.optionId || null
   }, [voteData, user?.id, participants])
 
-  const totalVotes =
-    voteData?.options.reduce((sum, opt) => sum + opt.voteCount, 0) || 0
-  const maxVotes = voteData
-    ? Math.max(...voteData.options.map((opt) => opt.voteCount))
-    : 0
-
-  const hasVote = Boolean(voteData?.options?.length)
-  let voteButtonLabel = '투표 대기 중'
-  if (isCreatingVote) voteButtonLabel = '생성 중...'
-  else if (isHost && !voteData?.options?.length)
-    voteButtonLabel = '투표 시작하기'
-  else if (isHost && isNewPlaceAvailable)
-    voteButtonLabel = '새 추천 장소! 투표 갱신'
-  else if (voteData?.options?.length) voteButtonLabel = '투표하기'
-
-  const isVoteDisabled =
-    isCreatingVote || recommendedPlaces.length === 0 || (!isHost && !hasVote)
-
   // let confirmLabel = '추천 장소 확정'
   // if (isConfirming) confirmLabel = '확정 중...'
   // else if (!isHost) confirmLabel = '모임장만 확정할 수 있습니다'
 
   return (
     <div className="relative">
-      {/* ================= 지도: 배경 ================= */}
-      {/* 1/30[유리] - 지도 배경화 및 콘텐츠 오버레이 */}
-      {meetingUuid && (
-        <div className="relative h-[60vh] min-h-[360px]">
-          <Step4Map
-            meetingUuid={meetingUuid}
-            refreshKey={mapRefreshKey}
-            minHeight={360}
-          />
-
-          {/* 투표 중앙 CTA */}
-          {/* 1/30[유리] - 투표 가능 시 지도 중앙 CTA(danger) */}
-          {/* 투표 데이터 로딩 완료 후에만 버튼 표시 (깜빡임 방지) */}
-          {!isVoteLoading && hasVote && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <Button
-                type="button"
-                onClick={handleVoteButtonClick}
-                disabled={isVoteDisabled}
-                className="pointer-events-auto bg-[var(--danger)] text-white py-6 px-6 text-base font-semibold"
-              >
-                투표 참여하기
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 2/3[유리] 별도의 shadcn toast로 변경, 대소문자 해결 필요 */}
-      {/* 1/30[유리] - 지도 위 고정 배너 제거 → Toast 전환(danger) */}
-      {/* {isNewPlaceAvailable && (
-        <div className="fixed left-1/2 top-4 z-50 -translate-x-1/2">
-          <button
-            type="button"
-            onClick={() => setShowVoteModal(true)}
-            className="flex items-center gap-2 rounded-full bg-[var(--danger-soft)] px-4 py-2 text-sm font-medium text-[var(--danger)]"
-          >
-            <AlertTriangle className="h-4 w-4" />
-            새로운 추천 장소가 있어요 · 투표하기
-          </button>
-        </div>
-      )} */}
-
-      {/* ================= 추천 장소 ================= */}
-      <section className="relative z-10 mx-auto max-w-xl bg-[var(--bg)] p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-[var(--text)]">
-              추천장소 선택
-            </h2>
-            <p className="text-xs text-[var(--text-subtle)]">
-              중간지점 기준 추천
-            </p>
-          </div>
-          <Button
-            type="button"
-            disabled={isVoteDisabled}
-            onClick={handleVoteButtonClick}
-            className="bg-[var(--danger)] text-white disabled:opacity-40"
-          >
-            {voteButtonLabel}
-          </Button>
-        </div>
-
-        {isLoadingPlaces ? (
-          <div className="flex items-center justify-center rounded-lg border border-[var(--border)] py-10">
-            <span className="text-sm text-[var(--text-subtle)]">
-              추천 장소를 찾고 있어요...
-            </span>
-          </div>
-        ) : recommendedPlaces.length === 0 ? (
-          <div className="flex items-center justify-center rounded-lg border border-[var(--border)] py-10">
-            <span className="text-sm text-[var(--text-subtle)]">
-              추천 장소 데이터가 없어요. 잠시 후 다시 시도해주세요.
-            </span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2">
-            {recommendedPlaces.map((place) => {
-              const Icon = place.icon
-              const selected = selectedPlace === place.id
-              const voteOption = placeVoteMap.get(place.id)
-              const hasVotes = Boolean(voteOption && voteOption.voteCount > 0)
-              const isTopChoice = Boolean(
-                voteOption &&
-                voteOption.voteCount === maxVotes &&
-                maxVotes > 0
-              )
-              const votePercentage =
-                totalVotes > 0 && voteOption
-                  ? (voteOption.voteCount / totalVotes) * 100
-                  : 0
-
-              // 이동시간 정보
-              const routeData = routeCache[place.id]
-              const isLoadingRoute = loadingRoutes[place.id]
-              const avgTravelTime = routeData?.statistics?.averageTravelTime
-
-              // 내 이동시간 계산
-              const myTransportType = myParticipant?.type
-              let myTravelTime: number | null = null
-              let myTransportIcon: React.ReactNode = null
-
-              if (routeData && myParticipant) {
-                if (myTransportType === 'CAR') {
-                  // 자동차: carRoutes에서 찾기 (매장까지 직접)
-                  const myCarRoute = routeData.carRoutes?.find(
-                    (r) => r.participantName === myParticipant.nickName
-                  )
-                  if (myCarRoute) {
-                    myTravelTime = myCarRoute.travelTime
-                    myTransportIcon = <Car className="h-3 w-3" />
-                  }
-                } else if (myTransportType === 'WALK') {
-                  // 도보: walkingMinutes만
-                  myTravelTime = place.walkingMinutes
-                  myTransportIcon = null
-                } else {
-                  // 대중교통 (PUBLIC 또는 기본값)
-                  const myRoute = routeData.routes?.find(
-                    (r) => r.participantName === myParticipant.nickName
-                  )
-                  if (myRoute) {
-                    // 대중교통: API 시간 + 도보시간
-                    myTravelTime = myRoute.travelTime + place.walkingMinutes
-                    myTransportIcon = <Train className="h-3 w-3" />
-                  }
-                }
-              }
-
-              let cls =
-                'relative flex items-center gap-3 rounded-lg border p-3'
-              if (selected) cls += ' border-[var(--danger)]'
-              else cls += ' border-[var(--border)]'
-
-              return (
-                <button
-                  key={place.id}
-                  onClick={() => handlePlaceClick(place)}
-                  className={cls}
-                >
-                  {hasVotes && (
-                    <div
-                      className="absolute left-0 top-0 h-full"
-                      style={{
-                        width: `${votePercentage}%`,
-                        backgroundColor: 'var(--neutral-soft)',
-                        opacity: 0.5,
-                      }}
-                    />
-                  )}
-                  <div className="relative flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
-                    <Icon className="h-6 w-6 text-[var(--danger)]" />
-                  </div>
-                  <div className="relative flex-1 text-left">
-                    <p className="text-sm font-semibold text-[var(--text)]">
-                      {place.name}
-                    </p>
-                    <p className="text-xs text-[var(--text-subtle)]">
-                      {place.stationName} · 도보 {place.walkingMinutes}분
-                    </p>
-                    {/* 이동시간 표시 (전체 카드 클릭 가능) */}
-                    {isLoadingRoute ? (
-                      <p className="mt-1 text-xs text-[var(--text-subtle)]">
-                        이동시간 조회 중...
-                      </p>
-                    ) : myTravelTime !== null ? (
-                      <div className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)]">
-                        나 {myTransportIcon} {myTravelTime}분
-                        {avgTravelTime && avgTravelTime !== myTravelTime && (
-                          <span className="text-[var(--text-subtle)] ml-1">
-                            (평균 {avgTravelTime}분)
-                          </span>
-                        )}
-                      </div>
-                    ) : avgTravelTime ? (
-                      <div className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)]">
-                        <Clock className="h-3 w-3" />
-                        평균 {avgTravelTime}분
-                      </div>
-                    ) : null}
-                    {hasVotes && voteOption && (
-                      <div className="mt-1 flex items-center gap-2">
-                        <span className="text-xs font-semibold text-[var(--danger)]">
-                          {voteOption.voteCount}표
-                        </span>
-                        {isTopChoice && (
-                          <span className="rounded-full bg-[var(--danger)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
-                            1위
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  {selected && (
-                    <CheckCircle className="relative h-5 w-5 text-[var(--danger)]" />
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </section>
-
+      
       {/* ================= 투표 / 선택 Drawer ================= */}
       <VoteOrSelectDrawer
-      open={showVoteModal}
-      onClose={() => setShowVoteModal(false)}
-      places={recommendedPlaces}
-      voteData={voteData}
-      selectedPlaceId={selectedPlace}
-      isHost={isHost}
-      myVotedOptionId={myVotedOptionId}
-      onVote={submitVote}
-      onConfirm={handleConfirmPlace}
-      onSelectPlace={(placeId) => {
-        setSelectedPlace(placeId)
-      }}
-    />
+        places={recommendedPlaces}
+        voteData={voteData}
+        selectedPlaceId={selectedPlace}
+        isHost={isHost}
+        myVotedOptionId={myVotedOptionId}
+        onVote={submitVote}
+        onConfirm={handleConfirmPlace}
+        onSelectPlace={(placeId) => {
+          const place = recommendedPlaces.find((p) => p.id === placeId)
+          if (place) {
+            handlePlaceClick(place)   // 🔥 기존 모달 로직 재사용
+          }
+        }}
+      />
+
 
       {/* 2/3)[율] 기존 투표모달창 주석처러 */}
       {/* <WireframeModal
@@ -1151,186 +955,190 @@ useEffect(() => {
         </div>
       </WireframeModal> */}
 
-      {/* ================= 이동시간 상세 모달 ================= */}
-      <WireframeModal
-        open={showTravelTimeModal}
-        title="참여자별 이동시간"
-        onClose={() => setShowTravelTimeModal(false)}
-      >
-        {selectedPlaceForDetail && (
-          <div className="space-y-4">
-            {/* 매장 정보 */}
-            {selectedPlaceDetail && (
-              <div className="rounded-xl border border-[var(--border)] p-4 bg-[var(--bg)]">
-                {/* 매장명과 아이콘 */}
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
-                    {(() => {
-                      const Icon = selectedPlaceDetail.icon || Coffee
-                      return <Icon className="h-7 w-7 text-[var(--danger)]" />
-                    })()}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-[var(--text)]">
-                      {selectedPlaceDetail.name}
-                    </h3>
-                    <p className="text-xs text-[var(--text-subtle)]">
-                      {selectedPlaceDetail.categoryGroupName || selectedPlaceDetail.category}
-                    </p>
-                  </div>
-                </div>
-
-                {/* 주소 */}
-                {(selectedPlaceDetail.roadAddress || selectedPlaceDetail.address) && (
-                  <div className="flex items-start gap-2 mb-2">
-                    <MapPinned className="h-4 w-4 text-[var(--text-subtle)] mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-[var(--text)]">
-                      {selectedPlaceDetail.roadAddress || selectedPlaceDetail.address}
-                    </p>
-                  </div>
-                )}
-
-                {/* 전화번호 */}
-                {selectedPlaceDetail.phone && (
-                  <div className="flex items-center gap-2 mb-3">
-                    <Phone className="h-4 w-4 text-[var(--text-subtle)] flex-shrink-0" />
-                    <a
-                      href={`tel:${selectedPlaceDetail.phone}`}
-                      className="text-sm text-[var(--primary)] hover:underline"
-                    >
-                      {selectedPlaceDetail.phone}
-                    </a>
-                  </div>
-                )}
-
-                {/* 카카오맵 길찾기 버튼 */}
-                {selectedPlaceDetail.placeUrl && (
-                  <a
-                    href={selectedPlaceDetail.placeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#FEE500] text-[#191919] text-sm font-medium hover:bg-[#FAE100] transition-colors"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    카카오맵에서 보기
-                  </a>
-                )}
-              </div>
-            )}
-
-            {routeCache[selectedPlaceForDetail] ? (
-              <>
-                {/* 통계 요약 */}
-                {routeCache[selectedPlaceForDetail].statistics && (
-                  <div className="rounded-xl bg-[var(--neutral-soft)] p-4 border border-[var(--border)]">
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div>
-                        <p className="text-xl font-bold text-[var(--danger)]">
-                          {routeCache[selectedPlaceForDetail].statistics?.averageTravelTime}분
-                        </p>
-                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">평균</p>
-                      </div>
-                      <div className="border-x border-[var(--border)]">
-                        <p className="text-xl font-bold text-[var(--text)]">
-                          {routeCache[selectedPlaceForDetail].statistics?.minTravelTime}분
-                        </p>
-                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">최소</p>
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-[var(--text)]">
-                          {routeCache[selectedPlaceForDetail].statistics?.maxTravelTime}분
-                        </p>
-                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-subtle)]">최대</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 대중교통 경로 */}
-                {routeCache[selectedPlaceForDetail].routes &&
-                  routeCache[selectedPlaceForDetail].routes!.length > 0 && (
-                    <div>
-                      <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-                        <Train className="h-4 w-4 text-[var(--text-subtle)]" />
-                        대중교통 참여자
-                      </h4>
-                      <div className="space-y-2">
-                        {routeCache[selectedPlaceForDetail].routes!.map(
-                          (route: RouteInfo, idx: number) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between rounded-lg border border-[var(--border)] p-3 bg-[var(--bg)]"
-                            >
-                              <span className="text-sm font-medium text-[var(--text)]">
-                                {route.participantName}
-                              </span>
-                              <div className="flex items-center gap-3">
-                                <span className="text-[11px] text-[var(--text-subtle)]">
-                                  환승 {route.transferCount}회
-                                </span>
-                                <span className="text-sm font-bold text-[var(--danger)]">
-                                  {route.travelTime}분
-                                </span>
-                              </div>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                {/* 자동차 경로 */}
-                {routeCache[selectedPlaceForDetail].carRoutes &&
-                  routeCache[selectedPlaceForDetail].carRoutes!.length > 0 && (
-                    <div className="pt-2">
-                      <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-                        <Car className="h-4 w-4 text-[var(--text-subtle)]" />
-                        자동차 참여자
-                      </h4>
-                      <div className="space-y-2">
-                        {routeCache[selectedPlaceForDetail].carRoutes!.map(
-                          (route: CarRouteInfo, idx: number) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between rounded-lg border border-[var(--border)] p-3 bg-[var(--bg)]"
-                            >
-                              <span className="text-sm font-medium text-[var(--text)]">
-                                {route.participantName}
-                              </span>
-                              <div className="flex items-center gap-3">
-                                <span className="text-[11px] text-[var(--text-subtle)]">
-                                  {(route.distance / 1000).toFixed(1)}km
-                                </span>
-                                <span className="text-sm font-bold text-[var(--danger)]">
-                                  {route.travelTime}분
-                                </span>
-                              </div>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-              </>
-            ) : (
-              <div className="py-10 text-center">
-                <p className="text-sm text-[var(--text-subtle)]">이동시간 정보를 불러오는 중입니다...</p>
-              </div>
-            )}
-
-            {/* 선택 버튼 (푸터 스타일) */}
-            <div className="pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowTravelTimeModal(false)}
-                className="w-full border-2 border-[var(--danger)] text-[var(--danger)] font-bold py-6 rounded-xl hover:bg-[var(--danger-soft)]"
-              >
-                닫기
-              </Button>
+{/* ================= 이동시간 상세 모달 ================= */}
+<WireframeModal
+  open={showTravelTimeModal}
+  title="참여자별 이동시간"
+  onClose={() => setShowTravelTimeModal(false)}
+>
+  {selectedPlaceForDetail && (
+    <div className="space-y-4">
+      {/* ================= 가게 정보 ================= */}
+      {selectedPlaceDetail && (
+        <div className="rounded-xl border border-[var(--border)] p-4 bg-[var(--bg)]">
+          {/* 아이콘 + 가게명 */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+              {(() => {
+                const Icon = selectedPlaceDetail.icon || Coffee
+                return <Icon className="h-7 w-7 text-[var(--danger)]" />
+              })()}
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-[var(--text)]">
+                {selectedPlaceDetail.name}
+              </h3>
+              <p className="text-xs text-[var(--text-subtle)]">
+                {selectedPlaceDetail.categoryGroupName ||
+                  selectedPlaceDetail.category}
+              </p>
             </div>
           </div>
-        )}
-      </WireframeModal>
+
+          {/* 주소 */}
+          {(selectedPlaceDetail.roadAddress ||
+            selectedPlaceDetail.address) && (
+            <div className="flex items-start gap-2 mb-2">
+              <MapPinned className="h-4 w-4 text-[var(--text-subtle)] mt-0.5" />
+              <p className="text-sm text-[var(--text)]">
+                {selectedPlaceDetail.roadAddress ||
+                  selectedPlaceDetail.address}
+              </p>
+            </div>
+          )}
+
+          {/* 전화번호 */}
+          {selectedPlaceDetail.phone && (
+            <div className="flex items-center gap-2 mb-3">
+              <Phone className="h-4 w-4 text-[var(--text-subtle)]" />
+              <a
+                href={`tel:${selectedPlaceDetail.phone}`}
+                className="text-sm text-[var(--primary)] hover:underline"
+              >
+                {selectedPlaceDetail.phone}
+              </a>
+            </div>
+          )}
+
+          {/* 카카오맵 링크 */}
+          {selectedPlaceDetail.placeUrl && (
+            <a
+              href={selectedPlaceDetail.placeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#FEE500] text-[#191919] text-sm font-medium"
+            >
+              <ExternalLink className="h-4 w-4" />
+              카카오맵에서 보기
+            </a>
+          )}
+        </div>
+      )}
+
+      {/* ================= 이동시간 ================= */}
+      {selectedPlaceRouteData ? (
+        <>
+          {/* 요약 통계 */}
+          {selectedPlaceRouteData.statistics && (
+            <div className="rounded-xl bg-[var(--neutral-soft)] p-4 border border-[var(--border)]">
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <p className="text-xl font-bold text-[var(--danger)]">
+                    {selectedPlaceRouteData.statistics
+                      ?.averageTravelTime}
+                    분
+                  </p>
+                  <p className="text-[10px] text-[var(--text-subtle)]">
+                    평균
+                  </p>
+                </div>
+                <div className="border-x border-[var(--border)]">
+                  <p className="text-xl font-bold">
+                    {selectedPlaceRouteData.statistics
+                      ?.minTravelTime}
+                    분
+                  </p>
+                  <p className="text-[10px] text-[var(--text-subtle)]">
+                    최소
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold">
+                    {selectedPlaceRouteData.statistics
+                      ?.maxTravelTime}
+                    분
+                  </p>
+                  <p className="text-[10px] text-[var(--text-subtle)]">
+                    최대
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 대중교통 */}
+          {selectedPlaceRouteData.routes &&
+            selectedPlaceRouteData.routes.length > 0 && (
+            <div>
+              <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                <Train className="h-4 w-4" />
+                대중교통
+              </h4>
+              <div className="space-y-2">
+                {selectedPlaceRouteData.routes.map(
+                  (route, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between rounded-lg border p-3"
+                    >
+                      <span>{route.participantName}</span>
+                      <span className="font-bold text-[var(--danger)]">
+                        {route.travelTime}분
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 자동차 */}
+          {selectedPlaceRouteData.carRoutes &&
+            selectedPlaceRouteData.carRoutes.length > 0 && (
+            <div>
+              <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                <Car className="h-4 w-4" />
+                자동차
+              </h4>
+              <div className="space-y-2">
+                {selectedPlaceRouteData.carRoutes.map(
+                  (route, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between rounded-lg border p-3"
+                    >
+                      <span>{route.participantName}</span>
+                      <span className="font-bold text-[var(--danger)]">
+                        {route.travelTime}분
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="py-10 text-center">
+          <p className="text-sm text-[var(--text-subtle)]">
+            이동시간 정보를 불러오는 중입니다...
+          </p>
+        </div>
+      )}
+
+      {/* 닫기 버튼 */}
+      <Button
+        variant="outline"
+        onClick={() => setShowTravelTimeModal(false)}
+        className="w-full py-6 border-2 border-[var(--danger)] text-[var(--danger)] font-bold rounded-xl"
+      >
+        닫기
+      </Button>
+    </div>
+  )}
+</WireframeModal>
+
+      
 
       {/* ================= 확정 CTA ================= */}
       {/* <div className="sticky bottom-0 z-20 bg-[var(--bg)] p-4">

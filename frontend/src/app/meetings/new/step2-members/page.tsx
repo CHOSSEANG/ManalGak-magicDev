@@ -257,6 +257,7 @@ function Step3MembersContent(): JSX.Element {
   if (isExpired) {
     return (
       <main className="flex min-h-[60vh] items-center justify-center p-6">
+         <div className="mx-auto max-w-3xl space-y-6">
         <Card className="w-full max-w-md text-center bg-[var(--bg-soft)] shadow-none">
           {/* 1/30[유리] - 카드 그림자 제거 */}
           <CardHeader>
@@ -270,7 +271,8 @@ function Step3MembersContent(): JSX.Element {
               모임 리스트로 이동
             </Button>
           </CardContent>
-        </Card>
+          </Card>
+          </div>
       </main>
     );
   }
@@ -304,10 +306,11 @@ function Step3MembersContent(): JSX.Element {
     bg-[var(--bg)]
     border-t border-[var(--border)]
     pb-[var(--bottom-cta-space2)]
-  ">    
 
-        <section className="my-3">
-          <h2 className="text-lg font-semibold">참여자</h2>
+  ">    
+ <div className="mx-auto max-w-3xl space-y-6">
+        <section className="my-3 text-center">
+          <h2 className="text-lg font-semibold"></h2>
           <p className="text-sm text-[var(--text-subtle)]">
             멤버를 초대하세요.
           </p>
@@ -342,7 +345,8 @@ function Step3MembersContent(): JSX.Element {
           }}
           readonly={isReadonly}
         />
-        <div  className="bottom-[var(--bottom-cta-space2)]"/>
+          <div className="bottom-[var(--bottom-cta-space2)]" />
+          </div>
       </main>
 
 

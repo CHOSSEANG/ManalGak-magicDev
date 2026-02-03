@@ -1,7 +1,8 @@
-// component/meeting/Step6/CompleteSummaryDrawer.tsx
+
+// components/meeting/Step6/CompleteSummaryDrawer.tsx
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import {
   Drawer,
   DrawerContent,
@@ -9,97 +10,123 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from '@/components/ui/drawer'
-import CompleteSummaryCard, { MeetingSummary, } from '@/components/meeting/Step6/CompleteSummaryCard'
+import CompleteSummaryCard, {
+  MeetingSummary,
+} from '@/components/meeting/Step6/CompleteSummaryCard'
+import { Button } from '@/components/ui/button'
+import { ChevronUp, ChevronDown } from 'lucide-react'
 
 interface Props {
   meeting: MeetingSummary
 }
 
-const MIN_BOTTOM = 80 // 하단 네비 가림 방지 (px)
-
 export default function CompleteSummaryDrawer({ meeting }: Props) {
-  // ✅ 상태는 반드시 컴포넌트 안
-  const [bottom, setBottom] = useState<number>(MIN_BOTTOM)
-  const startYRef = useRef(0)
-  const startBottomRef = useRef(0)
+  /* ---------- Drawer 열림/닫힘 ---------- */
+  const OPEN_BOTTOM = 0
+  const COLLAPSED_BOTTOM = 'var(--bottom-nav-height)'
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    startYRef.current = e.clientY
-    startBottomRef.current = bottom
+  const [bottom, setBottom] = useState<string | number>(COLLAPSED_BOTTOM)
+  const isOpen = bottom === OPEN_BOTTOM
 
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', onPointerUp)
+  const toggleDrawer = () => {
+    setBottom(isOpen ? COLLAPSED_BOTTOM : OPEN_BOTTOM)
   }
-
-    const onPointerMove = (e: PointerEvent) => {
-    const deltaY = startYRef.current - e.clientY
-    const nextBottom = startBottomRef.current + deltaY
-    // 🔑 상/하한 clamp
-    const maxBottom = window.innerHeight - 100; // 100px은 상단 여백 예시입니다.
-    setBottom(Math.min(Math.max(nextBottom, MIN_BOTTOM), maxBottom))
-  }
-
-  const onPointerUp = () => {
-    window.removeEventListener('pointermove', onPointerMove)
-    window.removeEventListener('pointerup', onPointerUp)
-  }
-
 
   return (
-    <Drawer open modal={false}>
-      <DrawerContent
+    <>
+      {/* ================= 열기 버튼 ================= */}
+      {!isOpen && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-30">
+          <Button
+            onClick={toggleDrawer}
+            className="
+              flex items-center gap-1
+              rounded-xl
+              border border-[var(--danger-soft)]
+              bg-[var(--danger-soft)]
+              text-[var(--text)]
+              
+              
+            "
+          >
+            확정장소 정보확인 <ChevronUp className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
+
+      {/* ================= Drawer ================= */}
+      <Drawer open modal={false}>
+        
+        {/* ✅ 접근성 필수 요소 — 항상 존재 */}
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>확정 장소 정보</DrawerTitle>
+            <DrawerDescription>
+              모임의 확정된 장소 정보를 확인할 수 있습니다.
+            </DrawerDescription>
+          </DrawerHeader>
+        
+  <DrawerContent
     style={{ bottom }}
-        className="
-      app-container z-20
-      left-0 right-0 translate-x-0
-      border border-[var(--border)] bg-[var(--bg)]
+    className="
+      z-20
+      border border-[var(--border)]
+      bg-[var(--bg)]
+      px-4
       shadow-none
-      p-0
-      pointer-events-none
+
+      w-full
+      md:w-[500px]
+      mx-auto
+
+      max-h-[85vh]
+
+      transition-[bottom]
+      duration-300
+      ease-out
+      pointer-events-auto
+      
     "
   >
-        {/* ✅ 실제 패널 (이것만 클릭/드래그/스크롤) */}
-    <div
-      className="
-        pointer-events-auto
-        app-container
-        mx-auto
-        w-full
-        max-w-[var(--app-max-width)]
-        rounded-t-3xl
-        bg-transparent 
-      "
-    >
-      {/* 드래그 핸들 */}
-      <div
-        onPointerDown={onPointerDown}
+    {/* ===== 열기 / 닫기 버튼 (항상 보임) ===== */}
+    <div className="flex justify-center py-2">
+      <Button
+        onClick={toggleDrawer}
+        variant="ghost"
+        size="sm"
         className="
-          mx-auto
-          mb-0
-          h-1.5
-          w-40
-          rounded-full
-          bg-[var(--border)]
-          cursor-grab
-          active:cursor-grabbing
-          touch-pan-y
+          flex items-center gap-1
+          text-base
+          rounded-xl
+          border border-[var(--danger-soft)]
+          bg-[var(--danger-soft)]
+          text-[var(--text)]
         "
-      />
+      >
+        {isOpen ? (
+          <>
+            창 닫기 <ChevronDown className="h-5 w-5" />
+          </>
+        ) : (
+          <>
+            확정장소 확인 <ChevronUp className="h-5 w-5" />
+          </>
+        )}
+      </Button>
+    </div>
 
-        <DrawerHeader className="pb-2">
-          <DrawerTitle className="sr-only">
-            확정 장소 정보
-          </DrawerTitle>
-          <DrawerDescription className="sr-only">
-            모임의 확정된 장소, 주소, 연락처 및 카카오 공유 정보를 확인할 수 있습니다.
-          </DrawerDescription>
-        </DrawerHeader>
+    {/* ===== 드로워 열기/닫기 버튼 오류 수정 ===== */}
+    {isOpen && (
+      <>
+        
 
-        <div className="overflow-y-auto pb-[calc(0px+env(safe-area-inset-bottom))] touch-pan-y">
+        <div className="overflow-y-auto 
+                pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))]">
           <CompleteSummaryCard meeting={meeting} />
-          </div>
-          </div>
-      </DrawerContent>
-    </Drawer>
+        </div>
+      </>
+    )}
+          </DrawerContent>
+      </Drawer>
+    </>
   )
 }

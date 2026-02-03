@@ -405,7 +405,7 @@ useEffect(() => {
           <p className="font-semibold text-[var(--text)] pt-3">
             모임 이름{" "}
             <span className="text-[var(--text-subtle)] pl-5 text-xs">
-              모임명을 반드시 입력하세요!
+              반드시 입력하세요!
             </span>
           </p>
           <input
@@ -423,9 +423,9 @@ useEffect(() => {
         {/* 2. 모임 목적 */}
         <div className="space-y-2">
           <p className="font-semibold text-[var(--text)] pt-3">
-            모임 목적{" "}
+            모임 목적 & 일시{" "}
             <span className="text-[var(--text-subtle)] pl-5 text-xs">
-              아래 4개의 목적 중 하나를 반드시 선택하세요!
+              반드시 선택하세요!
             </span>
           </p>
 
@@ -482,8 +482,8 @@ useEffect(() => {
         </div>
 
         {/* 3. 날짜 및 시간 */}
-        <p className="font-semibold text-[var(--text)] pt-3">모임 일시</p>
-        <div className="flex gap-2">
+        
+        <div className="flex gap-2 border-t border-[var(--border)] pt-3">
           <div className="flex-1 flex flex-col gap-2">
             <button
               type="button"
@@ -520,8 +520,7 @@ useEffect(() => {
         </div>
 
         {/* 4. 예상 날씨 */}
-        <p className="font-semibold text-[var(--text)] pt-3">예상 날씨</p>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] p-4">
+        <div className="rounded-none p-4 border-t ">
           {!canShowWeather ? (
             <div className="flex h-16 items-center justify-center text-xs text-[var(--text-subtle)]">
               날짜와 시작 시간을 선택하면 날씨를 보여드려요

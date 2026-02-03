@@ -99,10 +99,19 @@ export default function Step4Map({
       if (!maps) return
 
       // 지도 생성
-      mapInstanceRef.current = new maps.Map(mapRef.current!, {
-        center: new maps.LatLng(routeData.midpoint.lat, routeData.midpoint.lng),
-        level: 6,
-      })
+      mapInstanceRef.current = new maps.Map(
+        mapRef.current!,
+        {
+          center: new maps.LatLng(
+            routeData.midpoint.lat,
+            routeData.midpoint.lng
+          ),
+          level: 3,
+          draggable: true,
+          scrollwheel: true,
+          disableDoubleClickZoom: false,
+        } as kakao.maps.MapOptions
+      )
       setIsMapLoaded(true)
     })
   }, [routeData])

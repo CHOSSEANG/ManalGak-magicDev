@@ -48,7 +48,8 @@
   --bottom-nav-height2: calc(140px + env(safe-area-inset-bottom));
   --bottom-cta-space2: 210px; /* CTA 높이 + 여유 */
 
-
+  /* == toast 헤더아래 위치하는 탑 여백 == */
+  --header-height: 56px;
   /* ===== Font ===== */
   --font-sans: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
 
@@ -152,24 +153,21 @@ body {
   padding-right: 0px;
 }
 
-main {
-  padding-left: 16px;
-  padding-right: 16px;
-}
+
 
 /* ===== Tablet ===== */
 @media (min-width: 640px) {
   .app-container {
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 
 /* ===== Desktop ===== */
 @media (min-width: 1024px) {
   .app-container {
-    padding-left: 32px;
-    padding-right: 32px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 

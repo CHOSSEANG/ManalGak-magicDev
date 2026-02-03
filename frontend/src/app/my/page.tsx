@@ -180,20 +180,18 @@ export default function MyPage() {
 
   return (
     <>
-      <main className="px-0 py-6">
-        <div className="mx-auto w-full max-w-3xl space-y-4">
+      <main className="px-0 py-0">
+        <div className="mx-auto w-full max-w-3xl space-y-4 px-3">
           {/* ===== Header ===== */}
-          <Card className="">
-            <CardHeader className="space-y-2">
-              <CardTitle className="text-[var(--text)]">내 페이지</CardTitle>
-              <CardDescription className="text-[var(--text-subtle)]">
-                북마크 출발지와 최근 모임을 확인할 수 있어요.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+          <section className="my-3 text-center">
+          <h2 className="text-lg font-semibold">내 페이지</h2>
+          <p className="text-sm text-[var(--text-subtle)]">
+           북마크 출발지와 최근 모임을 확인할 수 있어요.
+          </p>
+          </section>
 
           {/* ===== Profile ===== */}
-          <Card className="border-b border-[var(--border)] py-3">
+          <Card className=" border-t border-[var(--border)] py-3">
             
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between gap-4">
@@ -234,88 +232,157 @@ export default function MyPage() {
                 자주 가는 출발지를 최대 3개까지 등록하세요.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {bookmarkIntro}
+<CardContent className="space-y-3">
+  {bookmarkIntro}
 
-              {bookmarks.map((item, index) => {
-                let rowAction: ReactNode = null;
-                if (item.isEditing) {
-                  rowAction = (
-                    <Button
-                      type="button"
-                      disabled={!item.address}
-                      onClick={() => saveBookmark(index)}
-                      className="rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40"
-                    >
-                      저장
-                    </Button>
-                  );
-                } else {
-                  rowAction = (
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        onClick={() =>
-                          setBookmarks((prev) =>
-                            prev.map((b, i) =>
-                              i === index ? { ...b, isEditing: true } : b
-                            )
-                          )
-                        }
-                        className="rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
-                      >
-                        수정
-                      </Button>
-                      {item.id !== 0 && (
-                        <Button
-                          type="button"
-                          onClick={() => deleteBookmark(item.id)}
-                          className="rounded-md bg-[var(--danger-soft)] text-[var(--danger)]"
-                        >
-                          삭제
-                        </Button>
-                      )}
-                    </div>
-                  );
-                }
+  {bookmarks.map((item, index) => {
+    let rowAction: ReactNode = null;
 
-                return (
-                  <div
-                    key={index}
-                    className="flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-3 sm:flex-row sm:items-center"
-                  >
-                    <input
-                      type="text"
-                      placeholder="라벨"
-                      value={item.label}
-                      disabled={!item.isEditing}
-                      onChange={(e) =>
-                        setBookmarks((prev) =>
-                          prev.map((b, i) =>
-                            i === index ? { ...b, label: e.target.value } : b
-                          )
-                        )
-                      }
-                      className="w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 py-2 text-sm text-[var(--text)] disabled:bg-[var(--neutral-soft)]"
-                    />
+    if (item.isEditing) {
+      // ✅ 저장 버튼
+      rowAction = (
+        <Button
+          type="button"
+          disabled={!item.address}
+          onClick={() => saveBookmark(index)}
+          className="
+            w-full
+            rounded-xl
+            bg-[var(--primary)]
+            text-[var(--primary-foreground)]
+            disabled:opacity-40
 
-                    <Button
-                      type="button"
-                      disabled={!item.isEditing}
-                      onClick={() => {
-                        setActiveBookmarkIndex(index);
-                        setSearchAddressOpen(true);
-                      }}
-                      className="flex-1 rounded-md border border-[var(--border)] bg-[var(--bg)] text-left text-sm text-[var(--text)] disabled:bg-[var(--neutral-soft)]"
-                    >
-                      {item.address || "주소 검색"}
-                    </Button>
+            sm:w-auto
+          "
+        >
+          저장
+        </Button>
+      );
+    } else {
+      // ✅ 수정 / 삭제 버튼
+      rowAction = (
+        <div
+          className="
+            flex gap-2
+            sm:gap-2
+          "
+        >
+          <Button
+            type="button"
+            onClick={() =>
+              setBookmarks((prev) =>
+                prev.map((b, i) =>
+                  i === index ? { ...b, isEditing: true } : b
+                )
+              )
+            }
+            className="
+              flex-1
+              rounded-xl
+              border border-[var(--border)]
+              bg-[var(--bg)]
+              text-[var(--text)]
 
-                    {rowAction}
-                  </div>
-                );
-              })}
-            </CardContent>
+              sm:flex-none
+            "
+          >
+            수정
+          </Button>
+
+          {item.id !== 0 && (
+            <Button
+              type="button"
+              onClick={() => deleteBookmark(item.id)}
+              className="
+                flex-1
+                rounded-xl
+                bg-[var(--danger-soft)]
+                text-[var(--danger)]
+
+                sm:flex-none
+              "
+            >
+              삭제
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={index}
+        className="
+          flex flex-col gap-2
+          rounded-none
+          border-b border-[var(--border)]
+          bg-[var(--bg)]
+          px-3 py-3
+
+          sm:flex-row sm:items-center
+        "
+      >
+        {/* ✅ 라벨 */}
+        <input
+          type="text"
+          placeholder="북마크 이름"
+          value={item.label}
+          disabled={!item.isEditing}
+          onChange={(e) =>
+            setBookmarks((prev) =>
+              prev.map((b, i) =>
+                i === index ? { ...b, label: e.target.value } : b
+              )
+            )
+          }
+          className="
+            w-full
+            rounded-xl
+            border border-[var(--border)]
+            bg-[var(--bg)]
+            px-2 py-2
+            text-sm text-left
+            text-[var(--text)]
+            disabled:bg-[var(--neutral-soft)]
+
+            sm:w-[200px]
+            sm:shrink-0
+            sm:truncate
+          "
+          maxLength={12}
+        />
+
+        {/* ✅ 주소 버튼 */}
+        <Button
+          type="button"
+          disabled={!item.isEditing}
+          onClick={() => {
+            setActiveBookmarkIndex(index);
+            setSearchAddressOpen(true);
+          }}
+          className="
+            w-full
+            rounded-xl
+            border border-[var(--border)]
+            bg-[var(--primary)]
+            text-left
+            text-sm text-[var(--text)]
+            disabled:bg-[var(--neutral-soft)]
+
+            sm:flex-1
+          "
+        >
+          <span className="block truncate">
+            {item.address || "주소 검색"}
+          </span>
+        </Button>
+
+        {rowAction}
+      </div>
+    );
+  })}
+</CardContent>
+
           </Card>
 
           

@@ -67,6 +67,13 @@ function Step1Content() {
     <>
       <main className="bg-[var(--bg)] border-t border-[var(--border)]">
         <div className="mx-auto max-w-3xl space-y-6">
+          <section className="my-3 text-center">
+          <h2 className="text-lg font-semibold"></h2>
+          <p className="text-sm text-[var(--text-subtle)]">
+            기본 정보를 입력하세요.
+          </p>
+          </section>
+
           <section className=" pb-24">
             {isCopied && (
               <div className="bg-blue-50 border-y border-blue-200 px-3 py-1">

@@ -277,19 +277,19 @@ export default function OptionPaymentPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] px-4 py-6 pb-24">
+    <main className="min-h-screen bg-[var(--bg)] px-4 pb-24">
       <div className="mx-auto w-full max-w-xl space-y-4">
         {/* Inputs (Secondary) */}
+        <section className="my-3 text-center">
+          <h2 className="text-lg font-semibold">회비 관리</h2>
+          <p className="text-sm text-[var(--text-subtle)]">
+            계산기 기능으로 활용하세요!
+          </p>
+          </section>
         <Card className="rounded-2xl border border-[var(--wf-accent)]/20 bg-white/70 backdrop-blur">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-[var(--text)]">
-              회비 관리
-            </CardTitle>
-          </CardHeader>
-
           <CardContent className="space-y-8">
             {/* 1) Total */}
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4">
               <SectionLabel
                 title="1. 모임 총 비용"
                 subtitle="기본 비용을 입력하고, 필요하면 영수증 단위로 추가하세요."
@@ -344,7 +344,7 @@ export default function OptionPaymentPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full rounded-xl border border-[var(--wf-accent)]/30 bg-white text-[var(--wf-accent)] font-semibold hover:bg-[var(--wf-highlight)]/30"
+                className="w-full rounded-xl border border-[var(--wf-accent)]/30 bg-[var(--primary-soft)] text-[var(--wf-accent)] font-semibold hover:bg-[var(--wf-highlight)]/30"
                 onClick={() => {
                   setReceiptInputs([...receiptInputs, ""]);
                   setReceiptFees([...receiptFees, 0]);
@@ -366,7 +366,7 @@ export default function OptionPaymentPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full rounded-xl border border-[var(--wf-accent)]/30 bg-white text-[var(--wf-accent)] font-semibold hover:bg-[var(--wf-highlight)]/30"
+                className="w-full rounded-xl border border-[var(--wf-accent)]/30 bg-[var(--primary-soft)]  text-[var(--wf-accent)] font-semibold hover:bg-[var(--wf-highlight)]/30"
                 onClick={() => {
                   setExtraFeeInputs([...extraFeeInputs, ""]);
                   setExtraFees([...extraFees, 0]);
@@ -390,7 +390,7 @@ export default function OptionPaymentPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-10 w-10 border-[var(--border)] bg-[var(--bg)] p-0 text-[var(--text)] hover:bg-[var(--neutral-soft)]"
+                    className="h-10 w-10 rounded-xl border-[var(--border)] bg-[var(--primary-soft)]   p-0 text-[var(--text)] hover:bg-[var(--neutral-soft)]"
                     onClick={() => setMemberCount((v) => Math.max(1, v - 1))}
                     aria-label="인원 감소"
                   >
@@ -409,14 +409,14 @@ export default function OptionPaymentPage() {
                         setMemberCount(v);
                       }
                     }}
-                    className="h-10 w-16 border-[var(--border)] bg-[var(--bg)] text-center text-[var(--text)]"
+                    className="h-10 w-16 rounded-xl border-[var(--border)] bg-[var(--bg)] text-center text-[var(--text)]"
                     inputMode="numeric"
                   />
 
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-10 w-10 border-[var(--border)] bg-[var(--bg)] p-0 text-[var(--text)] hover:bg-[var(--neutral-soft)]"
+                    className="h-10 w-10 rounded-xl border-[var(--border)] bg-[var(--primary-soft)]   p-0 text-[var(--text)] hover:bg-[var(--neutral-soft)]"
                     onClick={() => setMemberCount((v) => v + 1)}
                     aria-label="인원 증가"
                   >

@@ -23,7 +23,15 @@ export function Toaster() {
           </Toast>
         )
       })}
-      <ToastViewport />
+      <ToastViewport
+        className="
+          fixed
+          top-[calc(var(--header-height,56px)+8px)]
+          z-[9999]
+          w-full
+          px-4
+        "
+      />
     </ToastProvider>
   )
 }
