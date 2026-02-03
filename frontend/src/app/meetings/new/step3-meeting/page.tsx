@@ -251,7 +251,9 @@ const applyAddress = (address: string) => {
             bg-[var(--bg)]
             border-t border-[var(--border)]
             pb-[var(--bottom-cta-space2)]
+          
           "> 
+           <div className="mx-auto max-w-3xl space-y-6">
         {/* ===== Header ===== */}
         <section className="space-y-1 py-2">
           <h2 className="text-lg font-semibold text-[var(--text)]">
@@ -299,7 +301,7 @@ const applyAddress = (address: string) => {
           />
         )}
 
-
+</div>
 
       </main>
 

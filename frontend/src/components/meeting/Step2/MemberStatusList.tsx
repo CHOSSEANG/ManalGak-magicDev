@@ -83,7 +83,7 @@ const otherMembers = useMemo(
     // }
 
     mySection = (
-      <div className="border-y border-[var(--border)] bg-[var(--bg-soft)] py-3">
+      <div className="border-y border-[var(--border)] bg-[var(--bg-soft)] p-3">
           <div className="flex items-center gap-3">
             {myAvatar}
             <div className="flex-1">
