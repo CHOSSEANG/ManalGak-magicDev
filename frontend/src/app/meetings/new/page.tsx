@@ -174,7 +174,7 @@ const handleKakaoLogin = () => {
 
   const goToEditPage = (uuid: string) => {
     // 1/30[유리] - 수정 버튼: Step1부터 기존 데이터 로드
-    router.push(`/meetings/new/step1-basic?meetingUuid=${uuid}`);
+    router.push(`/meetings/new/step3-meeting?meetingUuid=${uuid}`);
   };
 
   const handleCopy = async (uuid: string) => {
@@ -291,7 +291,7 @@ const handleEntryClick = (meeting: Meeting) => {
         </section>
 
         {/* ===== Primary CTA (변경 금지) ===== */}
-        <div className="fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
+        <div className="app-container fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
         <Button
           onClick={() => router.push("/meetings/new/step1-basic")}
           className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] py-6"
