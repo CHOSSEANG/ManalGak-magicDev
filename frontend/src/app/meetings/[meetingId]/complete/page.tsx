@@ -123,7 +123,7 @@ const formatDateTime = (isoString?: string) => {
       />
 
       {/* 타이틀 */}
-      <section className="absolute left-0 right-0 top-1 z-10">
+      <section className="absolute left-0 right-0 top-1 z-40">
         <div className="mx-auto max-w-[var(--app-max-width)] px-4 py-3">
           <h1
             className="
