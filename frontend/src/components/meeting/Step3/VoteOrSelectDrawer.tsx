@@ -202,7 +202,7 @@ export default function VoteOrSelectDrawer({
                   max-h-[calc(85vh-var(--bottom-nav-height)-120px)]
                 "
               >
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {voteData?.options.map((option) => {
                     const place = places.find(
                       (p) => p.name === option.content
@@ -278,9 +278,9 @@ export default function VoteOrSelectDrawer({
                             )}
                           </div>
 
-                          {/* 선택 아이콘 */}
+                          {/* 선택시 아이콘 표시 */}
                           {isMyVote && (
-                            <CheckCircle className="h-5 w-5 text-[var(--danger)]" />
+                            <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-[var(--danger)] " />
                           )}
                         </div>
                       </button>
