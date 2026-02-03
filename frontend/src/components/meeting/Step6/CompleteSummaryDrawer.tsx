@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState } from 'react'
@@ -43,6 +44,8 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
               border border-[var(--danger-soft)]
               bg-[var(--danger-soft)]
               text-[var(--text)]
+              
+              
             "
           >
             확정장소 정보확인 <ChevronUp className="h-5 w-5" />
@@ -78,6 +81,7 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
       transition-[bottom]
       duration-300
       ease-out
+      
     "
   >
     {/* ===== 열기 / 닫기 버튼 (항상 보임) ===== */}
@@ -101,7 +105,7 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
           </>
         ) : (
           <>
-            확정장소 정보확인 <ChevronUp className="h-5 w-5" />
+            확정장소 확인 <ChevronUp className="h-5 w-5" />
           </>
         )}
       </Button>
@@ -119,7 +123,8 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
           </DrawerDescription>
         </DrawerHeader>
 
-        <div className="overflow-y-auto pb-[env(safe-area-inset-bottom)]">
+        <div className="overflow-y-auto 
+                pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))]">
           <CompleteSummaryCard meeting={meeting} />
         </div>
       </>
