@@ -140,6 +140,7 @@ body {
 }
 
 /* ===== Global Layout Container ===== */
+
 .app-container {
   width: 100%;
   max-width: 1024px;
@@ -149,6 +150,11 @@ body {
 
   padding-left: 0px;
   padding-right: 0px;
+}
+
+main {
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 /* ===== Tablet ===== */
