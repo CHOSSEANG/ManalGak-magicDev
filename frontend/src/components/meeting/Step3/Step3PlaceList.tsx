@@ -212,7 +212,7 @@ function logClientError(message: string, error: unknown) {
 
 /* ================= 컴포넌트 ================= */
 
-export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
+export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
   const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   const [mapRefreshKey, setMapRefreshKey] = useState(0)
   const router = useRouter()
