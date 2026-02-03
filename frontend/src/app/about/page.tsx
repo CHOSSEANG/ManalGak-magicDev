@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Image as ImageIcon, Info } from "lucide-react";
+import { Users, Image as Info } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,12 +20,12 @@ export default function AboutPage() {
   };
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-6">
+    <main className="mx-auto max-w-4xl px-4 py-6 pb-24">
       {/* Page Title / Description */}
-      <div className="mb-6 space-y-2">
+      <div className="mb-6 space-y-2 text-center">
         <h1 className="text-xl font-semibold text-[var(--text)]">About</h1>
         <p className="text-sm text-[var(--text-subtle)]">
-          만날각 소개, 기능 흐름 미리 보기, 만든 사람들 정보를 확인할 수 있습니다.
+          만날각 정보를 확인할 수 있습니다.
         </p>
       </div>
 
@@ -34,17 +34,17 @@ export default function AboutPage() {
         <Card className="border-[var(--border)] bg-[var(--bg)]">
           <CardHeader className="pb-3">
             <TabsList className="w-full bg-[var(--bg-soft)]">
-              <TabsTrigger value="intro" className="gap-2">
+              <TabsTrigger value="intro" className="gap-2 p-3">
                 <Info className="h-4 w-4" />
                 만날각 소개
               </TabsTrigger>
 
-              <TabsTrigger value="preview" className="gap-2">
+              {/* <TabsTrigger value="preview" className="gap-2">
                 <ImageIcon className="h-4 w-4" />
                 미리 보기
-              </TabsTrigger>
+              </TabsTrigger> */}
 
-              <TabsTrigger value="team" className="gap-2">
+              <TabsTrigger value="team" className="gap-2 -3">
                 <Users className="h-4 w-4" />
                 만든 사람들
               </TabsTrigger>
@@ -56,9 +56,9 @@ export default function AboutPage() {
               <IntroSection />
             </TabsContent>
 
-            <TabsContent value="preview" className="m-0">
+            {/* <TabsContent value="preview" className="m-0">
               <PreviewSection />
-            </TabsContent>
+            </TabsContent> */}
 
             <TabsContent value="team" className="m-0">
               <TeamSection />
@@ -176,45 +176,45 @@ function IntroSection() {
   );
 }
 
-function PreviewSection() {
-  const steps = [
-    "모임 신규 생성",
-    "Step 1. 날짜 / 시간 선택",
-    "Step 2. 모임 목적",
-    "Step 3. 참여 멤버",
-    "Step 4. 출발지 & 교통수단",
-    "Step 5. 중간지점 & 장소 확정",
-    "모임 확정 결과 화면",
-    "옵션 1. 실시간 위치 공유",
-    "옵션 2. 회비 정산",
-  ];
+// function PreviewSection() {
+//   const steps = [
+//     "모임 신규 생성",
+//     "Step 1. 날짜 / 시간 선택",
+//     "Step 2. 모임 목적",
+//     "Step 3. 참여 멤버",
+//     "Step 4. 출발지 & 교통수단",
+//     "Step 5. 중간지점 & 장소 확정",
+//     "모임 확정 결과 화면",
+//     "옵션 1. 실시간 위치 공유",
+//     "옵션 2. 회비 정산",
+//   ];
 
-  return (
-    <section className="space-y-4">
-      <div className="space-y-1">
-        <h2 className="text-base font-semibold text-[var(--text)]">미리 보기</h2>
-        <p className="text-sm text-[var(--text-subtle)]">
-          실제 화면 캡처(또는 이미지)를 넣기 전 단계용 구조입니다.
-        </p>
-      </div>
+//   return (
+//     <section className="space-y-4">
+//       <div className="space-y-1">
+//         <h2 className="text-base font-semibold text-[var(--text)]">미리 보기</h2>
+//         <p className="text-sm text-[var(--text-subtle)]">
+//           실제 화면 캡처(또는 이미지)를 넣기 전 단계용 구조입니다.
+//         </p>
+//       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {steps.map((step) => (
-          <Card key={step} className="border-[var(--border)] bg-[var(--bg)]">
-            <CardContent className="pt-6 space-y-2">
-              {/* Placeholder */}
-              <div className="h-28 w-full rounded-md border border-[var(--border)] bg-[var(--bg-soft)]" />
-              <p className="text-sm font-medium text-[var(--text)]">{step}</p>
-              <p className="text-xs text-[var(--text-subtle)]">
-                (이미지 교체 예정)
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </section>
-  );
-}
+//       <div className="grid gap-3 sm:grid-cols-2">
+//         {steps.map((step) => (
+//           <Card key={step} className="border-[var(--border)] bg-[var(--bg)]">
+//             <CardContent className="pt-6 space-y-2">
+//               {/* Placeholder */}
+//               <div className="h-28 w-full rounded-md border border-[var(--border)] bg-[var(--bg-soft)]" />
+//               <p className="text-sm font-medium text-[var(--text)]">{step}</p>
+//               <p className="text-xs text-[var(--text-subtle)]">
+//                 (이미지 교체 예정)
+//               </p>
+//             </CardContent>
+//           </Card>
+//         ))}
+//       </div>
+//     </section>
+//   );
+// }
 
 function TeamSection() {
   const members = [
