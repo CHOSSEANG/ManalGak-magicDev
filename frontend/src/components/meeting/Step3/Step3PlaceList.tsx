@@ -220,7 +220,7 @@ function logClientError(message: string, error: unknown) {
 export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
   const hasShownToastRef = useRef(false)
   const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
-  const [mapRefreshKey, setMapRefreshKey] = useState(0)
+  // const [mapRefreshKey, setMapRefreshKey] = useState(0)
   const router = useRouter()
   const searchParams = useSearchParams()
   const meetingUuid = searchParams.get('meetingUuid')
@@ -235,7 +235,7 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
   // const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
-  const [isVoteLoading, setIsVoteLoading] = useState(true)  // 투표 데이터 로딩 상태
+  // const [isVoteLoading, setIsVoteLoading] = useState(true)  // 투표 데이터 로딩 상태
   const [isCreatingVote, setIsCreatingVote] = useState(false)
   //const [isVoting, setIsVoting] = useState(false)
   const [organizerId, setOrganizerId] = useState<number | null>(null)
@@ -474,7 +474,7 @@ const fetchTravelTimes = useCallback(
 
         client.subscribe(`/topic/meeting/${meetingUuid}/places`, () => {
           fetchPlacesAndMidpointRef.current()
-          setMapRefreshKey((p) => p + 1)
+          // setMapRefreshKey((p) => p + 1)
           // 추천 장소 변경 시 이동시간 캐시 초기화
           setRouteCache({})
 
@@ -679,7 +679,7 @@ useEffect(() => {
       const fetchedVote = await fetchVote()
       if (!cancelled) {
         if (fetchedVote) setVoteData(fetchedVote)
-        setIsVoteLoading(false)  // 로딩 완료
+        // setIsVoteLoading(false)  // 로딩 완료
       }
     }
     initFetchVote()
@@ -872,9 +872,9 @@ useEffect(() => {
                 투표 참여하기
               </Button>
             </div>
-          )} */} 
+          )}  
         </div>
-      )}
+      )}*/}
 
       {/* 2/3[유리] 별도의 shadcn toast로 변경, 대소문자 해결 필요 */}
       {/* 1/30[유리] - 지도 위 고정 배너 제거 → Toast 전환(danger) */}
