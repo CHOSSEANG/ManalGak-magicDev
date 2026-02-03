@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import WireframeModal from '@/components/ui/WireframeModal'
+import VoteOrSelectDrawer from '@/components/meeting/Step3/VoteOrSelectDrawer'
 import Step4Map from '@/components/map/Step4Map'
 import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
@@ -950,8 +951,8 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         )}
       </section>
 
-      {/* ================= Drawer(기존) ================= */}
-      <WireframeModal
+      {/* ================= Drawer(기존) =================*/}
+      {/* <WireframeModal
         open={showVoteModal}
         title="추천장소 투표"
         onClose={() => setShowVoteModal(false)}
@@ -1030,7 +1031,7 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
             </>
           ) : null}
         </div>
-      </WireframeModal>
+      </WireframeModal> */}
 
       {/* ================= 이동시간 상세 모달 ================= */}
       <WireframeModal
@@ -1214,7 +1215,7 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
       </WireframeModal>
 
       {/* ================= 확정 CTA ================= */}
-      <div className="sticky bottom-0 z-20 bg-[var(--bg)] p-4">
+      {/* <div className="sticky bottom-0 z-20 bg-[var(--bg)] p-4">
         <Button
           disabled={!selectedPlace || isConfirming || !isHost}
           onClick={handleConfirmPlace}
@@ -1222,7 +1223,7 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         >
           {confirmLabel}
         </Button>
-      </div>
+      </div> */}
     </div>
   )
 }

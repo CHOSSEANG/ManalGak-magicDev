@@ -8,6 +8,8 @@ import BottomCTA from "@/components/layout/BottomCTA";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserProvider } from "@/context/UserContext";
 
+import { Toaster } from "@/components/ui/toaster";
+
 import "@/styles/globals.css";
 import "@/styles/tailwind.css";
 
@@ -46,9 +48,10 @@ export default function RootLayout({
 
               {/* Page Content */}
               <main className="flex-1 w-full">
-                {children}
+                  {children}
+                  
               </main>
-
+              <Toaster />
              
             </div>
           </TooltipProvider>
