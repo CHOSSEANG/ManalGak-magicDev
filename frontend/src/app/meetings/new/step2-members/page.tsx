@@ -314,7 +314,7 @@ function Step3MembersContent(): JSX.Element {
           </section>
 
 
-        <div className="fixed bottom-[var(--bottom-nav-height2)] left-0 right-0 z-30 px-4 pb-safe bg-[var(--bg)]">
+        <div className="app-container fixed bottom-[var(--bottom-nav-height2)] left-0 right-0 z-30 px-4 pb-safe bg-[var(--bg)]">
         <Button
           className="w-full gap-2 py-6 rounded-xl bg-[var(--kakao-yellow)] text-black"
           disabled={isReadonly || !isOrganizer}

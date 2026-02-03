@@ -94,7 +94,7 @@ function Step1Content() {
       </main>
 
       {/* ===== Step Navigation Fixed (하단 고정) ===== */}
-      <div className="fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
+      <div className="app-container fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-20 px-4 pb-safe bg-[var(--bg)]">
         <StepNavigation
           prevHref="/meetings/new"
           nextHref="/meetings/new/step2-members"
