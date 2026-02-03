@@ -560,24 +560,28 @@ export default function HomeClient() {
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
       >
-        <div className="bg-white/90 backdrop-blur border-t border-[var(--wf-border)] px-4 py-3 safe-bottom">
+        <div className="px-4 py-3 safe-bottom">
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
             <Button
               type="button"
               onClick={handleKakaoLogin}
               className="
-          w-full
-          h-14
-          rounded-xl
-          bg-[#371D1E]
-          text-white
-          text-base
-          font-semibold
-          hover:bg-[#371D1E]
-          active:bg-[#371D1E]
-          shadow-lg
-        "
-            >
+                fixed
+                left-4
+                right-4
+                bottom-[calc(var(--bottom-nav-height))]
+                z-40
+                h-14
+                rounded-xl
+                bg-[#371D1E] text-white
+                text-base
+                font-semibold
+                hover:bg-[#371D1E] hover:text-white
+                active:bg-[#371D1E] active:text-white
+                shadow-lg
+                
+              "
+                  >
               카카오로 3초만에 시작하기
             </Button>
           </motion.div>
