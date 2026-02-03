@@ -2,11 +2,11 @@
 
 import * as React from 'react'
 import * as ToastPrimitives from '@radix-ui/react-toast'
+import { cva, type VariantProps } from 'class-variance-authority'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export const ToastProvider = ToastPrimitives.Provider
-
 export const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
@@ -22,20 +22,67 @@ export const ToastViewport = React.forwardRef<
 ))
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
+const toastVariants = cva(
+  'group pointer-events-auto relative flex w-full items-center justify-between gap-4 overflow-hidden rounded-xl border p-4 shadow-lg transition-all',
+  {
+    variants: {
+      variant: {
+        default: 'border-[var(--border)] bg-[var(--bg)] text-[var(--text)]',
+        destructive:
+          'border-[var(--danger)] bg-[var(--bg)] text-[var(--text)]',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+    },
+  }
+)
+
 export const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
+    VariantProps<typeof toastVariants>
+>(({ className, variant, ...props }, ref) => (
   <ToastPrimitives.Root
     ref={ref}
+    className={cn(toastVariants({ variant }), className)}
+    {...props}
+  />
+))
+Toast.displayName = ToastPrimitives.Root.displayName
+
+export const ToastAction = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Action>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Action>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Action
+    ref={ref}
     className={cn(
-      'relative flex w-full items-center justify-between gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4 shadow-lg',
+      'inline-flex h-8 shrink-0 items-center justify-center rounded-md border border-[var(--border)] bg-transparent px-3 text-xs font-medium text-[var(--text)] transition-colors hover:bg-[var(--neutral-soft)] focus:outline-none disabled:pointer-events-none disabled:opacity-50',
       className
     )}
     {...props}
   />
 ))
-Toast.displayName = ToastPrimitives.Root.displayName
+ToastAction.displayName = ToastPrimitives.Action.displayName
+
+export const ToastClose = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Close>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Close>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Close
+    ref={ref}
+    className={cn(
+      'absolute right-3 top-3 rounded-md p-1 text-[var(--text-subtle)] opacity-70 transition-opacity hover:bg-[var(--neutral-soft)] hover:opacity-100 focus:outline-none',
+      className
+    )}
+    toast-close=""
+    {...props}
+  >
+    <X className="h-4 w-4" />
+  </ToastPrimitives.Close>
+))
+ToastClose.displayName = ToastPrimitives.Close.displayName
 
 export const ToastTitle = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Title>,
@@ -43,7 +90,7 @@ export const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Title
     ref={ref}
-    className={cn('text-sm font-semibold text-[var(--text)]', className)}
+    className={cn('text-sm font-semibold', className)}
     {...props}
   />
 ))
@@ -59,22 +106,8 @@ export const ToastDescription = React.forwardRef<
     {...props}
   />
 ))
-ToastDescription.displayName =
-  ToastPrimitives.Description.displayName
+ToastDescription.displayName = ToastPrimitives.Description.displayName
 
-export const ToastClose = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Close>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Close>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Close
-    ref={ref}
-    className={cn(
-      'absolute right-3 top-3 rounded-md p-1 text-[var(--text-subtle)] hover:bg-[var(--neutral-soft)]',
-      className
-    )}
-    {...props}
-  >
-    <X className="h-4 w-4" />
-  </ToastPrimitives.Close>
-))
-ToastClose.displayName = ToastPrimitives.Close.displayName
+// ✅ use-toast.ts에서 import 하라고 요구하는 타입들
+export type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
+export type ToastActionElement = React.ReactElement<typeof ToastAction>

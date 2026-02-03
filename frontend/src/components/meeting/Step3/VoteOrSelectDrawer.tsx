@@ -83,9 +83,10 @@ export default function VoteOrSelectDrawer({
     ? Math.max(...voteData.options.map((o) => o.voteCount))
     : 0
 
-  const selectedOption = voteData?.options.find(
-    (o) => o.optionId === myVotedOptionId
-  )
+  // 2/3 율 - 내가선택장소안내 주석처리 (드로워에서 현재 미사용)
+  // const selectedOption = voteData?.options.find(
+  //   (o) => o.optionId === myVotedOptionId
+  // )
 
   const handlePrimaryAction = () => {
     if (!selectedPlaceId) return
