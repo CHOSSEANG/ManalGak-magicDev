@@ -2,9 +2,6 @@
 import StepCard from "@/components/meeting/StepCard";
 import { Member } from "./Step2MemberList";
 
-// shadcn/ui
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
 interface Props {
   members: Member[];
 }
@@ -14,16 +11,16 @@ export default function MemberSummaryGrid({ members }: Props) {
     <StepCard className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[var(--text)]">
+        <h2 className="font-semibold text-[var(--text)]">
           참여 멤버
         </h2>
-        <span className="text-xs text-[var(--text-subtle)]">
+        <span className=" text-[var(--text-subtle)]">
           총 {members.length}인
         </span>
       </div>
 
       {/* Content */}
-      <div className="flex flex-wrap gap-3">
+      {/* <div className="flex flex-wrap gap-3">
         {members.map((member) => (
           <div
             key={member.id}
@@ -40,7 +37,7 @@ export default function MemberSummaryGrid({ members }: Props) {
             </span>
           </div>
         ))}
-      </div>
+      </div> */}
     </StepCard>
   );
 }

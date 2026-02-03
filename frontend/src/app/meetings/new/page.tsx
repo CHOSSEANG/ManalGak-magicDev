@@ -281,7 +281,7 @@ const handleEntryClick = (meeting: Meeting) => {
     <main className="bg-[var(--bg)] pt-4 pb-[var(--bottom-cta-space)]">
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {/* ===== Header ===== */}
-        <section className="space-y-1">
+        <section className="space-y-1 text-center">
           <h2 className="text-lg font-semibold text-[var(--text)]">
             모임 리스트
           </h2>

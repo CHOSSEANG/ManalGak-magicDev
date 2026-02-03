@@ -266,9 +266,9 @@ const applyAddress = (address: string) => {
         {/* 나의 출발지 입력 / 가져오기 */}
         <div className="flex items-center justify-between">
           {/* 1/30[유리] - 한 줄(Row) 정렬 */}
-          <h1 className="text-sm font-medium text-[var(--text)]">
+          <h2 className="font-medium text-[var(--text)]">
             나의 출발지
-          </h1>
+          </h2>
 
           {!isReadonly && (
               <div className="flex items-center justify-end mb-1">
@@ -278,10 +278,10 @@ const applyAddress = (address: string) => {
                   onClick={() => {
                     setBookmarkOpen(true);
                   }}
-                  className="gap-1 py-5 rounded-full  border-[var(--border)] bg-[var(--primary)] text-[var(--primary-soft)]"
+                  className="gap-3 py-6 px-12 rounded-full  border-[var(--border)] bg-[var(--primary)] text-[var(--primary-soft)]"
                 >
                   <Bookmark className="h-3 w-3" />
-                  가져오기
+                  북마크된 주소 가져오기
                 </Button>
               </div>
             )}

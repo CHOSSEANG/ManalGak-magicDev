@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import MemberSummaryGrid from "@/components/meeting/Step2/MemberSummaryGrid";
 import MemberStatusList from "@/components/meeting/Step2/MemberStatusList";
+
 
 interface MemberListProps {
   meetingUuid: string;
@@ -247,12 +249,18 @@ export default function MemberList({
   );
 
   return (
-    <div className="space-y-2">
-      <MemberStatusList
-        members={myMember ? [myMember, ...otherMembers] : members}
-        onPersonalChange={handlePersonalChange}
-        currentUserId={userId}
-      />
-    </div>
+    <div className="space-y-4">
+    {/* ✅ 참여 멤버 요약 카드 */}
+    <MemberSummaryGrid
+      members={myMember ? [myMember, ...otherMembers] : members}
+    />
+
+    {/* ✅ 기존 상세 리스트 */}
+    <MemberStatusList
+      members={myMember ? [myMember, ...otherMembers] : members}
+      onPersonalChange={handlePersonalChange}
+      currentUserId={userId}
+    />
+  </div>
   );
 }
