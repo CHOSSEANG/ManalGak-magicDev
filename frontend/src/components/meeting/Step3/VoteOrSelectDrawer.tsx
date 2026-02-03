@@ -1,6 +1,7 @@
 // src/components/meeting/Step3/VoteOrSelectDrawer.tsx
 'use client'
 
+import { useState, useRef } from 'react'
 import {
   Drawer,
   DrawerContent,
@@ -10,11 +11,7 @@ import {
 } from '@/components/ui/drawer'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
-import {
-  CheckCircle,
-  Coffee,
-  X,
-} from 'lucide-react'
+import { CheckCircle, Coffee } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 /* ================= 타입 ================= */
@@ -41,9 +38,6 @@ export interface RecommendedPlace {
 }
 
 interface VoteOrSelectDrawerProps {
-  open: boolean
-  onClose: () => void
-
   places: RecommendedPlace[]
   voteData?: VoteData | null
 
@@ -60,11 +54,13 @@ interface VoteOrSelectDrawerProps {
   isConfirming?: boolean
 }
 
+const MIN_BOTTOM = 0 // 완전히 펼쳐진 상태
+const MAX_BOTTOM = -300 // 접힌 상태 (원하면 조절)
+
 /* ================= 컴포넌트 ================= */
 
 export default function VoteOrSelectDrawer({
-  open,
-  onClose,
+
   places,
   voteData,
   selectedPlaceId,
@@ -76,47 +72,102 @@ export default function VoteOrSelectDrawer({
   isVoting = false,
   isConfirming = false,
 }: VoteOrSelectDrawerProps) {
+
+// ✅ [여기] 드래그 상태 / ref
+  const [bottom, setBottom] = useState<number>(MIN_BOTTOM)
+  const startYRef = useRef(0)
+  const startBottomRef = useRef(0)
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    startYRef.current = e.clientY
+    startBottomRef.current = bottom
+
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
+  }
+
+  const onPointerMove = (e: PointerEvent) => {
+    const deltaY = startYRef.current - e.clientY
+    const nextBottom = startBottomRef.current + deltaY
+
+    const maxBottom = window.innerHeight - 100
+    setBottom(Math.min(Math.max(nextBottom, MIN_BOTTOM), maxBottom))
+  }
+
+  const onPointerUp = () => {
+    window.removeEventListener('pointermove', onPointerMove)
+    window.removeEventListener('pointerup', onPointerUp)
+  }
+
+
+
   const totalVotes =
     voteData?.options.reduce((sum, opt) => sum + opt.voteCount, 0) || 0
 
-  const maxVotes = voteData
-    ? Math.max(...voteData.options.map((o) => o.voteCount))
-    : 0
-
-  // 2/3 율 - 내가선택장소안내 주석처리 (드로워에서 현재 미사용)
-  // const selectedOption = voteData?.options.find(
-  //   (o) => o.optionId === myVotedOptionId
-  // )
+  const maxVotes =
+    voteData && voteData.options.length > 0
+      ? Math.max(...voteData.options.map((o) => o.voteCount))
+      : 0
 
   const handlePrimaryAction = () => {
-    if (!selectedPlaceId) return
+    if (!selectedPlaceId || !voteData) return
 
     if (isHost) {
       onConfirm(selectedPlaceId)
-    } else {
-      const option = voteData?.options.find(
-        (o) => o.content === places.find((p) => p.id === selectedPlaceId)?.name
-      )
-      if (option) onVote(option.optionId)
+      return
+    }
+
+    
+
+    const selectedPlace = places.find((p) => p.id === selectedPlaceId)
+    if (!selectedPlace) return
+
+    const option = voteData.options.find(
+      (o) => o.content === selectedPlace.name
+    )
+
+    if (option) {
+      onVote(option.optionId)
     }
   }
 
+ 
+
+
+  
   return (
-    <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
-      <DrawerContent className="app-container max-h-[75vh] rounded-t-3xl bg-[var(--bg)]">
+    <Drawer open modal={false}>
+       <DrawerContent
+    style={{ bottom }}
+        className="
+      app-container z-20
+      left-0 right-0 translate-x-0
+      border border-[var(--border)] bg-[var(--bg)]
+      shadow-none
+      p-0
+      pointer-events-none
+    "
+  >
+        {/* 드래그 핸들 */}
+      <div
+        onPointerDown={onPointerDown}
+        className="
+          mx-auto
+          mb-0
+          h-1.5
+          w-40
+          rounded-full
+          bg-[var(--border)]
+          cursor-grab
+          active:cursor-grabbing
+          touch-pan-y
+        "
+      />
         {/* ================= Header ================= */}
-        <DrawerHeader className="relative pb-3">
+        <DrawerHeader className="pb-3">
           <DrawerTitle className="text-left text-base font-semibold text-[var(--text)]">
             {isHost ? '추천장소 선택' : '추천장소 투표'}
           </DrawerTitle>
-
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-4 rounded-md p-1 text-[var(--text-subtle)] hover:bg-[var(--neutral-soft)]"
-            aria-label="닫기"
-          >
-            <X className="h-5 w-5" />
-          </button>
         </DrawerHeader>
 
         {/* ================= Summary ================= */}
@@ -136,8 +187,8 @@ export default function VoteOrSelectDrawer({
               const place = places.find(
                 (p) => p.name === option.content
               )
-              const Icon = place?.icon || Coffee
 
+              const Icon = place?.icon || Coffee
               const isSelected = selectedPlaceId === place?.id
               const isMyVote = option.optionId === myVotedOptionId
               const isTopChoice =

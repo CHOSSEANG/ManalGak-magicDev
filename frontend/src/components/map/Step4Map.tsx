@@ -106,7 +106,7 @@ export default function Step4Map({
             routeData.midpoint.lat,
             routeData.midpoint.lng
           ),
-          level: 6,
+          level: 3,
           draggable: true,
           scrollwheel: true,
           disableDoubleClickZoom: false,

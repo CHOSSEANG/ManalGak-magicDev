@@ -38,7 +38,7 @@ function Step4Content(): JSX.Element {
       {/* ================= 상단 레이어 ================= */}
       <header
         className="
-          fixed top-4 left-1/2 z-20
+          fixed top-20 left-1/2 z-10
           w-[calc(100%-2rem)]
           -translate-x-1/2
           pointer-events-none

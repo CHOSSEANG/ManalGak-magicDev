@@ -48,7 +48,8 @@
   --bottom-nav-height2: calc(140px + env(safe-area-inset-bottom));
   --bottom-cta-space2: 210px; /* CTA 높이 + 여유 */
 
-
+  /* == toast 헤더아래 위치하는 탑 여백 == */
+  --header-height: 56px;
   /* ===== Font ===== */
   --font-sans: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
 
