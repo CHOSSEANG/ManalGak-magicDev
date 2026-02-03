@@ -3,6 +3,9 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import WireframeModal from '@/components/ui/WireframeModal'
+import { toast } from '@/components/ui/use-toast'
+import { ToastAction } from '@/components/ui/toast'
+import VoteOrSelectDrawer from '@/components/meeting/Step3/VoteOrSelectDrawer'
 import Step4Map from '@/components/map/Step4Map'
 import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
@@ -34,7 +37,7 @@ import {
   Mountain,
   TreePalm,
   Building2,
-  AlertTriangle,
+  // 투표모달 미사용으로 숨기기 AlertTriangle,
   Clock,
   Car,
   Train,
@@ -50,7 +53,7 @@ import type { CommonResponse } from '@/types/api'
 // shadcn/ui
 
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
+// 투표모달 미사용으로 숨기기 import { ScrollArea } from '@/components/ui/scroll-area'
 
 /* ================= 타입 ================= */
 
@@ -210,9 +213,13 @@ function logClientError(message: string, error: unknown) {
   // TODO: 필요 시 외부 로깅 서비스(Sentry 등)로 전송 가능
 }
 
+
+
+  
 /* ================= 컴포넌트 ================= */
 
-export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
+export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
+  const hasShownToastRef = useRef(false)
   const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   const [mapRefreshKey, setMapRefreshKey] = useState(0)
   const router = useRouter()
@@ -227,11 +234,11 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     Omit<RecommendedPlace, 'icon'>[]
   >([])
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
-  const [isConfirming, setIsConfirming] = useState(false)
+  // const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
   const [isVoteLoading, setIsVoteLoading] = useState(true)  // 투표 데이터 로딩 상태
   const [isCreatingVote, setIsCreatingVote] = useState(false)
-  const [isVoting, setIsVoting] = useState(false)
+  //const [isVoting, setIsVoting] = useState(false)
   const [organizerId, setOrganizerId] = useState<number | null>(null)
   const [meetingPurpose, setMeetingPurpose] = useState<string | null>(null)
   const { user } = useUser()
@@ -542,16 +549,50 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     [recommendedPlaces, selectedPlaceForDetail]
   )
 
+
+
   useEffect(() => {
-    if (!placeSignature || !meetingUuid || isLoadingPlaces || !hasInitiallyLoaded)
-      return
-    const storageKey = `place-signature-${meetingUuid}`
-    const prevSignature = localStorage.getItem(storageKey)
-    if (prevSignature && prevSignature !== placeSignature) {
-      setIsNewPlaceAvailable(true)
-    }
-    localStorage.setItem(storageKey, placeSignature)
+  if (!placeSignature || !meetingUuid || isLoadingPlaces || !hasInitiallyLoaded)
+    return
+
+  const storageKey = `place-signature-${meetingUuid}`
+  const prevSignature = localStorage.getItem(storageKey)
+
+  if (
+    prevSignature &&
+    prevSignature !== placeSignature &&
+    !hasShownToastRef.current
+  ) {
+    setIsNewPlaceAvailable(true)
+    hasShownToastRef.current = true
+
+    toast({
+      title: '새로운 추천 장소가 있어요',
+      description: '투표를 진행해 주세요',
+      variant: 'destructive',
+
+      action: (
+        <ToastAction
+          altText="투표하기"
+          onClick={() => {
+            setShowVoteModal(true)   // ← 숨어있던 Drawer 열기
+          }}
+        >
+          투표하기
+        </ToastAction>
+      ),
+    })
+  }
+  localStorage.setItem(storageKey, placeSignature)
   }, [placeSignature, meetingUuid, isLoadingPlaces, hasInitiallyLoaded])
+
+  // 2/3)[율] 새추천천 있을시, 새 토스트로 추천장소 투표 요청  
+  useEffect(() => {
+  if (!isNewPlaceAvailable) {
+    hasShownToastRef.current = false
+  }
+}, [isNewPlaceAvailable])
+  
 
   /* ================= 투표 ================= */
 
@@ -610,7 +651,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
 
   const submitVote = async (optionId: number) => {
     if (!voteData) return
-    setIsVoting(true)
+    // 2/3율 투표모달 미사용 setIsVoting(true)
     try {
       await axios.post(
         `${API_BASE_URL}/v1/votes/${voteData.voteId}`,
@@ -646,7 +687,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
       }
       setShowVoteModal(false)
     } finally {
-      setIsVoting(false)
+      // 2/3) 율 투표모달 미사용 setIsVoting(false)
     }
   }
 
@@ -671,7 +712,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     }
     const selected = recommendedPlaces.find((p) => p.id === selectedPlace)
     if (!selected) return
-    setIsConfirming(true)
+    // setIsConfirming(true)
     try {
       await axios.post(
         `${API_BASE_URL}/v1/meetings/${meetingUuid}/place/select`,
@@ -694,7 +735,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
       )
       router.push(`/meetings/${meetingUuid}/complete`)
     } finally {
-      setIsConfirming(false)
+      // setIsConfirming(false)
     }
   }
 
@@ -740,9 +781,9 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const isVoteDisabled =
     isCreatingVote || recommendedPlaces.length === 0 || (!isHost && !hasVote)
 
-  let confirmLabel = '추천 장소 확정'
-  if (isConfirming) confirmLabel = '확정 중...'
-  else if (!isHost) confirmLabel = '모임장만 확정할 수 있습니다'
+  // let confirmLabel = '추천 장소 확정'
+  // if (isConfirming) confirmLabel = '확정 중...'
+  // else if (!isHost) confirmLabel = '모임장만 확정할 수 있습니다'
 
   return (
     <div className="relative">
@@ -774,9 +815,9 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         </div>
       )}
 
-      {/* Toast */}
+      {/* 2/3[유리] 별도의 shadcn toast로 변경, 대소문자 해결 필요 */}
       {/* 1/30[유리] - 지도 위 고정 배너 제거 → Toast 전환(danger) */}
-      {isNewPlaceAvailable && (
+      {/* {isNewPlaceAvailable && (
         <div className="fixed left-1/2 top-4 z-50 -translate-x-1/2">
           <button
             type="button"
@@ -787,7 +828,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
             새로운 추천 장소가 있어요 · 투표하기
           </button>
         </div>
-      )}
+      )} */}
 
       {/* ================= 추천 장소 ================= */}
       <section className="relative z-10 mx-auto max-w-xl bg-[var(--bg)] p-4">
@@ -950,8 +991,24 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         )}
       </section>
 
-      {/* ================= Drawer(기존) ================= */}
-      <WireframeModal
+      {/* ================= 투표 / 선택 Drawer ================= */}
+      <VoteOrSelectDrawer
+      open={showVoteModal}
+      onClose={() => setShowVoteModal(false)}
+      places={recommendedPlaces}
+      voteData={voteData}
+      selectedPlaceId={selectedPlace}
+      isHost={isHost}
+      myVotedOptionId={myVotedOptionId}
+      onVote={submitVote}
+      onConfirm={handleConfirmPlace}
+      onSelectPlace={(placeId) => {
+        setSelectedPlace(placeId)
+      }}
+    />
+
+      {/* 2/3)[율] 기존 투표모달창 주석처러 */}
+      {/* <WireframeModal
         open={showVoteModal}
         title="추천장소 투표"
         onClose={() => setShowVoteModal(false)}
@@ -1030,7 +1087,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
             </>
           ) : null}
         </div>
-      </WireframeModal>
+      </WireframeModal> */}
 
       {/* ================= 이동시간 상세 모달 ================= */}
       <WireframeModal
@@ -1214,7 +1271,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
       </WireframeModal>
 
       {/* ================= 확정 CTA ================= */}
-      <div className="sticky bottom-0 z-20 bg-[var(--bg)] p-4">
+      {/* <div className="sticky bottom-0 z-20 bg-[var(--bg)] p-4">
         <Button
           disabled={!selectedPlace || isConfirming || !isHost}
           onClick={handleConfirmPlace}
@@ -1222,7 +1279,7 @@ export default function Step5PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
         >
           {confirmLabel}
         </Button>
-      </div>
+      </div> */}
     </div>
   )
 }
