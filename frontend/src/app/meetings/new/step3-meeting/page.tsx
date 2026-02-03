@@ -255,20 +255,21 @@ const applyAddress = (address: string) => {
           "> 
            <div className="mx-auto max-w-3xl space-y-6">
         {/* ===== Header ===== */}
-        <section className="space-y-1 py-2">
-          <h2 className="text-lg font-semibold text-[var(--text)]">
-            출발지와 교통편을 선택하세요
-          </h2>
-        </section>
+        <section className="my-3 text-center">
+          <h2 className="text-lg font-semibold"></h2>
+          <p className="text-sm text-[var(--text-subtle)]">
+           기본 정보를 입력하세요.
+          </p>
+          </section>
 
        
 
         {/* 나의 출발지 입력 / 가져오기 */}
         <div className="flex items-center justify-between">
           {/* 1/30[유리] - 한 줄(Row) 정렬 */}
-          <h2 className="font-medium text-[var(--text)]">
+          <h3 className="font-medium text-[var(--text)]">
             나의 출발지
-          </h2>
+          </h3>
 
           {!isReadonly && (
               <div className="flex items-center justify-end mb-1">
@@ -291,7 +292,8 @@ const applyAddress = (address: string) => {
         {/* 주소 입력 */}
         {isLoading ? (
           <Skeleton className="h-32 w-full rounded-xl bg-[var(--neutral-soft)]" />
-        ) : (
+          ) : (
+            
           <Address
             originAddress={originAddress}
             setOriginAddress={setOriginAddress}

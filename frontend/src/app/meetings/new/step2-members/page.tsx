@@ -309,8 +309,8 @@ function Step3MembersContent(): JSX.Element {
 
   ">    
  <div className="mx-auto max-w-3xl space-y-6">
-        <section className="my-3">
-          <h2 className="text-lg font-semibold">참여자</h2>
+        <section className="my-3 text-center">
+          <h2 className="text-lg font-semibold"></h2>
           <p className="text-sm text-[var(--text-subtle)]">
             멤버를 초대하세요.
           </p>
