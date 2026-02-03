@@ -169,6 +169,44 @@ export default function Step6Map({
       }
     })
 
+    // ===== 중앙 장소(destination) 픽 =====
+const destinationLatLng = new kakao.maps.LatLng(
+  routeData.destination.lat,
+  routeData.destination.lng
+)
+
+const stationContent = document.createElement('div')
+stationContent.innerHTML = `
+  <div style="display:flex;flex-direction:column;align-items:center;transform:translateY(-50%);">
+    <div style="
+      width:52px;height:52px;border-radius:50%;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      border:3px solid white;
+      box-shadow:0 4px 12px rgba(99,102,241,0.4);
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;
+    ">📍</div>
+    <div style="
+      margin-top:4px;padding:4px 12px;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      color:white;font-size:12px;font-weight:700;
+      border-radius:12px;white-space:nowrap;
+      box-shadow:0 2px 8px rgba(99,102,241,0.3);
+    ">${placeName}</div>
+  </div>
+`
+
+const stationOverlay = new kakao.maps.CustomOverlay({
+  position: destinationLatLng,
+  content: stationContent,
+  yAnchor: 1,
+})
+
+stationOverlay.setMap(map)
+overlaysRef.current.push(stationOverlay)
+
+    
+
     bounds.extend(
       new kakao.maps.LatLng(
         routeData.destination.lat,
@@ -177,7 +215,7 @@ export default function Step6Map({
     )
 
     map.setBounds(bounds)
-  }, [isMapLoaded, routeData])
+  }, [isMapLoaded, routeData, placeName])
 
   /* ------------------------------------------------------------------ */
 

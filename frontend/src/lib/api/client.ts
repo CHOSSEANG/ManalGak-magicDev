@@ -32,18 +32,24 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    if (error.response) {
-      // 서버가 응답을 반환한 경우
-      console.error('API Error:', error.response.data);
-    } else if (error.request) {
-      // 요청이 전송되었지만 응답을 받지 못한 경우
-      console.error('No response received:', error.request);
-    } else {
-      // 요청 설정 중 오류가 발생한 경우
-      console.error('Request setup error:', error.message);
+    const silent = error.config?.silent === true;
+
+    if (!silent) {
+      if (error.response) {
+        // 서버가 응답을 반환한 경우
+        console.error('API Error:', error.response.data);
+      } else if (error.request) {
+        // 요청이 전송되었지만 응답을 받지 못한 경우
+        console.error('No response received:', error.request);
+      } else {
+        // 요청 설정 중 오류가 발생한 경우
+        console.error('Request setup error:', error.message);
+      }
     }
+
     return Promise.reject(error);
   }
 );
+
 
 export default apiClient;

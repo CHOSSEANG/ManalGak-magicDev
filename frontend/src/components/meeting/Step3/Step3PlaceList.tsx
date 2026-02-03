@@ -336,36 +336,84 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   }, [fetchPlacesAndMidpoint])
 
   /* ================= 이동시간 조회 ================= */
+const fetchTravelTimes = useCallback(
+  async (placeId: string, latitude: number, longitude: number) => {
+    // ================= 임시방편: 안정화 가드 =================
+    // 참여자 없으면 계산 자체를 시도하지 않음 (에러 폭탄 방지)
+    if (!participants || participants.length === 0) return
 
-  const fetchTravelTimes = useCallback(
-    async (placeId: string, latitude: number, longitude: number) => {
-      if (
-        !meetingUuid ||
-        routeCacheRef.current[placeId] ||
-        loadingRoutesRef.current[placeId]
-      ) {
-        return
-      }
+    // 필수 값 없으면 중단
+    if (!meetingUuid || !latitude || !longitude) return
 
-      setLoadingRoutes((prev) => ({ ...prev, [placeId]: true }))
-      try {
-        const response = (await calculateRoutes(meetingUuid, {
-          latitude,
-          longitude,
-        })) as CommonResponse<RouteResponse>
+    // 이미 처리 중 / 캐시 있으면 중단
+    if (
+      routeCacheRef.current[placeId] ||
+      loadingRoutesRef.current[placeId]
+    ) {
+      return
+    }
+    // =========================================================
 
-        if (response?.data) {
-          const data = response.data
-          setRouteCache((prev) => ({ ...prev, [placeId]: data }))
-        }
-      } catch (error) {
-        logClientError('이동시간 조회 실패', error)
-      } finally {
-        setLoadingRoutes((prev) => ({ ...prev, [placeId]: false }))
-      }
-    },
-    [meetingUuid]
-  )
+    setLoadingRoutes((prev) => ({ ...prev, [placeId]: true }))
+    try {
+      await calculateRoutes(meetingUuid, {
+        latitude,
+        longitude,
+      })
+        .then((response) => {
+          const res = response as CommonResponse<RouteResponse>
+          if (!res?.data) return
+
+          const routeData: RouteResponse = res.data
+
+          setRouteCache((prev) => ({
+            ...prev,
+            [placeId]: routeData,
+          }))
+        })
+        .catch((e) => {
+          if (process.env.NODE_ENV === 'development') {
+            console.debug('[Step3] 이동시간 계산 실패 (무시됨)', e)
+          }
+          return
+        })
+    } finally {
+      setLoadingRoutes((prev) => ({ ...prev, [placeId]: false }))
+    }
+  },
+  [meetingUuid, participants]
+)
+
+  // 2/3 22:00 에러 백엔드500 문제로 프론트에서 임시로 막아둡니다 
+  // const fetchTravelTimes = useCallback(
+  //   async (placeId: string, latitude: number, longitude: number) => {
+  //     if (
+  //       !meetingUuid ||
+  //       routeCacheRef.current[placeId] ||
+  //       loadingRoutesRef.current[placeId]
+  //     ) {
+  //       return
+  //     }
+
+  //     setLoadingRoutes((prev) => ({ ...prev, [placeId]: true }))
+  //     try {
+  //       const response = (await calculateRoutes(meetingUuid, {
+  //         latitude,
+  //         longitude,
+  //       })) as CommonResponse<RouteResponse>
+
+  //       if (response?.data) {
+  //         const data = response.data
+  //         setRouteCache((prev) => ({ ...prev, [placeId]: data }))
+  //       }
+  //     } catch (error) {
+  //       logClientError('이동시간 조회 실패', error)
+  //     } finally {
+  //       setLoadingRoutes((prev) => ({ ...prev, [placeId]: false }))
+  //     }
+  //   },
+  //   [meetingUuid]
+  // )
 
   const handlePlaceClick = useCallback(
     (place: RecommendedPlace) => {
@@ -516,26 +564,40 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
     recommendedPlacesRef.current = recommendedPlaces
   }, [recommendedPlaces])
 
-  useEffect(() => {
-    if (!meetingUuid || recommendedPlaces.length === 0) return
+  // ================= 이동시간 프리페칭 =================
+// ✅ 여기서 "계산 가능한 경우만" 이동시간 계산하도록 조건 보강
+useEffect(() => {
+  // ❗ 필수 조건 체크 (없으면 500 나는 케이스)
+  if (!meetingUuid) return
+  if (!recommendedPlaces || recommendedPlaces.length === 0) return
 
-    // 각 장소의 이동시간을 순차적으로 프리페칭 (API 부하 방지)
-    const prefetchTravelTimes = async () => {
-      for (const place of recommendedPlaces) {
-        if (place.latitude && place.longitude) {
-          // 캐시에 없고 로딩 중이 아닌 경우에만 조회
-          if (!routeCacheRef.current[place.id] && !loadingRoutesRef.current[place.id]) {
-            await fetchTravelTimes(place.id, place.latitude, place.longitude)
-            // API 부하 방지를 위해 200ms 딜레이
-            await new Promise((resolve) => setTimeout(resolve, 200))
-          }
-        }
+  // ✅ 좌표 + placeId가 있는 장소만 대상으로 제한
+  const validPlaces = recommendedPlaces.filter(
+    (p) => p.id && p.latitude && p.longitude
+  )
+  if (validPlaces.length === 0) return
+
+  const prefetchTravelTimes = async () => {
+    for (const place of validPlaces) {
+      // ✅ 이미 캐시 있거나 로딩 중이면 스킵
+      if (
+        routeCacheRef.current[place.id] ||
+        loadingRoutesRef.current[place.id]
+      ) {
+        continue
       }
+
+      await fetchTravelTimes(place.id, place.latitude!, place.longitude!)
+      // API 부하 방지
+      await new Promise((resolve) => setTimeout(resolve, 200))
     }
+  }
 
-    prefetchTravelTimes()
-  }, [meetingUuid, recommendedPlaces, fetchTravelTimes])
+  prefetchTravelTimes()
+}, [meetingUuid, recommendedPlaces, fetchTravelTimes])
+// ✅ 여기까지
 
+  
   const placeSignature = useMemo(
     () => recommendedPlaces.map((p) => p.name).sort().join('|'),
     [recommendedPlaces]
