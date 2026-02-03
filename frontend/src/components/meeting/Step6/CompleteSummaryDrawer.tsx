@@ -1,4 +1,5 @@
 
+// components/meeting/Step6/CompleteSummaryDrawer.tsx
 'use client'
 
 import { useState } from 'react'
@@ -54,7 +55,8 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
       )}
 
       {/* ================= Drawer ================= */}
-      <Drawer open>
+      <Drawer open modal={false}>
+        
         {/* ✅ 접근성 필수 요소 — 항상 존재 */}
           <DrawerHeader className="sr-only">
             <DrawerTitle>확정 장소 정보</DrawerTitle>
@@ -81,6 +83,7 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
       transition-[bottom]
       duration-300
       ease-out
+      pointer-events-auto
       
     "
   >
@@ -114,14 +117,7 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
     {/* ===== 드로워 열기/닫기 버튼 오류 수정 ===== */}
     {isOpen && (
       <>
-        <DrawerHeader className="pb-2">
-          <DrawerTitle className="sr-only">
-            확정 장소 정보
-          </DrawerTitle>
-          <DrawerDescription className="sr-only">
-            모임의 확정된 장소 정보를 확인할 수 있습니다.
-          </DrawerDescription>
-        </DrawerHeader>
+        
 
         <div className="overflow-y-auto 
                 pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))]">
@@ -129,7 +125,7 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
         </div>
       </>
     )}
-  </DrawerContent>
+          </DrawerContent>
       </Drawer>
     </>
   )

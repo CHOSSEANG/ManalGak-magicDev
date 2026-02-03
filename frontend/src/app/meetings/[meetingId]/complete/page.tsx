@@ -123,7 +123,7 @@ const formatDateTime = (isoString?: string) => {
       />
 
       {/* 타이틀 */}
-      <section className="pointer-events-none absolute left-0 right-0 top-1 z-10">
+      <section className="absolute left-0 right-0 top-1 z-10">
         <div className="mx-auto max-w-[var(--app-max-width)] px-4 py-3">
           <h1
             className="
@@ -150,7 +150,7 @@ const formatDateTime = (isoString?: string) => {
                 variant="secondary"
                 className="
                   cursor-pointer
-                  px-2 py-1
+                  px-3 py-2
                   rounded-full
                   bg-[--wf-highlight]
                   text-xs

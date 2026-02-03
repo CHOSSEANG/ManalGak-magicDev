@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useParams } from 'next/navigation'
 import StepCard from '@/components/meeting/StepCard'
-// import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
 
 import {
@@ -189,11 +189,11 @@ const fallbackShare = async () => {
 }
   
 
-// const handleDirection = () => {
-//     if (!placeName || lat === null || lng === null) return
-//     const url = `https://map.kakao.com/link/to/${encodeURIComponent(placeName)},${lat},${lng}`
-//     window.open(url, '_blank')
-// }
+const handleDirection = () => {
+    if (!placeName || lat === null || lng === null) return
+    const url = `https://map.kakao.com/link/to/${encodeURIComponent(placeName)},${lat},${lng}`
+    window.open(url, '_blank')
+}
 
   return (
     <section className="space-y-4">
@@ -237,19 +237,45 @@ const fallbackShare = async () => {
           </div>
 
           {/* 주소 + 길찾기 */}
-          <div className="flex items-start gap-4">
-            <div className="flex">
-              <MapPinned className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
-            </div>
-            <div className="flex-1">
-              {/* <p className="text-xs font-light text-[var(--wf-accent)]">
-                상세 주소
-              </p> */}
-              <p className="text-base font-medium">
+        <div className="flex items-start gap-4">
+          <div className="flex pt-0.5">
+            <MapPinned
+              className="h-6 w-6"
+              stroke="var(--wf-highlight-strong)"
+            />
+          </div>
+
+          <div className="flex-1">
+            <div className="flex items-start justify-between gap-3">
+              {/* 주소 */}
+              <p className="text-base font-medium leading-snug">
                 {place ? address : '-'}
               </p>
+
+              {/* 길찾기 버튼 (오른쪽 정렬) */}
+              <button
+                type="button"
+                onClick={handleDirection}
+                className="shrink-0"
+              >
+                <Badge
+                  variant="secondary"
+                  className="
+                    cursor-pointer
+                    px-2 py-1
+                    rounded-full
+                    bg-[--wf-highlight]
+                    text-xs
+                    whitespace-nowrap
+                  "
+                >
+                  길찾기
+                </Badge>
+              </button>
             </div>
           </div>
+        </div>
+
 
           {/* 전화 */}
           <div className="flex gap-4">
