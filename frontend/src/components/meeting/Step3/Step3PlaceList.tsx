@@ -6,7 +6,6 @@ import WireframeModal from '@/components/ui/WireframeModal'
 import { toast } from '@/components/ui/use-toast'
 import { ToastAction } from '@/components/ui/toast'
 import VoteOrSelectDrawer from '@/components/meeting/Step3/VoteOrSelectDrawer'
-import Step4Map from '@/components/map/Step4Map'
 import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { useUser } from '@/context/UserContext'
@@ -851,7 +850,7 @@ useEffect(() => {
     <div className="relative">
       {/* ================= 지도: 배경 ================= */}
       {/* 1/30[유리] - 지도 배경화 및 콘텐츠 오버레이 */}
-      {meetingUuid && (
+      {/* {meetingUuid && (
         <div className="relative h-[60vh] min-h-[360px]">
           <Step4Map
             meetingUuid={meetingUuid}
@@ -862,7 +861,7 @@ useEffect(() => {
           {/* 투표 중앙 CTA */}
           {/* 1/30[유리] - 투표 가능 시 지도 중앙 CTA(danger) */}
           {/* 투표 데이터 로딩 완료 후에만 버튼 표시 (깜빡임 방지) */}
-          {!isVoteLoading && hasVote && (
+          {/* {!isVoteLoading && hasVote && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <Button
                 type="button"
@@ -873,7 +872,7 @@ useEffect(() => {
                 투표 참여하기
               </Button>
             </div>
-          )}
+          )} */} 
         </div>
       )}
 

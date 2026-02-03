@@ -102,6 +102,11 @@ export default function Step4Map({
       mapInstanceRef.current = new maps.Map(mapRef.current!, {
         center: new maps.LatLng(routeData.midpoint.lat, routeData.midpoint.lng),
         level: 6,
+
+        // ✅ 추가 (중요)
+        draggable: false,
+        scrollwheel: false,
+        disableDoubleClickZoom: true,
       })
       setIsMapLoaded(true)
     })
