@@ -64,8 +64,8 @@ export default function BottomTabNav() {
         let isActive = false;
 
         // ✅ 모임리스트는 정확히 /meetings/new 일 때만 활성
-        if (hrefPath === "/meetings/new") {
-          isActive = pathname === "/meetings/new";
+        if (hrefPath === "/" || hrefPath === "/meetings/new") {
+          isActive = pathname === hrefPath;
         } else {
           isActive = pathname.startsWith(hrefPath);
         }
