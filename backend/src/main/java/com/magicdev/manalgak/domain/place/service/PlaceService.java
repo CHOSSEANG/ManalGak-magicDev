@@ -313,7 +313,15 @@ public class PlaceService {
 
         log.info("선택 장소 저장 완료: meetingUuid={}, placeId={}", meetingUuid, saved.getPlaceId());
 
-        return convertToPlaceDto(saved);
+        PlaceResponse.Place selectedPlace = convertToPlaceDto(saved);
+
+        messagingTemplate.convertAndSend(
+                "/topic/meeting/" + meetingUuid + "/confirmed",
+                selectedPlace
+        );
+        log.info("확정 장소 알림 전송: meetingUuid={}, placeId={}", meetingUuid, saved.getPlaceId());
+
+        return selectedPlace;
     }
 
     /**
