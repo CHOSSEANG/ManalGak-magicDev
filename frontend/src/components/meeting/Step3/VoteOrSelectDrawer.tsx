@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/drawer'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
+import WireframeModal from '@/components/ui/WireframeModal'
 import {
   CheckCircle,
   Coffee,
@@ -19,13 +20,6 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { RouteResponse } from '@/types/route'
-
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogHeader,
-//   DialogTitle,
-// } from '@/components/ui/dialog'
 
 /* ================= 타입 ================= */
 
@@ -131,6 +125,7 @@ export default function VoteOrSelectDrawer({
 
 
   const hasVote = Boolean(voteData?.options?.length)
+  const [showVoteModal, setShowVoteModal] = useState(false)
 
   const totalVotes =
     voteData?.options.reduce((sum, opt) => sum + opt.voteCount, 0) || 0
@@ -149,26 +144,15 @@ export default function VoteOrSelectDrawer({
   const isVoteDisabled =
     isCreatingVote || places.length === 0 || (!isHost && !hasVote) || isConfirmed
 
-  const handleVoteAction = () => {
-    if (!selectedPlaceId || !voteData) return
-
-    const selectedPlace = places.find((p) => p.id === selectedPlaceId)
-    if (!selectedPlace) return
-
-    const option = voteData.options.find(
-      (o) => o.content === selectedPlace.name
-    )
-
-    if (option) onVote(option.optionId)
-  }
-
   const handleVoteButtonClick = () => {
     if (isConfirmed) return
     if (isHost && (!hasVote || isNewPlaceAvailable)) {
       onCreateVote?.()
       return
     }
-    handleVoteAction()
+    if (hasVote) {
+      setShowVoteModal(true)
+    }
   }
 
   const myParticipantName = myParticipant?.nickName
@@ -373,90 +357,6 @@ export default function VoteOrSelectDrawer({
                         </button>
                       )
                     })()
-                  ) : hasVote ? (
-                    voteData?.options.map((option) => {
-                      const place = places.find(
-                        (p) => p.name === option.content
-                      )
-                      const Icon = place?.icon || Coffee
-
-                      const isSelected = selectedPlaceId === place?.id
-                      const isMyVote = option.optionId === myVotedOptionId
-                      const isTopChoice =
-                        option.voteCount === maxVotes && maxVotes > 0
-
-                      return (
-                        <button
-                          key={option.optionId}
-                          type="button"
-                          onClick={() => {
-                            if (!place) return
-                            onSelectPlace(place.id)
-                          }}
-                          className={[
-                            'relative rounded-lg border p-3 text-left',
-                            isSelected
-                              ? 'border-[var(--danger)]'
-                              : 'border-[var(--border)]',
-                          ].join(' ')}
-                        >
-                          {/* 투표 비율 배경 */}
-                          {totalVotes > 0 && (
-                            <div
-                              className="absolute left-0 top-0 h-full bg-[var(--neutral-soft)] opacity-40"
-                              style={{
-                                width: `${
-                                  (option.voteCount / totalVotes) * 100
-                                }%`,
-                              }}
-                            />
-                          )}
-
-                          <div className="relative flex items-start gap-2">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
-                              <Icon className="h-6 w-6 text-[var(--danger)]" />
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="flex items-center gap-1">
-                                <p className="text-sm font-semibold">
-                                  {option.content}
-                                </p>
-                                {isTopChoice && (
-                                  <span className="rounded-full bg-[var(--danger)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
-                                    1위
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* 투표 수 */}
-                              <p className="mt-0.5 text-xs text-[var(--text-subtle)]">
-                                {option.voteCount}표
-                              </p>
-
-                              {/* 투표자 딱지 */}
-                              {option.voters.length > 0 && (
-                                <div className="mt-1 flex flex-wrap gap-1">
-                                  {option.voters.map((v) => (
-                                    <span
-                                      key={v.participantId}
-                                      className="rounded-full bg-[var(--neutral-soft)] px-1.5 py-0.5 text-[10px]"
-                                    >
-                                      {v.nickname}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* 선택시 아이콘 표시 */}
-                            {isMyVote && (
-                              <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-[var(--danger)] " />
-                            )}
-                          </div>
-                        </button>
-                      )
-                    })
                   ) : (
                     places.map((place) => {
                       const Icon = place.icon || Coffee
@@ -466,6 +366,9 @@ export default function VoteOrSelectDrawer({
                       const { myTravelTime, avgTravelTime } = getMyTravelInfo(
                         routeData
                       )
+                      const matchingVote = hasVote
+                        ? voteData?.options.find((o) => o.content === place.name)
+                        : null
 
                       return (
                         <button
@@ -485,9 +388,16 @@ export default function VoteOrSelectDrawer({
                             </div>
 
                             <div className="flex-1">
-                              <p className="text-sm font-semibold">
-                                {place.name}
-                              </p>
+                              <div className="flex items-center gap-1">
+                                <p className="text-sm font-semibold">
+                                  {place.name}
+                                </p>
+                                {matchingVote && (
+                                  <span className="rounded-full bg-[var(--danger-soft)] px-1.5 py-0.5 text-[9px] font-semibold text-[var(--danger)]">
+                                    {matchingVote.voteCount}표
+                                  </span>
+                                )}
+                              </div>
 
                               {(place.stationName ||
                                 place.walkingMinutes != null) && (
@@ -569,17 +479,98 @@ export default function VoteOrSelectDrawer({
         </DrawerContent>
       </Drawer>
 
-      {/* ================= 장소 정보 모달 ================= */}
-      {/* <Dialog open={Boolean(infoPlaceId)} onOpenChange={() => setInfoPlaceId(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{infoPlace?.name}</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-[var(--text-subtle)]">
-            선택한 추천 장소에 대한 상세 정보를 여기에 표시하면 됩니다.
-          </p>
-        </DialogContent>
-      </Dialog> */}
+      {/* ================= 투표 모달 ================= */}
+      <WireframeModal
+        open={showVoteModal}
+        title="추천장소 투표"
+        onClose={() => setShowVoteModal(false)}
+      >
+        <div className="space-y-3">
+          {voteData ? (
+            <>
+              <div className="mb-4 text-center">
+                <p className="text-sm text-[var(--text-subtle)]">
+                  총 {totalVotes}표 ·{' '}
+                  {myVotedOptionId ? '투표 완료' : '투표해주세요'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                {voteData.options.map((option) => {
+                  const place = places.find(
+                    (p) => p.name === option.content
+                  )
+                  const Icon = place?.icon || Coffee
+                  const isMyVote = option.optionId === myVotedOptionId
+                  const votePercentage =
+                    totalVotes > 0
+                      ? (option.voteCount / totalVotes) * 100
+                      : 0
+                  const isTopChoice =
+                    option.voteCount === maxVotes && maxVotes > 0
+
+                  return (
+                    <button
+                      key={option.optionId}
+                      onClick={() => onVote(option.optionId)}
+                      className={[
+                        'relative w-full overflow-hidden rounded-lg border p-3 text-left',
+                        isMyVote
+                          ? 'border-[var(--danger)]'
+                          : 'border-[var(--border)]',
+                      ].join(' ')}
+                    >
+                      <div
+                        className="absolute left-0 top-0 h-full"
+                        style={{
+                          width: `${votePercentage}%`,
+                          backgroundColor: 'var(--neutral-soft)',
+                          opacity: 0.5,
+                        }}
+                      />
+                      <div className="relative flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                          <Icon className="h-6 w-6 text-[var(--danger)]" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold text-[var(--text)]">
+                              {option.content}
+                            </p>
+                            {isTopChoice && option.voteCount > 0 && (
+                              <span className="rounded-full bg-[var(--danger)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                                1위
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-0.5 text-xs text-[var(--text-subtle)]">
+                            {option.voteCount}표
+                          </p>
+                          {option.voters.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {option.voters.map((v) => (
+                                <span
+                                  key={v.participantId}
+                                  className="rounded-full bg-[var(--neutral-soft)] px-1.5 py-0.5 text-[10px]"
+                                >
+                                  {v.nickname}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {isMyVote && (
+                          <CheckCircle className="h-5 w-5 text-[var(--danger)]" />
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          ) : null}
+        </div>
+      </WireframeModal>
     </>
   )
 }
