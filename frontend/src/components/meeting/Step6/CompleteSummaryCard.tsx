@@ -4,7 +4,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useParams } from 'next/navigation'
-import StepCard from '@/components/meeting/StepCard'
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
 
@@ -15,6 +14,7 @@ import {
   Phone,
   Send,
   Coffee,
+  BadgeCheck,
 } from 'lucide-react'
 
 export interface MeetingSummary {
@@ -196,23 +196,34 @@ const handleDirection = () => {
 }
 
   return (
-    <section className="space-y-4">
-      <StepCard className="space-y-5 rounded-2xl border-none shadow-none">
+    <section className="space-y-4 px-4">
+      <div className="space-y-5 rounded-2xl border-none shadow-none">
         <div className="space-y-4">
           {/* 모임명 */}
-          <div className="flex gap-4">
-             <Users className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
+          <div className="flex gap-4 items-center ">
+             <BadgeCheck className="h-6 w-6" stroke="var(--primary)" />
               {/* <p className="text-xs font-light text-[var(--wf-accent)]">
                 모임명 · 참여인원
               </p> */}
               <p className="">
-                {meetingName} · {memberCount}명
+                {meetingName} 
+              </p>
+          </div>
+
+          {/* 인원수 */}
+          <div className="flex gap-4 items-center ">
+             <Users className="h-6 w-6" stroke="var(--primary)" />
+              {/* <p className="text-xs font-light text-[var(--wf-accent)]">
+                모임명 · 참여인원
+              </p> */}
+              <p className="">
+                {memberCount}명
               </p>
           </div>
 
           {/* 일시 */}
-          <div className="flex gap-4">
-             <Calendar className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
+          <div className="flex gap-4 items-center ">
+             <Calendar className="h-6 w-6" stroke="var(--primary)" />
               {/* <p className="text-xs font-light text-[var(--wf-accent)]">
                 모임 일시
               </p> */}
@@ -222,26 +233,26 @@ const handleDirection = () => {
           </div>
 
           {/* 장소 */}
-          <div className="flex gap-4">
-              <Coffee className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
+          <div className="flex gap-4 items-center ">
+              <Coffee className="h-6 w-6" stroke="var(--primary)" />
 
               {place ? (
                 <p className="">
                   {placeName}
                 </p>
               ) : (
-                <p className="text-xs text-[var(--wf-warning)]">
-                  아직 장소를 선택하지 않았습니다
+                <p className="text-xs text-[var(--danger)]">
+                  ( 아직 장소를 선택하지 않았습니다.)
                 </p>
               )}
           </div>
 
           {/* 주소 + 길찾기 */}
-        <div className="flex items-start gap-4">
-          <div className="flex pt-0.5">
+        <div className="flex gap-4 items-center ">
+          <div className="flex pt-0.5"> 
             <MapPinned
               className="h-6 w-6"
-              stroke="var(--wf-highlight-strong)"
+              stroke="var(--primary)"
             />
           </div>
 
@@ -264,7 +275,7 @@ const handleDirection = () => {
                     cursor-pointer
                     px-2 py-1
                     rounded-full
-                    bg-[--wf-highlight]
+                    bg-[--kakao-yellow]
                     text-xs
                     whitespace-nowrap
                   "
@@ -279,13 +290,13 @@ const handleDirection = () => {
 
           {/* 전화 */}
           <div className="flex gap-4">
-              <Phone className="h-6 w-6" stroke="var(--wf-highlight-strong)" />
+              <Phone className="h-6 w-6" stroke="var(--primary)" />
               <p className="text-base font-medium">
                 {place ? phoneNumber : '-'}
               </p>
           </div>
         </div>
-      </StepCard>
+      </div>
 
       {/* CTA */}
       <div className="flex gap-3 px-0 pb-0">
@@ -299,7 +310,7 @@ const handleDirection = () => {
             border-[var(--wf-border)]
             bg-[var(--wf-surface)]
             px-4 py-6
-            text-sm font-medium text-[var(--wf-text)]
+            text-sm font-medium text-[var(--text)]
           "
         >
           <Send className="h-4 w-4" />
@@ -316,7 +327,7 @@ const handleDirection = () => {
               bg-[var(--wf-highlight)]
               hover:bg-[var(--wf-accent)]
               py-6
-              text-lg font-bold text-[var(--wf-text)]
+              text-lg font-bold text-[var(--text)]
               shadow-xl shadow-yellow-500/20
               transition active:scale-[0.99]
             "

@@ -34,28 +34,9 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
 
   return (
     <>
-      {/* ================= 열기 버튼 ================= */}
-      {!isOpen && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-30">
-          <Button
-            onClick={toggleDrawer}
-            className="
-              flex items-center gap-1
-              rounded-xl
-              border border-[var(--danger-soft)]
-              bg-[var(--danger-soft)]
-              text-[var(--text)]
-              
-              
-            "
-          >
-            확정장소 정보확인 <ChevronUp className="h-5 w-5" />
-          </Button>
-        </div>
-      )}
 
       {/* ================= Drawer ================= */}
-      <Drawer open modal={false}>
+      <Drawer open>
         
         {/* ✅ 접근성 필수 요소 — 항상 존재 */}
           <DrawerHeader className="sr-only">
@@ -65,54 +46,60 @@ export default function CompleteSummaryDrawer({ meeting }: Props) {
             </DrawerDescription>
           </DrawerHeader>
         
-  <DrawerContent
-    style={{ bottom }}
-    className="
-      z-20
-      border border-[var(--border)]
-      bg-[var(--bg)]
-      px-4
-      shadow-none
+          <DrawerContent
+            style={{ bottom }}
+            className="
+              fixed
+              left-0 right-0
+              bottom-0
+              translate-x-0
 
-      w-full
-      md:w-[500px]
-      mx-auto
+              z-20
+              border border-[var(--border)]
+              bg-[var(--bg)]
+              px-4
+              shadow-none
 
-      max-h-[85vh]
+              w-full
+              md:w-[500px]
+              mx-auto
 
-      transition-[bottom]
-      duration-300
-      ease-out
-      pointer-events-auto
-      
-    "
-  >
-    {/* ===== 열기 / 닫기 버튼 (항상 보임) ===== */}
-    <div className="flex justify-center py-2">
-      <Button
-        onClick={toggleDrawer}
-        variant="ghost"
-        size="sm"
-        className="
-          flex items-center gap-1
-          text-base
-          rounded-xl
-          border border-[var(--danger-soft)]
-          bg-[var(--danger-soft)]
-          text-[var(--text)]
-        "
-      >
-        {isOpen ? (
-          <>
-            창 닫기 <ChevronDown className="h-5 w-5" />
-          </>
-        ) : (
-          <>
-            확정장소 확인 <ChevronUp className="h-5 w-5" />
-          </>
-        )}
-      </Button>
-    </div>
+              max-h-[85vh]
+
+              transition-[bottom]
+              duration-300
+              ease-out
+              pointer-events-auto
+              
+              
+            "
+          >
+            {/* ===== 열기 / 닫기 버튼 (항상 보임) ===== */}
+            <div className="flex justify-center py-2">
+              <Button
+                onClick={toggleDrawer}
+                variant="ghost"
+                size="sm"
+                className="
+                  flex items-center gap-1
+                  text-base
+                  rounded-xl
+                  border border-[var(--danger-soft)]
+                  bg-[var(--danger-soft)]
+                  text-[var(--text)]
+                "
+              >
+                {isOpen ? (
+                  <>
+                    창 닫기 <ChevronDown className="h-5 w-5" />
+                  </>
+                ) : (
+                  <>
+                    확정장소 확인 <ChevronUp className="h-5 w-5" />
+                  </>
+                )}
+              </Button>
+            </div>
 
     {/* ===== 드로워 열기/닫기 버튼 오류 수정 ===== */}
     {isOpen && (

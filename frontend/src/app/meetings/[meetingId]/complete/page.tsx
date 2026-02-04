@@ -107,7 +107,7 @@ const formatDateTime = (isoString?: string) => {
 
   const hours = date.getHours()
   const minutes = String(date.getMinutes()).padStart(2, '0')
-  const period = hours < 12 ? '오전' : '오후'
+  const period = hours < 12 ? 'am' : 'pm'
   const displayHour = hours % 12 || 12
 
   return `${yyyy}.${mm}.${dd} ${period} ${displayHour}:${minutes}`
@@ -174,13 +174,14 @@ const formatDateTime = (isoString?: string) => {
               rounded
             "
           >
-            {resolvedData?.meetingName || '-'} , {formatDateTime(resolvedData?.dateTime) || '-'}
+            {resolvedData?.meetingName || '-'} ․ {formatDateTime(resolvedData?.dateTime) || '-'}
 
           </p>
         </div> 
       </section>
 
-      <div className="relative z-20 mx-auto max-w-[var(--app-max-width)] pb-[calc(96px+env(safe-area-inset-bottom))]">
+      <div className="relative z-20
+      pb-[calc(96px+env(safe-area-inset-bottom))]">
         <CompleteSummaryDrawer meeting={meeting} />
       </div>
     </main>
