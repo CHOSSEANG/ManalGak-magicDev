@@ -18,6 +18,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { RouteResponse } from '@/types/route'
 
 // import {
 //   Dialog,
@@ -47,6 +48,13 @@ export interface RecommendedPlace {
   id: string
   name: string
   icon: LucideIcon
+  stationName?: string
+  walkingMinutes?: number
+}
+
+interface ParticipantSummary {
+  nickName?: string
+  type?: 'PUBLIC' | 'CAR' | 'WALK'
 }
 
 interface VoteOrSelectDrawerProps {
@@ -64,6 +72,16 @@ interface VoteOrSelectDrawerProps {
 
   isVoting?: boolean
   isConfirming?: boolean
+
+  routeCache?: Record<string, RouteResponse>
+  loadingRoutes?: Record<string, boolean>
+  myParticipant?: ParticipantSummary
+  isCreatingVote?: boolean
+  isNewPlaceAvailable?: boolean
+  onCreateVote?: () => void
+  isConfirmed?: boolean
+  confirmedPlace?: RecommendedPlace | null
+  onGoComplete?: () => void
 }
 
 
@@ -82,6 +100,15 @@ export default function VoteOrSelectDrawer({
   onConfirm,
   isVoting = false,
   isConfirming = false,
+  routeCache,
+  loadingRoutes,
+  myParticipant,
+  isCreatingVote = false,
+  isNewPlaceAvailable = false,
+  onCreateVote,
+  isConfirmed = false,
+  confirmedPlace,
+  onGoComplete,
 }: VoteOrSelectDrawerProps) {
   /* ---------- Drawer 열림/닫힘 ---------- */
 
@@ -103,6 +130,8 @@ export default function VoteOrSelectDrawer({
   // const infoPlace = places.find((p) => p.id === infoPlaceId)
 
 
+  const hasVote = Boolean(voteData?.options?.length)
+
   const totalVotes =
     voteData?.options.reduce((sum, opt) => sum + opt.voteCount, 0) || 0
 
@@ -111,13 +140,17 @@ export default function VoteOrSelectDrawer({
       ? Math.max(...voteData.options.map((o) => o.voteCount))
       : 0
 
-  const handlePrimaryAction = () => {
-    if (!selectedPlaceId || !voteData) return
+  let voteButtonLabel = '투표 대기 중'
+  if (isCreatingVote) voteButtonLabel = '생성 중...'
+  else if (isHost && !hasVote) voteButtonLabel = '투표 시작하기'
+  else if (isHost && isNewPlaceAvailable) voteButtonLabel = '새 추천 장소! 투표 갱신'
+  else if (hasVote) voteButtonLabel = '투표하기'
 
-    if (isHost) {
-      onConfirm(selectedPlaceId)
-      return
-    }
+  const isVoteDisabled =
+    isCreatingVote || places.length === 0 || (!isHost && !hasVote) || isConfirmed
+
+  const handleVoteAction = () => {
+    if (!selectedPlaceId || !voteData) return
 
     const selectedPlace = places.find((p) => p.id === selectedPlaceId)
     if (!selectedPlace) return
@@ -127,6 +160,67 @@ export default function VoteOrSelectDrawer({
     )
 
     if (option) onVote(option.optionId)
+  }
+
+  const handleVoteButtonClick = () => {
+    if (isConfirmed) return
+    if (isHost && (!hasVote || isNewPlaceAvailable)) {
+      onCreateVote?.()
+      return
+    }
+    handleVoteAction()
+  }
+
+  const myParticipantName = myParticipant?.nickName
+  const myTransportLabel =
+    myParticipant?.type === 'CAR'
+      ? '자동차'
+      : myParticipant?.type === 'WALK'
+        ? '도보'
+        : '대중교통'
+
+  const getMyTravelInfo = (routeData?: RouteResponse) => {
+    if (!routeData) {
+      return {
+        myTravelTime: null as number | null,
+        avgTravelTime: null as number | null,
+      }
+    }
+
+    const avgTravelTime = routeData.statistics?.averageTravelTime ?? null
+    if (!myParticipantName) {
+      return { myTravelTime: null as number | null, avgTravelTime }
+    }
+
+    let myTravelTime: number | null = null
+
+    if (myParticipant?.type === 'CAR') {
+      const myCarRoute = routeData.carRoutes?.find(
+        (route) => route.participantName === myParticipantName
+      )
+      if (myCarRoute) myTravelTime = myCarRoute.travelTime
+    } else {
+      const myRoute = routeData.routes?.find(
+        (route) => route.participantName === myParticipantName
+      )
+      if (myRoute) myTravelTime = myRoute.travelTime
+    }
+
+    if (myTravelTime === null) {
+      const fallbackRoute = routeData.routes?.find(
+        (route) => route.participantName === myParticipantName
+      )
+      if (fallbackRoute) myTravelTime = fallbackRoute.travelTime
+    }
+
+    if (myTravelTime === null) {
+      const fallbackCarRoute = routeData.carRoutes?.find(
+        (route) => route.participantName === myParticipantName
+      )
+      if (fallbackCarRoute) myTravelTime = fallbackCarRoute.travelTime
+    }
+
+    return { myTravelTime, avgTravelTime }
   }
 
   return (
@@ -141,10 +235,10 @@ export default function VoteOrSelectDrawer({
             px-0 shadow-none transition-[bottom] duration-300 ease-out
 
             /* ✅ 모바일: 전체폭 (좌우 로딩 이슈 방지) */
-            left-0 right-0 translate-x-0
+            !left-0 !right-0 !translate-x-0
 
             /* ✅ 태블릿 이상: 400px 가운데 고정 */
-            md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[900px]
+            md:!left-1/2 md:!right-auto md:!-translate-x-1/2 md:w-[900px]
 
             max-h-[85vh]
             pointer-events-auto
@@ -182,12 +276,16 @@ export default function VoteOrSelectDrawer({
               {/* ================= Header ================= */}
               <DrawerHeader className="pb-2">
                 <DrawerTitle className="text-center text-base font-semibold">
-                  {isHost ? '선택하고 [확정] 버튼을 눌러주세요.' : '추천장소를 투표하면 모임장에게 전달됩니다.'}
+                  {isConfirmed
+                    ? '장소가 이미 확정되었습니다.'
+                    : isHost
+                      ? '선택하고 [확정] 버튼을 눌러주세요.'
+                      : '추천장소를 투표하면 모임장에게 전달됩니다.'}
                 </DrawerTitle>
               </DrawerHeader>
 
               {/* ================= Summary ================= */}
-              {voteData && (
+              {hasVote && !isConfirmed && (
                 <div className="px-4 pb-2 text-center">
                   <p className="text-sm text-[var(--text-subtle)]">
                     총 {totalVotes}표 ·{' '}
@@ -205,89 +303,225 @@ export default function VoteOrSelectDrawer({
                 "
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {voteData?.options.map((option) => {
-                    const place = places.find(
-                      (p) => p.name === option.content
-                    )
-                    const Icon = place?.icon || Coffee
+                  {isConfirmed && confirmedPlace ? (
+                    (() => {
+                      const place = confirmedPlace
+                      const Icon = place.icon || Coffee
+                      const isSelected = selectedPlaceId === place.id
+                      const routeData = routeCache?.[place.id]
+                      const isLoadingRoute = Boolean(loadingRoutes?.[place.id])
+                      const { myTravelTime, avgTravelTime } = getMyTravelInfo(
+                        routeData
+                      )
 
-                    const isSelected = selectedPlaceId === place?.id
-                    const isMyVote = option.optionId === myVotedOptionId
-                    const isTopChoice =
-                      option.voteCount === maxVotes && maxVotes > 0
+                      return (
+                        <button
+                          key={place.id}
+                          type="button"
+                          onClick={() => onSelectPlace(place.id)}
+                          className={[
+                            'relative rounded-lg border p-3 text-left',
+                            isSelected
+                              ? 'border-[var(--danger)]'
+                              : 'border-[var(--border)]',
+                          ].join(' ')}
+                        >
+                          <div className="relative flex items-start gap-2">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                              <Icon className="h-6 w-6 text-[var(--danger)]" />
+                            </div>
 
-                    return (
-                      <button
-                        key={option.optionId}
-                        type="button"
-                        onClick={() => {
-                          if (!place) return
-                          onSelectPlace(place.id) // ✅ 여기까지만
-                        }}
-                        className={[
-                          'relative rounded-lg border p-3 text-left',
-                          isSelected
-                            ? 'border-[var(--danger)]'
-                            : 'border-[var(--border)]',
-                        ].join(' ')}
-                      >
-                        {/* 투표 비율 배경 */}
-                        {totalVotes > 0 && (
-                          <div
-                            className="absolute left-0 top-0 h-full bg-[var(--neutral-soft)] opacity-40"
-                            style={{
-                              width: `${
-                                (option.voteCount / totalVotes) * 100
-                              }%`,
-                            }}
-                          />
-                        )}
-
-                        <div className="relative flex items-start gap-2">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
-                            <Icon className="h-6 w-6 text-[var(--danger)]" />
-                          </div>
-
-                          <div className="flex-1">
-                            <div className="flex items-center gap-1">
-                              <p className="text-sm font-semibold">
-                                {option.content}
-                              </p>
-                              {isTopChoice && (
-                                <span className="rounded-full bg-[var(--danger)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
-                                  1위
+                            <div className="flex-1">
+                              <div className="flex items-center gap-1">
+                                <p className="text-sm font-semibold">
+                                  {place.name}
+                                </p>
+                                <span className="rounded-full bg-[var(--success-soft)] px-1.5 py-0.5 text-[9px] font-semibold text-[var(--success)]">
+                                  확정됨
                                 </span>
+                              </div>
+
+                              {(place.stationName ||
+                                place.walkingMinutes != null) && (
+                                <p className="mt-0.5 text-xs text-[var(--text-subtle)]">
+                                  {place.stationName ?? '중간지점'} · 도보{' '}
+                                  {place.walkingMinutes ?? 0}분
+                                </p>
+                              )}
+
+                              {isLoadingRoute ? (
+                                <p className="mt-1 text-xs text-[var(--text-subtle)]">
+                                  이동시간 조회 중...
+                                </p>
+                              ) : myTravelTime !== null ? (
+                                <div className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)]">
+                                  나 {myTransportLabel} {myTravelTime}분
+                                  {avgTravelTime &&
+                                    avgTravelTime !== myTravelTime && (
+                                      <span className="ml-1 text-[var(--text-subtle)]">
+                                        (평균 {avgTravelTime}분)
+                                      </span>
+                                    )}
+                                </div>
+                              ) : avgTravelTime ? (
+                                <div className="mt-1 text-xs text-[var(--danger)]">
+                                  평균 {avgTravelTime}분
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })()
+                  ) : hasVote ? (
+                    voteData?.options.map((option) => {
+                      const place = places.find(
+                        (p) => p.name === option.content
+                      )
+                      const Icon = place?.icon || Coffee
+
+                      const isSelected = selectedPlaceId === place?.id
+                      const isMyVote = option.optionId === myVotedOptionId
+                      const isTopChoice =
+                        option.voteCount === maxVotes && maxVotes > 0
+
+                      return (
+                        <button
+                          key={option.optionId}
+                          type="button"
+                          onClick={() => {
+                            if (!place) return
+                            onSelectPlace(place.id)
+                          }}
+                          className={[
+                            'relative rounded-lg border p-3 text-left',
+                            isSelected
+                              ? 'border-[var(--danger)]'
+                              : 'border-[var(--border)]',
+                          ].join(' ')}
+                        >
+                          {/* 투표 비율 배경 */}
+                          {totalVotes > 0 && (
+                            <div
+                              className="absolute left-0 top-0 h-full bg-[var(--neutral-soft)] opacity-40"
+                              style={{
+                                width: `${
+                                  (option.voteCount / totalVotes) * 100
+                                }%`,
+                              }}
+                            />
+                          )}
+
+                          <div className="relative flex items-start gap-2">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                              <Icon className="h-6 w-6 text-[var(--danger)]" />
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="flex items-center gap-1">
+                                <p className="text-sm font-semibold">
+                                  {option.content}
+                                </p>
+                                {isTopChoice && (
+                                  <span className="rounded-full bg-[var(--danger)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                                    1위
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* 투표 수 */}
+                              <p className="mt-0.5 text-xs text-[var(--text-subtle)]">
+                                {option.voteCount}표
+                              </p>
+
+                              {/* 투표자 딱지 */}
+                              {option.voters.length > 0 && (
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {option.voters.map((v) => (
+                                    <span
+                                      key={v.participantId}
+                                      className="rounded-full bg-[var(--neutral-soft)] px-1.5 py-0.5 text-[10px]"
+                                    >
+                                      {v.nickname}
+                                    </span>
+                                  ))}
+                                </div>
                               )}
                             </div>
 
-                            {/* 투표 수 */}
-                            <p className="mt-0.5 text-xs text-[var(--text-subtle)]">
-                              {option.voteCount}표
-                            </p>
-
-                            {/* 투표자 딱지 */}
-                            {option.voters.length > 0 && (
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {option.voters.map((v) => (
-                                  <span
-                                    key={v.participantId}
-                                    className="rounded-full bg-[var(--neutral-soft)] px-1.5 py-0.5 text-[10px]"
-                                  >
-                                    {v.nickname}
-                                  </span>
-                                ))}
-                              </div>
+                            {/* 선택시 아이콘 표시 */}
+                            {isMyVote && (
+                              <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-[var(--danger)] " />
                             )}
                           </div>
+                        </button>
+                      )
+                    })
+                  ) : (
+                    places.map((place) => {
+                      const Icon = place.icon || Coffee
+                      const isSelected = selectedPlaceId === place.id
+                      const routeData = routeCache?.[place.id]
+                      const isLoadingRoute = Boolean(loadingRoutes?.[place.id])
+                      const { myTravelTime, avgTravelTime } = getMyTravelInfo(
+                        routeData
+                      )
 
-                          {/* 선택시 아이콘 표시 */}
-                          {isMyVote && (
-                            <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-[var(--danger)] " />
-                          )}
-                        </div>
-                      </button>
-                    )
-                  })}
+                      return (
+                        <button
+                          key={place.id}
+                          type="button"
+                          onClick={() => onSelectPlace(place.id)}
+                          className={[
+                            'relative rounded-lg border p-3 text-left',
+                            isSelected
+                              ? 'border-[var(--danger)]'
+                              : 'border-[var(--border)]',
+                          ].join(' ')}
+                        >
+                          <div className="relative flex items-start gap-2">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--neutral-soft)]">
+                              <Icon className="h-6 w-6 text-[var(--danger)]" />
+                            </div>
+
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold">
+                                {place.name}
+                              </p>
+
+                              {(place.stationName ||
+                                place.walkingMinutes != null) && (
+                                <p className="mt-0.5 text-xs text-[var(--text-subtle)]">
+                                  {place.stationName ?? '중간지점'} · 도보{' '}
+                                  {place.walkingMinutes ?? 0}분
+                                </p>
+                              )}
+
+                              {isLoadingRoute ? (
+                                <p className="mt-1 text-xs text-[var(--text-subtle)]">
+                                  이동시간 조회 중...
+                                </p>
+                              ) : myTravelTime !== null ? (
+                                <div className="mt-1 flex items-center gap-1 text-xs text-[var(--danger)]">
+                                  나 {myTransportLabel} {myTravelTime}분
+                                  {avgTravelTime &&
+                                    avgTravelTime !== myTravelTime && (
+                                      <span className="ml-1 text-[var(--text-subtle)]">
+                                        (평균 {avgTravelTime}분)
+                                      </span>
+                                    )}
+                                </div>
+                              ) : avgTravelTime ? (
+                                <div className="mt-1 text-xs text-[var(--danger)]">
+                                  평균 {avgTravelTime}분
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })
+                  )}
                 </div>
               </ScrollArea>
 
@@ -298,22 +532,37 @@ export default function VoteOrSelectDrawer({
                   pb-[var(--bottom-nav-height)]
                 "
               >
-                <Button
-                  disabled={
-                    !selectedPlaceId ||
-                    (isHost ? isConfirming : isVoting)
-                  }
-                  onClick={handlePrimaryAction}
-                  className="h-12 w-full rounded-xl bg-[var(--danger)] text-white"
-                >
-                  {isHost
-                    ? isConfirming
-                      ? '확정 중...'
-                      : '추천장소 확정'
-                    : isVoting
-                      ? '투표 중...'
-                      : '추천장소 투표 완료'}
-                </Button>
+                {isConfirmed ? (
+                  <Button
+                    onClick={onGoComplete}
+                    disabled={!onGoComplete}
+                    className="h-12 w-full rounded-xl bg-[var(--danger)] text-white"
+                  >
+                    완료 페이지로 이동
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      disabled={isVoteDisabled || isVoting}
+                      onClick={handleVoteButtonClick}
+                      className="h-12 w-full rounded-xl bg-[var(--danger)] text-white"
+                    >
+                      {voteButtonLabel}
+                    </Button>
+
+                    {isHost && hasVote && (
+                      <Button
+                        disabled={!selectedPlaceId || isConfirming}
+                        onClick={() =>
+                          selectedPlaceId && onConfirm(selectedPlaceId)
+                        }
+                        className="h-12 w-full rounded-xl border-2 border-[var(--danger)] bg-transparent text-[var(--danger)] hover:bg-[var(--danger)] hover:text-white"
+                      >
+                        {isConfirming ? '확정 중...' : '추천장소 확정'}
+                      </Button>
+                    )}
+                  </>
+                )}
               </DrawerFooter>
             </>
           )}
