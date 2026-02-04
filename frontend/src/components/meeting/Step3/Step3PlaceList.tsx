@@ -496,41 +496,8 @@ const fetchTravelTimes = useCallback(
           // 추천 장소 변경 시 이동시간 캐시 초기화
           setRouteCache({})
 
-          // 모달이 열려있으면 해당 장소의 이동시간 다시 조회
-          if (
-            showTravelTimeModalRef.current &&
-            selectedPlaceForDetailRef.current
-          ) {
-            const place = recommendedPlacesRef.current.find(
-              (p) => p.id === selectedPlaceForDetailRef.current
-            )
-            if (place?.latitude && place?.longitude) {
-              // 약간의 딜레이 후 재조회 (추천장소 갱신 후)
-              setTimeout(() => {
-                setLoadingRoutes((prev) => ({ ...prev, [place.id]: true }))
-                calculateRoutes(meetingUuid, {
-                  latitude: place.latitude!,
-                  longitude: place.longitude!,
-                })
-                  .then((response) => {
-                    const res = response as CommonResponse<RouteResponse>
-                    if (res?.data) {
-                      const data = res.data
-                      setRouteCache((prev) => ({ ...prev, [place.id]: data }))
-                    }
-                  })
-                  .catch((err) => {
-                    logClientError('모달 이동시간 재조회 실패', err)
-                  })
-                  .finally(() => {
-                    setLoadingRoutes((prev) => ({
-                      ...prev,
-                      [place.id]: false,
-                    }))
-                  })
-              }, 500)
-            }
-          }
+          // 모달 열림 상태에서 장소 변경 시, 이동시간 재조회는
+          // placeSource 변경 → recommendedPlaces 변경 → useEffect에서 처리
 
           if (
             voteDataRef.current &&
@@ -713,6 +680,36 @@ useEffect(() => {
     : undefined
 
 
+
+  // 모달이 열려있을 때 장소 목록이 바뀌면 해당 장소 이동시간 재조회
+  useEffect(() => {
+    if (!showTravelTimeModal || !selectedPlaceForDetail || !meetingUuid) return
+    const place = recommendedPlaces.find((p) => p.id === selectedPlaceForDetail)
+      ?? (confirmedPlace?.id === selectedPlaceForDetail ? confirmedPlace : null)
+    if (!place?.latitude || !place?.longitude) return
+    if (routeCache[place.id] || loadingRoutes[place.id]) return
+
+    setLoadingRoutes((prev) => ({ ...prev, [place.id]: true }))
+    calculateRoutes(meetingUuid, {
+      latitude: place.latitude,
+      longitude: place.longitude,
+    })
+      .then((response) => {
+        const res = response as CommonResponse<RouteResponse>
+        if (res?.data) {
+          const routeData = res.data
+          if (routeData) {
+            setRouteCache((prev) => ({ ...prev, [place.id]: routeData }))
+          }
+        }
+      })
+      .catch((err) => {
+        logClientError('모달 이동시간 재조회 실패', err)
+      })
+      .finally(() => {
+        setLoadingRoutes((prev) => ({ ...prev, [place.id]: false }))
+      })
+  }, [showTravelTimeModal, selectedPlaceForDetail, recommendedPlaces, confirmedPlace, meetingUuid, routeCache, loadingRoutes])
 
   // 새 추천 장소 알림은 지도 상단 배너로 처리 (토스트 제거)
   
