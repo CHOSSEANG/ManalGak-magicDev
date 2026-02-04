@@ -142,13 +142,16 @@ public class RouteService {
                         && p.getOrigin().getLongitude() != null)
                 .toList();
 
-        Map<Boolean, List<Participant>> partitioned = validParticipants.stream()
-                .collect(Collectors.partitioningBy(
-                        p -> p.getType() == Participant.TransportType.CAR
-                ));
+        List<Participant> publicParticipants = validParticipants.stream()
+                .filter(p -> p.getType() == Participant.TransportType.PUBLIC
+                        || p.getType() == null)
+                .toList();
 
-        List<Participant> publicParticipants = partitioned.get(false);
-        List<Participant> carParticipants = partitioned.get(true);
+        List<Participant> carParticipants = validParticipants.stream()
+                .filter(p -> p.getType() == Participant.TransportType.CAR)
+                .toList();
+
+        // WALK 참여자는 프론트엔드에서 walkingMinutes로 별도 처리 (ODsay/Kakao API 호출 불필요)
 
         List<RouteResponse.RouteInfo> publicRoutes = List.of();
         if (!publicParticipants.isEmpty()) {
