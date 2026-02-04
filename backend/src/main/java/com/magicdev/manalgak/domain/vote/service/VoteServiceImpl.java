@@ -109,9 +109,17 @@ public class VoteServiceImpl implements VoteService{
 
     @Transactional
     @Override
-    public VoteResponse createVote(String meetingUuid, List<String> options) {
+    public VoteResponse createVote(String meetingUuid, List<String> options, Long userId) {
         if (recommendedPlaceRepository.existsByMeetingMeetingUuid(meetingUuid)) {
             throw new BusinessException(ErrorCode.VOTE_NOT_ALLOWED);
+        }
+
+        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        // 모임장만 투표 생성 가능
+        if (!meeting.getOrganizerId().equals(userId)) {
+            throw new BusinessException(ErrorCode.MEETING_NOT_ORGANIZER);
         }
 
         voteRepository.findFirstByMeeting_MeetingUuid(meetingUuid).ifPresent(existingVote -> {
@@ -120,9 +128,6 @@ public class VoteServiceImpl implements VoteService{
             voteRepository.flush();
             log.info("기존 투표 및 하위 데이터 삭제 완료");
         });
-
-        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
         Vote vote = Vote.create(meeting);
         voteRepository.save(vote);

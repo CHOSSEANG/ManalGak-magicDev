@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface VoteService {
 
-    VoteResponse createVote(String meetingUuid, List<String> options);
+    VoteResponse createVote(String meetingUuid, List<String> options, Long userId);
 
     VoteResponse getVote(Long voteId);
 
