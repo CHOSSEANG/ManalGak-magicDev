@@ -180,7 +180,8 @@ const formatDateTime = (isoString?: string) => {
         </div> 
       </section>
 
-      <div className="relative z-20 mx-auto max-w-[var(--app-max-width)] pb-[calc(96px+env(safe-area-inset-bottom))]">
+      <div className="relative z-20
+      pb-[calc(96px+env(safe-area-inset-bottom))]">
         <CompleteSummaryDrawer meeting={meeting} />
       </div>
     </main>
