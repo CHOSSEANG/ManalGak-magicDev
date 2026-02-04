@@ -387,6 +387,7 @@ export default function MyPage() {
 
           
         </div>
+        
       </main>
 
       <WireframeModal

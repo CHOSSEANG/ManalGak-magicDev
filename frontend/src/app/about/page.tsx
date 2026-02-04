@@ -172,6 +172,8 @@ function IntroSection() {
           </p>
         </CardContent>
       </Card>
+      <div className="h-[env(safe-area-inset-bottom)]" />
+
     </section>
   );
 }
@@ -212,6 +214,8 @@ function IntroSection() {
 //           </Card>
 //         ))}
 //       </div>
+<div className="h-[env(safe-area-inset-bottom)]" />
+
 //     </section>
 //   );
 // }
@@ -259,6 +263,10 @@ function TeamSection() {
           </Card>
         ))}
       </div>
+      <div className="h-[env(safe-area-inset-bottom)]" />
+
     </section>
+
+    
   );
 }
