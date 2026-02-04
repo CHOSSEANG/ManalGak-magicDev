@@ -2,10 +2,11 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Image as Info } from "lucide-react";
-
+import Image from "next/image";
+import { Users, Info, ImageIcon} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 type TabKey = "intro" | "preview" | "team";
 
@@ -39,12 +40,12 @@ export default function AboutPage() {
                 만날각 소개
               </TabsTrigger>
 
-              {/* <TabsTrigger value="preview" className="gap-2">
+              <TabsTrigger value="preview" className="gap-2">
                 <ImageIcon className="h-4 w-4" />
                 미리 보기
-              </TabsTrigger> */}
+              </TabsTrigger>
 
-              <TabsTrigger value="team" className="gap-2 -3">
+              <TabsTrigger value="team" className="gap-2">
                 <Users className="h-4 w-4" />
                 만든 사람들
               </TabsTrigger>
@@ -56,9 +57,9 @@ export default function AboutPage() {
               <IntroSection />
             </TabsContent>
 
-            {/* <TabsContent value="preview" className="m-0">
+            <TabsContent value="preview" className="m-0">
               <PreviewSection />
-            </TabsContent> */}
+            </TabsContent>
 
             <TabsContent value="team" className="m-0">
               <TeamSection />
@@ -178,47 +179,75 @@ function IntroSection() {
   );
 }
 
-// function PreviewSection() {
-//   const steps = [
-//     "모임 신규 생성",
-//     "Step 1. 날짜 / 시간 선택",
-//     "Step 2. 모임 목적",
-//     "Step 3. 참여 멤버",
-//     "Step 4. 출발지 & 교통수단",
-//     "Step 5. 중간지점 & 장소 확정",
-//     "모임 확정 결과 화면",
-//     "옵션 1. 실시간 위치 공유",
-//     "옵션 2. 회비 정산",
-//   ];
+function PreviewSection() {
+  const steps = [
+  {
+    title: "모임 리스트",
+    image: "/images/preview/list.png",
+  },
+  {
+    title: "Step 1. 모임생성",
+    image: "/images/preview/step1.png",
+  },
+  {
+    title: "Step 2. 참여자 추가",
+    image: "/images/preview/step2.png",
+  },
+  {
+    title: "Step 3. 출발지 선택",
+    image: "/images/preview/step3.png",
+  },
+  {
+    title: "Step 4. 추천장소 투표",
+    image: "/images/preview/step4.png",
+  },
+  {
+    title: "모임 확정 결과 화면",
+    image: "/images/preview/result.png",
+  },
+];
 
-//   return (
-//     <section className="space-y-4">
-//       <div className="space-y-1">
-//         <h2 className="text-base font-semibold text-[var(--text)]">미리 보기</h2>
-//         <p className="text-sm text-[var(--text-subtle)]">
-//           실제 화면 캡처(또는 이미지)를 넣기 전 단계용 구조입니다.
-//         </p>
-//       </div>
+  return (
+    <section className="space-y-4">
+      <div className="space-y-1">
+        <h2 className="text-base font-semibold text-[var(--text)]">미리 보기</h2>
+        <p className="text-sm text-[var(--text-subtle)]">
+          실제 화면 캡처(또는 이미지)를 넣기 전 단계용 구조입니다.
+        </p>
+      </div>
 
-//       <div className="grid gap-3 sm:grid-cols-2">
-//         {steps.map((step) => (
-//           <Card key={step} className="border-[var(--border)] bg-[var(--bg)]">
-//             <CardContent className="pt-6 space-y-2">
-//               {/* Placeholder */}
-//               <div className="h-28 w-full rounded-md border border-[var(--border)] bg-[var(--bg-soft)]" />
-//               <p className="text-sm font-medium text-[var(--text)]">{step}</p>
-//               <p className="text-xs text-[var(--text-subtle)]">
-//                 (이미지 교체 예정)
-//               </p>
-//             </CardContent>
-//           </Card>
-//         ))}
-//       </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+          {steps.map((step) => (
+            <Card
+              key={step.title}
+              className="border-[var(--border)] bg-[var(--bg)]"
+            >
+              <CardContent className="pt-6 space-y-3">
+                {/* 이미지 영역 */}
+                <div className="relative w-full aspect-[7/16] overflow-hidden rounded-md border border-[var(--border)] bg-[var(--bg-soft)]">
+                  <Image
+                    src={step.image}
+                    alt={`${step.title} 미리보기`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+
+                {/* 텍스트 */}
+                <p className="text-sm font-medium text-[var(--text)]">
+                  {step.title}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+
 <div className="h-[env(safe-area-inset-bottom)]" />
 
-//     </section>
-//   );
-// }
+     </section>
+   );
+ }
 
 function TeamSection() {
   const members = [
