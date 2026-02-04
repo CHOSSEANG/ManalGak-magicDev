@@ -3,8 +3,6 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import WireframeModal from '@/components/ui/WireframeModal'
-import { toast } from '@/components/ui/use-toast'
-import { ToastAction } from '@/components/ui/toast'
 import VoteOrSelectDrawer from '@/components/meeting/Step3/VoteOrSelectDrawer'
 import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
@@ -35,7 +33,8 @@ import {
   Mountain,
   TreePalm,
   Building2,
-  // 투표모달 미사용으로 숨기기 AlertTriangle,
+  AlertTriangle,
+  CheckCircle2,
   Car,
   Train,
   ExternalLink,
@@ -107,6 +106,10 @@ interface VoteData {
 
 interface Step3PlaceListProps {
   onStatusLoaded?: (status: string) => void
+  onConfirmedChange?: (
+    isConfirmed: boolean,
+    confirmedPlace: RecommendedPlace | null
+  ) => void
 }
 
 /* ================= API BASE ================= */
@@ -215,9 +218,10 @@ function logClientError(message: string, error: unknown) {
   
 /* ================= 컴포넌트 ================= */
 
-export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) {
-  const hasShownToastRef = useRef(false)
-  const handleVoteButtonClickRef = useRef<(() => void) | null>(null)
+export default function Step3PlaceList({
+  onStatusLoaded,
+  onConfirmedChange,
+}: Step3PlaceListProps) {
   const [isNewPlaceAvailable, setIsNewPlaceAvailable] = useState(false)
   // const [mapRefreshKey, setMapRefreshKey] = useState(0)
   const router = useRouter()
@@ -225,29 +229,46 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   const meetingUuid = searchParams.get('meetingUuid')
   const [participants, setParticipants] = useState<Participant[]>([])
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null)
-  const [, setShowVoteModal] = useState(false)
 
   const [, setMiddlePoint] = useState<MiddlePoint | null>(null)
   const [placeSource, setPlaceSource] = useState<
     Omit<RecommendedPlace, 'icon'>[]
   >([])
-  const [isLoadingPlaces, setIsLoadingPlaces] = useState(false)
+  const [, setIsLoadingPlaces] = useState(false)
   // const [isConfirming, setIsConfirming] = useState(false)
   const [voteData, setVoteData] = useState<VoteData | null>(null)
   // const [isVoteLoading, setIsVoteLoading] = useState(true)  // 투표 데이터 로딩 상태
-  const [, setIsCreatingVote] = useState(false)
+  const [isCreatingVote, setIsCreatingVote] = useState(false)
   //const [isVoting, setIsVoting] = useState(false)
   const [organizerId, setOrganizerId] = useState<number | null>(null)
   const [meetingPurpose, setMeetingPurpose] = useState<string | null>(null)
   const { user } = useUser()
   const stompClientRef = useRef<Client | null>(null)
+  const [isConfirmed, setIsConfirmed] = useState(false)
+  const [confirmedPlace, setConfirmedPlace] = useState<RecommendedPlace | null>(
+    null
+  )
 
   const myParticipant = participants.find((p) => p.userId === user?.id)
   const myNickname = myParticipant?.nickName ?? '나'
 
   const isHost =
     organizerId != null && user?.id != null && organizerId === user.id
-  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false)
+  const isHostRef = useRef(isHost)
+  const isConfirmedRef = useRef(isConfirmed)
+
+  useEffect(() => {
+    isHostRef.current = isHost
+  }, [isHost])
+
+  useEffect(() => {
+    isConfirmedRef.current = isConfirmed
+  }, [isConfirmed])
+
+  useEffect(() => {
+    if (!onConfirmedChange) return
+    onConfirmedChange(isConfirmed, confirmedPlace)
+  }, [isConfirmed, confirmedPlace, onConfirmedChange])
 
   // 이동시간 관련 상태
   const [routeCache, setRouteCache] = useState<Record<string, RouteResponse>>({})
@@ -303,11 +324,9 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
           (place): place is Omit<RecommendedPlace, 'icon'> => place !== null
         )
       setPlaceSource(parsedPlaces.slice(0, 6))
-      setHasInitiallyLoaded(true)
     } catch (error) {
       logClientError('추천 장소 조회 실패', error)
       setPlaceSource([])
-      setHasInitiallyLoaded(true)
       try {
         const res = await axios.get(
           `${API_BASE_URL}/v1/meetings/${meetingUuid}/middle-point`,
@@ -332,6 +351,37 @@ export default function Step3PlaceList({ onStatusLoaded }: Step3PlaceListProps) 
   useEffect(() => {
     fetchPlacesAndMidpoint()
   }, [fetchPlacesAndMidpoint])
+
+  /* ================= 확정 장소 조회 ================= */
+
+  const fetchConfirmedPlace = useCallback(async () => {
+    if (!meetingUuid || isConfirmed) return
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/v1/meetings/${meetingUuid}/place`,
+        { withCredentials: true, validateStatus: (s) => s < 500 }
+      )
+      const data = res.data?.data
+      if (!data) return
+      const parsed = parseApiPlace(data)
+      if (!parsed) return
+      const mapped = {
+        ...parsed,
+        icon: pickIconById(parsed.category, parsed.id),
+      }
+      setConfirmedPlace(mapped)
+      setSelectedPlace(mapped.id)
+      setIsConfirmed(true)
+      setIsNewPlaceAvailable(false)
+      setVoteData(null)
+    } catch (error) {
+      logClientError('확정 장소 조회 실패', error)
+    }
+  }, [meetingUuid, isConfirmed])
+
+  useEffect(() => {
+    fetchConfirmedPlace()
+  }, [fetchConfirmedPlace])
 
   /* ================= 이동시간 조회 ================= */
 const fetchTravelTimes = useCallback(
@@ -429,26 +479,6 @@ const fetchTravelTimes = useCallback(
     [fetchTravelTimes]
   )
 
-  const fireNewPlaceToast = useCallback(() => {
-    if (hasShownToastRef.current) return
-
-    hasShownToastRef.current = true
-
-    toast({
-      title: '새로운 추천 장소가 있어요',
-      description: '투표를 진행해 주세요',
-      variant: 'destructive',
-      action: (
-        <ToastAction
-          altText="투표하기"
-          onClick={() => handleVoteButtonClickRef.current?.()}
-        >
-          투표하기
-        </ToastAction>
-      ),
-    })
-  }, [])
-
   /* ================= WebSocket ================= */
 
   const voteDataRef = useRef(voteData)
@@ -461,17 +491,23 @@ const fetchTravelTimes = useCallback(
     const client = new Client({
       webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws`),
       onConnect: () => {
-
         client.subscribe(`/topic/meeting/${meetingUuid}/places`, () => {
-        fetchPlacesAndMidpointRef.current()
-        setRouteCache({})
+          fetchPlacesAndMidpointRef.current()
+          // 추천 장소 변경 시 이동시간 캐시 초기화
+          setRouteCache({})
 
-        if (voteDataRef.current) {
-          fireNewPlaceToast()
-        }
-      })
+          // 모달 열림 상태에서 장소 변경 시, 이동시간 재조회는
+          // placeSource 변경 → recommendedPlaces 변경 → useEffect에서 처리
 
-        
+          if (
+            voteDataRef.current &&
+            isHostRef.current &&
+            !isConfirmedRef.current
+          ) {
+            setIsNewPlaceAvailable(true)
+          }
+        })
+
         if (voteData?.voteId) {
           client.subscribe(`/topic/votes/${voteData.voteId}`, (message) => {
             try {
@@ -501,42 +537,31 @@ const fetchTravelTimes = useCallback(
             logClientError('투표 갱신 처리 실패', error)
           }
         })
+        client.subscribe(`/topic/meeting/${meetingUuid}/confirmed`, (message) => {
+          try {
+            const data = JSON.parse(message.body)
+            const rawPlace = data?.place ?? data
+            const parsed = parseApiPlace(rawPlace)
+            if (parsed) {
+              const mapped = {
+                ...parsed,
+                icon: pickIconById(parsed.category, parsed.id),
+              }
+              setConfirmedPlace(mapped)
+              setSelectedPlace(mapped.id)
+              setIsConfirmed(true)
+              setIsNewPlaceAvailable(false)
+              setVoteData(null)
 
-        client.subscribe(`/topic/meeting/${meetingUuid}/places`, () => {
-          fetchPlacesAndMidpointRef.current()
-          // setMapRefreshKey((p) => p + 1)
-          // 추천 장소 변경 시 이동시간 캐시 초기화
-          setRouteCache({})
-
-          // 모달이 열려있으면 해당 장소의 이동시간 다시 조회
-          if (showTravelTimeModalRef.current && selectedPlaceForDetailRef.current) {
-            const place = recommendedPlacesRef.current.find(
-              (p) => p.id === selectedPlaceForDetailRef.current
-            )
-            if (place?.latitude && place?.longitude) {
-              // 약간의 딜레이 후 재조회 (추천장소 갱신 후)
-              setTimeout(() => {
-                setLoadingRoutes((prev) => ({ ...prev, [place.id]: true }))
-                calculateRoutes(meetingUuid, {
-                  latitude: place.latitude!,
-                  longitude: place.longitude!,
-                }).then((response) => {
-                  const res = response as CommonResponse<RouteResponse>
-                  if (res?.data) {
-                    const data = res.data
-                    setRouteCache((prev) => ({ ...prev, [place.id]: data }))
-                  }
-                }).catch((err) => {
-                  logClientError('모달 이동시간 재조회 실패', err)
-                }).finally(() => {
-                  setLoadingRoutes((prev) => ({ ...prev, [place.id]: false }))
-                })
-              }, 500)
+              // 참가자(모임장이 아닌 경우) 5초 후 자동 이동
+              if (!isHostRef.current) {
+                setTimeout(() => {
+                  router.push(`/meetings/${meetingUuid}/complete`)
+                }, 5000)
+              }
             }
-          }
-
-          if (voteDataRef.current) {
-            setIsNewPlaceAvailable(true)
+          } catch (error) {
+            logClientError('확정 메시지 처리 실패', error)
           }
         })
       },
@@ -547,7 +572,7 @@ const fetchTravelTimes = useCallback(
       client.deactivate()
       stompClientRef.current = null
     }
-  }, [voteData?.voteId, meetingUuid, fireNewPlaceToast])
+  }, [voteData?.voteId, meetingUuid])
 
   /* ================= 참여자 ================= */
 
@@ -644,9 +669,10 @@ useEffect(() => {
   const selectedPlaceDetail = useMemo(
     () =>
       selectedPlaceForDetail
-        ? recommendedPlaces.find((p) => p.id === selectedPlaceForDetail) ?? null
+        ? recommendedPlaces.find((p) => p.id === selectedPlaceForDetail) ??
+          (confirmedPlace?.id === selectedPlaceForDetail ? confirmedPlace : null)
         : null,
-    [recommendedPlaces, selectedPlaceForDetail]
+    [recommendedPlaces, selectedPlaceForDetail, confirmedPlace]
   )
 
   const selectedPlaceRouteData = selectedPlaceForDetail
@@ -655,37 +681,37 @@ useEffect(() => {
 
 
 
-  // src/components/meeting/Step3PlaceList.tsx
-
-useEffect(() => {
-  if (!meetingUuid || !hasInitiallyLoaded || isLoadingPlaces) return
-
-  if (!isNewPlaceAvailable || hasShownToastRef.current) return
-
-  hasShownToastRef.current = true
-
-  toast({
-    title: '새로운 추천 장소가 있어요',
-    description: '투표를 진행해 주세요',
-    variant: 'destructive',
-    action: (
-      <ToastAction
-        altText="투표하기"
-        onClick={() => setShowVoteModal(true)}
-      >
-        투표하기
-      </ToastAction>
-    ),
-  })
-}, [isNewPlaceAvailable, meetingUuid, hasInitiallyLoaded, isLoadingPlaces])
-
-
-  // 2/3)[율] 새추천천 있을시, 새 토스트로 추천장소 투표 요청  
+  // 모달이 열려있을 때 장소 목록이 바뀌면 해당 장소 이동시간 재조회
   useEffect(() => {
-  if (!isNewPlaceAvailable) {
-    hasShownToastRef.current = false
-  }
-}, [isNewPlaceAvailable])
+    if (!showTravelTimeModal || !selectedPlaceForDetail || !meetingUuid) return
+    const place = recommendedPlaces.find((p) => p.id === selectedPlaceForDetail)
+      ?? (confirmedPlace?.id === selectedPlaceForDetail ? confirmedPlace : null)
+    if (!place?.latitude || !place?.longitude) return
+    if (routeCache[place.id] || loadingRoutes[place.id]) return
+
+    setLoadingRoutes((prev) => ({ ...prev, [place.id]: true }))
+    calculateRoutes(meetingUuid, {
+      latitude: place.latitude,
+      longitude: place.longitude,
+    })
+      .then((response) => {
+        const res = response as CommonResponse<RouteResponse>
+        if (res?.data) {
+          const routeData = res.data
+          if (routeData) {
+            setRouteCache((prev) => ({ ...prev, [place.id]: routeData }))
+          }
+        }
+      })
+      .catch((err) => {
+        logClientError('모달 이동시간 재조회 실패', err)
+      })
+      .finally(() => {
+        setLoadingRoutes((prev) => ({ ...prev, [place.id]: false }))
+      })
+  }, [showTravelTimeModal, selectedPlaceForDetail, recommendedPlaces, confirmedPlace, meetingUuid, routeCache, loadingRoutes])
+
+  // 새 추천 장소 알림은 지도 상단 배너로 처리 (토스트 제거)
   
 
   /* ================= 투표 ================= */
@@ -711,7 +737,7 @@ useEffect(() => {
     const initFetchVote = async () => {
       const fetchedVote = await fetchVote()
       if (!cancelled) {
-        if (fetchedVote) setVoteData(fetchedVote)
+        if (fetchedVote && !isConfirmed) setVoteData(fetchedVote)
         // setIsVoteLoading(false)  // 로딩 완료
       }
     }
@@ -719,9 +745,10 @@ useEffect(() => {
     return () => {
       cancelled = true
     }
-  }, [meetingUuid, fetchVote])
+  }, [meetingUuid, fetchVote, isConfirmed])
 
   const createVote = async () => {
+    if (isConfirmed) return
     if (!meetingUuid || !isHost) {
       alert('모임장만 투표를 생성할 수 있습니다.')
       return
@@ -737,13 +764,13 @@ useEffect(() => {
       const storageKey = `place-signature-${meetingUuid}`
       localStorage.setItem(storageKey, placeSignature)
       setIsNewPlaceAvailable(false)
-      setShowVoteModal(true)
     } finally {
       setIsCreatingVote(false)
     }
   }
 
   const submitVote = async (optionId: number) => {
+    if (isConfirmed) return
     if (!voteData) return
     // 2/3율 투표모달 미사용 setIsVoting(true)
     try {
@@ -756,8 +783,8 @@ useEffect(() => {
         (p) => p.userId === user?.id
       )?.participantId
       if (myParticipantId) {
-        setVoteData((prev) => {
-          if (!prev) return prev
+      setVoteData((prev) => {
+        if (!prev) return prev
           return {
             ...prev,
             options: prev.options.map((opt) => {
@@ -779,13 +806,13 @@ useEffect(() => {
           }
         })
       }
-      setShowVoteModal(false)
     } finally {
       // 2/3) 율 투표모달 미사용 setIsVoting(false)
     }
   }
 
   const handleVoteButtonClick = async () => {
+    if (isConfirmed) return
     if (!meetingUuid) return
     const hasVote = Boolean(voteData?.options?.length)
     if (isHost && (!hasVote || isNewPlaceAvailable)) {
@@ -793,9 +820,7 @@ useEffect(() => {
       setIsNewPlaceAvailable(false)
       return
     }
-    if (hasVote) setShowVoteModal(true)
   }
-  handleVoteButtonClickRef.current = handleVoteButtonClick
 
   /* ================= 확정 ================= */
 
@@ -852,8 +877,59 @@ useEffect(() => {
   // if (isConfirming) confirmLabel = '확정 중...'
   // else if (!isHost) confirmLabel = '모임장만 확정할 수 있습니다'
 
+  const handleGoComplete = useCallback(() => {
+    if (!meetingUuid) return
+    router.push(`/meetings/${meetingUuid}/complete`)
+  }, [meetingUuid, router])
+
   return (
     <div className="relative">
+      {/* ================= 확정 배너 ================= */}
+      {isConfirmed && confirmedPlace && (
+        <div className="fixed left-1/2 top-24 z-20 -translate-x-1/2">
+          <div
+            className="
+              flex items-center gap-2
+              rounded-full
+              bg-[var(--success-soft)]
+              px-4 py-2
+              text-sm font-medium text-[var(--success)]
+              shadow-lg
+              pointer-events-auto
+            "
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            장소가 확정되었습니다! {confirmedPlace.name}
+            {!isHost && (
+              <span className="ml-1 text-xs opacity-75">
+                · 잠시 후 이동합니다
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ================= 새 장소 알림 배너 (모임장 전용) ================= */}
+      {isHost && isNewPlaceAvailable && !isConfirmed && (
+        <div className="fixed left-1/2 top-28 z-20 -translate-x-1/2">
+          <button
+            type="button"
+            onClick={handleVoteButtonClick}
+            className="
+              flex items-center gap-2
+              rounded-full
+              bg-[var(--danger-soft)]
+              px-4 py-2
+              text-sm font-medium text-[var(--danger)]
+              shadow-lg
+              pointer-events-auto
+            "
+          >
+            <AlertTriangle className="h-4 w-4" />
+            새로운 추천 장소가 있어요 · 투표하기
+          </button>
+        </div>
+      )}
       
       {/* ================= 투표 / 선택 Drawer ================= */}
       <VoteOrSelectDrawer
@@ -865,11 +941,22 @@ useEffect(() => {
         onVote={submitVote}
         onConfirm={handleConfirmPlace}
         onSelectPlace={(placeId) => {
-          const place = recommendedPlaces.find((p) => p.id === placeId)
+          const place =
+            recommendedPlaces.find((p) => p.id === placeId) ||
+            (confirmedPlace?.id === placeId ? confirmedPlace : null)
           if (place) {
             handlePlaceClick(place)   // 🔥 기존 모달 로직 재사용
           }
         }}
+        routeCache={routeCache}
+        loadingRoutes={loadingRoutes}
+        myParticipant={myParticipant}
+        isCreatingVote={isCreatingVote}
+        isNewPlaceAvailable={isNewPlaceAvailable}
+        onCreateVote={createVote}
+        isConfirmed={isConfirmed}
+        confirmedPlace={confirmedPlace}
+        onGoComplete={handleGoComplete}
       />
 
 
@@ -1079,12 +1166,19 @@ useEffect(() => {
                   (route, idx) => (
                     <div
                       key={idx}
-                      className="flex justify-between rounded-lg border p-3"
+                      className="flex items-center justify-between rounded-lg border p-3"
                     >
-                      <span>{route.participantName}</span>
-                      <span className="font-bold text-[var(--danger)]">
-                        {route.travelTime}분
+                      <span className="text-sm font-medium text-[var(--text)]">
+                        {route.participantName}
                       </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] text-[var(--text-subtle)]">
+                          환승 {route.transferCount}회
+                        </span>
+                        <span className="text-sm font-bold text-[var(--danger)]">
+                          {route.travelTime}분
+                        </span>
+                      </div>
                     </div>
                   )
                 )}
@@ -1105,12 +1199,19 @@ useEffect(() => {
                   (route, idx) => (
                     <div
                       key={idx}
-                      className="flex justify-between rounded-lg border p-3"
+                      className="flex items-center justify-between rounded-lg border p-3"
                     >
-                      <span>{route.participantName}</span>
-                      <span className="font-bold text-[var(--danger)]">
-                        {route.travelTime}분
+                      <span className="text-sm font-medium text-[var(--text)]">
+                        {route.participantName}
                       </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] text-[var(--text-subtle)]">
+                          {(route.distance / 1000).toFixed(1)}km
+                        </span>
+                        <span className="text-sm font-bold text-[var(--danger)]">
+                          {route.travelTime}분
+                        </span>
+                      </div>
                     </div>
                   )
                 )}

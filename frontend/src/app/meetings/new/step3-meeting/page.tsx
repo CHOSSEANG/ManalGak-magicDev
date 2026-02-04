@@ -127,6 +127,8 @@ function Step3MembersContent(): JSX.Element {
 
   const [originAddress, setOriginAddress] = useState("");
   const [transport, setTransport] = useState<TransportMode | null>(null);
+  const [initialOriginAddress, setInitialOriginAddress] = useState<string | null>(null);
+  const [initialTransport, setInitialTransport] = useState<TransportMode | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [myParticipantId, setMyParticipantId] = useState<number | null>(null);
   const [meetingData, setMeetingData] = useState<MeetingData | null>(null);
@@ -178,12 +180,12 @@ const applyAddress = (address: string) => {
 
         if (myParticipant) {
           setMyParticipantId(myParticipant.participantId);
-          if (myParticipant.origin?.address) {
-            setOriginAddress(myParticipant.origin.address);
-          }
-          if (myParticipant.transportType) {
-            setTransport(myParticipant.transportType);
-          }
+          const originValue = myParticipant.origin?.address ?? "";
+          setOriginAddress(originValue);
+          setInitialOriginAddress(originValue);
+          const transportValue = myParticipant.transportType ?? null;
+          setTransport(transportValue);
+          setInitialTransport(transportValue);
         } else {
           await axios.post(
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants`,
@@ -328,14 +330,19 @@ const applyAddress = (address: string) => {
               throw new Error("입력값 부족");
             }
 
-            await axios.patch(
-              `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants/${myParticipantId}`,
-              {
-                type: transport,
-                originAddress,
-              },
-              { withCredentials: true }
-            );
+            const isAddressChanged = originAddress !== (initialOriginAddress ?? "");
+            const isTransportChanged = transport !== initialTransport;
+
+            if (isAddressChanged || isTransportChanged) {
+              await axios.patch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/meetings/${meetingUuid}/participants/${myParticipantId}`,
+                {
+                  type: transport,
+                  originAddress,
+                },
+                { withCredentials: true }
+              );
+            }
 
             return `/meetings/new/step4-result?meetingUuid=${meetingUuid}`;
           }}

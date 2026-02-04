@@ -6,6 +6,7 @@ import com.magicdev.manalgak.domain.meeting.entity.Meeting;
 import com.magicdev.manalgak.domain.meeting.repository.MeetingRepository;
 import com.magicdev.manalgak.domain.participant.entity.Participant;
 import com.magicdev.manalgak.domain.participant.repository.ParticipantRepository;
+import com.magicdev.manalgak.domain.place.repository.RecommendedPlaceRepository;
 import com.magicdev.manalgak.domain.vote.dto.VoteResponse;
 import com.magicdev.manalgak.domain.vote.dto.VoteResultMessage;
 import com.magicdev.manalgak.domain.vote.entity.Vote;
@@ -34,6 +35,7 @@ public class VoteServiceImpl implements VoteService{
     private final VoteRecordRepository voteRecordRepository;
     private final MeetingRepository meetingRepository;
     private final ParticipantRepository participantRepository;
+    private final RecommendedPlaceRepository recommendedPlaceRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional(readOnly = true)
@@ -51,6 +53,10 @@ public class VoteServiceImpl implements VoteService{
 
         Vote vote = voteRepository.findById(voteId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.VOTE_NOT_FOUND));
+
+        if (recommendedPlaceRepository.existsByMeetingMeetingUuid(vote.getMeeting().getMeetingUuid())) {
+            throw new BusinessException(ErrorCode.VOTE_NOT_ALLOWED);
+        }
 
         VoteOption option = voteOptionRepository.findById(optionId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.VOTE_OPTION_NOT_FOUND));
@@ -103,16 +109,25 @@ public class VoteServiceImpl implements VoteService{
 
     @Transactional
     @Override
-    public VoteResponse createVote(String meetingUuid, List<String> options) {
+    public VoteResponse createVote(String meetingUuid, List<String> options, Long userId) {
+        if (recommendedPlaceRepository.existsByMeetingMeetingUuid(meetingUuid)) {
+            throw new BusinessException(ErrorCode.VOTE_NOT_ALLOWED);
+        }
+
+        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        // 모임장만 투표 생성 가능
+        if (!meeting.getOrganizerId().equals(userId)) {
+            throw new BusinessException(ErrorCode.MEETING_NOT_ORGANIZER);
+        }
+
         voteRepository.findFirstByMeeting_MeetingUuid(meetingUuid).ifPresent(existingVote -> {
             voteRepository.delete(existingVote);
 
             voteRepository.flush();
             log.info("기존 투표 및 하위 데이터 삭제 완료");
         });
-
-        Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
         Vote vote = Vote.create(meeting);
         voteRepository.save(vote);
@@ -147,4 +162,3 @@ public class VoteServiceImpl implements VoteService{
     }
 
 }
-

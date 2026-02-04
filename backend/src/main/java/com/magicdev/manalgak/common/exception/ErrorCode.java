@@ -70,7 +70,8 @@ public enum ErrorCode {
      * ===================== */
     VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "투표를 찾을 수 없음"),
     VOTE_OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 옵션을 찾을 수 없음"),
-    VOTE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 투표가 존재함");
+    VOTE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 투표가 존재함"),
+    VOTE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "이미 장소가 확정되어 투표할 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

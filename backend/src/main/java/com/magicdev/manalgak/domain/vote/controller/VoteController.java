@@ -23,13 +23,14 @@ public class VoteController {
     private final VoteService voteService;
     private final SimpMessagingTemplate messagingTemplate;
     @Operation(summary =  "투표 생성",
-            description = "해당 모임에 대한 투표를 생성합니다.")
+            description = "해당 모임에 대한 투표를 생성합니다. 모임장만 가능합니다.")
     @PostMapping("/meeting/{meetingUuid}")
     public CommonResponse<VoteResponse> createVote(
             @PathVariable String meetingUuid,
-            @RequestBody VoteCreateRequest request
+            @RequestBody VoteCreateRequest request,
+            @AuthenticationPrincipal Long userId
     ) {
-        VoteResponse vote = voteService.createVote(meetingUuid, request.getOptions());
+        VoteResponse vote = voteService.createVote(meetingUuid, request.getOptions(), userId);
 
         return CommonResponse.success(vote);
     }
