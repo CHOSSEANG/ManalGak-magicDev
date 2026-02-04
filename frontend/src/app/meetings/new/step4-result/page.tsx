@@ -14,6 +14,8 @@ function Step4Content(): JSX.Element {
   const searchParams = useSearchParams();
   const meetingUuid = searchParams.get("meetingUuid");
   const [meetingStatus, setMeetingStatus] = useState<string | null>(null);
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [confirmedPlaceName, setConfirmedPlaceName] = useState<string | null>(null);
 
   // ✅ Step4 진입 시 body 스크롤 잠금
   useEffect(() => {
@@ -48,8 +50,15 @@ function Step4Content(): JSX.Element {
           추천 장소 확정
         </h1>
         <p className="mt-1 text-sm text-[var(--text-subtle)] drop-shadow-sm">
-          최종 장소를 확정하세요.
+          {isConfirmed
+            ? "장소가 이미 확정되었습니다."
+            : "최종 장소를 확정하세요."}
         </p>
+        {isConfirmed && confirmedPlaceName && (
+          <p className="mt-1 text-xs text-[var(--text-subtle)] drop-shadow-sm">
+            확정 장소: {confirmedPlaceName}
+          </p>
+        )}
       </header>
 
       {/* ================= 하단 Drawer 영역 ================= */}
@@ -62,7 +71,13 @@ function Step4Content(): JSX.Element {
             </div>
           }
         >
-          <Step3PlaceList onStatusLoaded={setMeetingStatus} />
+          <Step3PlaceList
+            onStatusLoaded={setMeetingStatus}
+            onConfirmedChange={(confirmed, place) => {
+              setIsConfirmed(confirmed);
+              setConfirmedPlaceName(place?.name ?? null);
+            }}
+          />
         </Suspense>
       </div>
     </>
