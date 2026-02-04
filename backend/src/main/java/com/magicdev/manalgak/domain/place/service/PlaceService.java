@@ -283,9 +283,14 @@ public class PlaceService {
      * 선택한 장소 저장
      */
     @Transactional
-    public PlaceResponse.Place saveSelectedPlace(String meetingUuid, PlaceSelectRequest request) {
+    public PlaceResponse.Place saveSelectedPlace(String meetingUuid, PlaceSelectRequest request, Long userId) {
         Meeting meeting = meetingRepository.findByMeetingUuid(meetingUuid)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        // 모임장만 장소 확정 가능
+        if (!meeting.getOrganizerId().equals(userId)) {
+            throw new BusinessException(ErrorCode.MEETING_NOT_ORGANIZER);
+        }
 
         // 기존 선택 장소가 있으면 삭제 (1개의 모임에 1개의 선택 장소만 허용)
         if (recommendedPlaceRepository.existsByMeetingMeetingUuid(meetingUuid)) {

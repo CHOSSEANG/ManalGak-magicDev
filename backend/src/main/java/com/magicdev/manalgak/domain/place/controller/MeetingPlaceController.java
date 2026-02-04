@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,13 +39,14 @@ public class MeetingPlaceController {
     @PostMapping("/place/select")
     @Operation(
             summary = "장소 선택 저장",
-            description = "사용자가 선택한 장소를 DB에 저장합니다."
+            description = "모임장이 선택한 장소를 DB에 저장합니다. 모임장만 가능합니다."
     )
     public ResponseEntity<CommonResponse<PlaceResponse.Place>> selectPlace(
             @PathVariable String meetingUuid,
-            @RequestBody PlaceSelectRequest request
+            @RequestBody PlaceSelectRequest request,
+            @AuthenticationPrincipal Long userId
     ) {
-        PlaceResponse.Place selectedPlace = placeService.saveSelectedPlace(meetingUuid, request);
+        PlaceResponse.Place selectedPlace = placeService.saveSelectedPlace(meetingUuid, request, userId);
         return ResponseEntity.ok(CommonResponse.success(selectedPlace));
     }
 
