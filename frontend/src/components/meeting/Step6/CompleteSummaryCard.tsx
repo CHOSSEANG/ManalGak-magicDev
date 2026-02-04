@@ -248,7 +248,7 @@ const handleDirection = () => {
           </div>
 
           {/* 주소 + 길찾기 */}
-        <div className="flex items-start gap-4 items-center ">
+        <div className="flex gap-4 items-center ">
           <div className="flex pt-0.5"> 
             <MapPinned
               className="h-6 w-6"

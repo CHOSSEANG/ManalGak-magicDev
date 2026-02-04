@@ -107,7 +107,7 @@ const formatDateTime = (isoString?: string) => {
 
   const hours = date.getHours()
   const minutes = String(date.getMinutes()).padStart(2, '0')
-  const period = hours < 12 ? '오전' : '오후'
+  const period = hours < 12 ? 'am' : 'pm'
   const displayHour = hours % 12 || 12
 
   return `${yyyy}.${mm}.${dd} ${period} ${displayHour}:${minutes}`
@@ -174,7 +174,7 @@ const formatDateTime = (isoString?: string) => {
               rounded
             "
           >
-            {resolvedData?.meetingName || '-'} , {formatDateTime(resolvedData?.dateTime) || '-'}
+            {resolvedData?.meetingName || '-'} ․ {formatDateTime(resolvedData?.dateTime) || '-'}
 
           </p>
         </div> 
